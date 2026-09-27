@@ -1,3 +1,4 @@
+import { watches } from '../../data/watches';
 import { describe, expect, it } from 'vitest';
 import { createI18n } from './index';
 import { getCaliber } from '../../data/calibers';
@@ -46,6 +47,15 @@ describe('self-winding content', () => {
       const i18n = await createI18n(lang);
       const body = i18n.t('eta-2824-2:steps.auto-reversers.body');
       expect(body).not.toMatch(/空回り|freewheels/);
+    }
+  });
+});
+
+describe('watch content', () => {
+  it('has a summary for every watch in both languages', async () => {
+    for (const lang of ['ja', 'en'] as const) {
+      const i18n = await createI18n(lang);
+      for (const id of Object.keys(watches)) expect(i18n.getResource(lang, 'watches', `${id}.summary`), `${lang} ${id}`).toBeTypeOf('string');
     }
   });
 });
