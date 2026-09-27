@@ -308,3 +308,21 @@ test('leaving the crown chapter restarts the balance', async ({ page }) => {
   await page.getByRole('button', { name: '時を刻む' }).click();
   expect(await page.evaluate(() => window.__caseback!.state().crownPos)).toBe(0);
 });
+
+test('watch page shows its name and a display caseback shows the movement', async ({ page }) => {
+  await page.goto('/watches/hamilton/khaki-field-auto-h70455553?lang=en');
+  await expect(page.locator('.intro .eyebrow')).toContainText('Hamilton Khaki Field Auto');
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: 'test-results/watch-hamilton-intro.png' });
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('balance'));
+  expect(x).toBeGreaterThan(0);
+  expect(y).toBeGreaterThan(0);
+});
+
+test('dive bezel watch opens into the same tour', async ({ page }) => {
+  await page.goto('/watches/tudor/heritage-black-bay-79220b?lang=ja');
+  await ready(page);
+  await page.getByRole('button', { name: '裏蓋を開ける' }).click();
+  await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
+  await expect(page.locator('.info h1')).toHaveText('動力が時を刻むまで');
+});

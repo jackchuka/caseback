@@ -43,7 +43,7 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
           <group ref={(g) => { flipGroup.current = g; }}>
           <Movement caliber={caliber}>
             <FlowPaths caliber={caliber} />
-            <Exterior caliber={caliber} />
+            <Exterior caliber={caliber} watch={watch} />
           </Movement>
           </group>
           <CameraRig caliber={caliber} />
@@ -51,8 +51,8 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
         <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={90} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />
         {quality === 'high' && <Effects />}
       </Canvas>
-      <TopBar caliber={caliber} />
-      <Intro caliber={caliber} />
+      <TopBar caliber={caliber} watch={watch} />
+      <Intro caliber={caliber} watch={watch} />
       <InfoPanel caliber={caliber} />
       <TourBar caliber={caliber} />
       <Dock />

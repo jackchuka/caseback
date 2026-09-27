@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import type { Caliber } from '../model/schema';
+import type { Watch } from '../model/watch';
 import { useApp } from '../state/app';
 
-export function TopBar({ caliber }: { caliber: Caliber }) {
+export function TopBar({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
   const { t } = useTranslation();
   const lang = useApp((s) => s.lang);
   const setLang = useApp((s) => s.setLang);
@@ -13,7 +14,7 @@ export function TopBar({ caliber }: { caliber: Caliber }) {
       <div className="brand">
         {t('ui:brand')}
         <small>
-          {caliber.name} · {t('ui:tagline')}
+          {watch ? `${watch.brand} ${watch.model} · ${caliber.name}` : caliber.name} · {t('ui:tagline')}
         </small>
       </div>
       <div className="controls">
