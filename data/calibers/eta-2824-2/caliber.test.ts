@@ -71,3 +71,25 @@ describe('ETA 2824-2 escapement layout', () => {
     expect(Math.hypot(fork.pos.x + tx - (bal.pos.x + jx), fork.pos.y + ty - (bal.pos.y + jy))).toBeLessThan(0.3);
   });
 });
+
+describe('ETA 2824-2 dial side', () => {
+  it('minute hand turns once per hour, clockwise from the dial (positive local angle)', () => {
+    const d = solve({ t: 3600, explode: 0 }).get('minute-hand')!.angle - solve({ t: 0, explode: 0 }).get('minute-hand')!.angle;
+    expect(d).toBeCloseTo(TAU, 9);
+  });
+  it('hour hand turns once per 12 hours', () => {
+    expect(turns('hour-hand', 43200)).toBeCloseTo(1, 9);
+  });
+  it('date driving wheel turns once per day and the ring advances one date', () => {
+    expect(turns('date-driver', 86400)).toBeCloseTo(1, 9);
+    const r = (t: number) => solve({ t, explode: 0 }).get('date-ring')!.angle;
+    expect(Math.abs(r(86400 + 60) - r(60))).toBeCloseTo(TAU / 31, 9);
+  });
+  it('hands show 10:08 at 10:08:00', () => {
+    const t = 10 * 3600 + 8 * 60;
+    const m = solve({ t, explode: 0 }).get('minute-hand')!.angle - solve({ t: 0, explode: 0 }).get('minute-hand')!.angle;
+    const h = solve({ t, explode: 0 }).get('hour-hand')!.angle - solve({ t: 0, explode: 0 }).get('hour-hand')!.angle;
+    expect((m / TAU) % 1).toBeCloseTo(8 / 60, 6);
+    expect(h / TAU).toBeCloseTo((10 + 8 / 60) / 12, 6);
+  });
+});

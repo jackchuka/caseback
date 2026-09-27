@@ -20,7 +20,8 @@
   "dock": {
     "back": "‹ Back to tour",
     "explode": "Explode",
-    "speed": "Speed"
+    "speed": "Speed",
+    "flip": "Flip over"
   },
   "hint": {
     "tour": "← → to move · drag to rotate",
@@ -39,7 +40,11 @@
     "pallets": "Pallet stones",
     "lift": "Lift angle",
     "vph": "Beat rate (vph)",
-    "frequency": "Frequency"
+    "frequency": "Frequency",
+    "ratio": "Minute : hour",
+    "wheels": "Wheels",
+    "reduction": "Reduction",
+    "step": "Advance"
   },
   "fallback": {
     "title": "3D is not available",

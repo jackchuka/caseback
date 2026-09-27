@@ -1,27 +1,160 @@
 {
-  "chapters": { "time": { "title": "Keeping time" } },
+  "chapters": {
+    "time": {
+      "title": "Keeping time"
+    },
+    "hands": {
+      "title": "Moving the hands"
+    },
+    "date": {
+      "title": "Turning the date"
+    }
+  },
   "steps": {
-    "time-overview": { "kicker": "Overview", "title": "From power to time", "body": "The force of the mainspring turns into speed as it passes through the wheels, and is finally sliced into equal beats by the balance. Follow the light to trace the flow." },
-    "time-barrel": { "kicker": "1 · Power", "body": "The coiled mainspring inside wants to unwind. That urge powers the entire watch and stores about {{specs.powerReserveH}} hours of energy." },
-    "time-center": { "kicker": "2 · Going train", "body": "Pushed by the barrel, it turns exactly once an hour and carries the minute hand. From here on, every wheel turns faster than the last." },
-    "time-third": { "kicker": "3 · Going train", "body": "Its {{parts.third-wheel.teeth}} teeth drive a pinion of {{parts.fourth-pinion.teeth}} leaves, trading force for speed. It links the center wheel and the fourth wheel." },
-    "time-fourth": { "kicker": "4 · Going train", "body": "It turns exactly once a minute. The seconds hand takes its motion from this wheel." },
-    "time-escape": { "kicker": "5 · Escapement", "body": "The last wheel of the train. Left alone it would spin away; the pallet fork stops and releases it one tooth at a time. This is where the tick-tock comes from." },
-    "time-fork": { "kicker": "6 · Escapement", "body": "Two ruby pallet stones lock the escape wheel in turn, and at each release give the balance a small push that keeps it swinging." },
-    "time-balance": { "kicker": "7 · Regulator", "body": "Paired with its hairspring, it beats {{specs.beatsPerSecond}} times a second ({{specs.hz}} full swings). This steady period sets the pace of the whole watch." }
+    "time-overview": {
+      "kicker": "Overview",
+      "title": "From power to time",
+      "body": "The force of the mainspring turns into speed as it passes through the wheels, and is finally sliced into equal beats by the balance. Follow the light to trace the flow."
+    },
+    "time-barrel": {
+      "kicker": "1 · Power",
+      "body": "The coiled mainspring inside wants to unwind. That urge powers the entire watch and stores about {{specs.powerReserveH}} hours of energy."
+    },
+    "time-center": {
+      "kicker": "2 · Going train",
+      "body": "Pushed by the barrel, it turns exactly once an hour and carries the minute hand. From here on, every wheel turns faster than the last."
+    },
+    "time-third": {
+      "kicker": "3 · Going train",
+      "body": "Its {{parts.third-wheel.teeth}} teeth drive a pinion of {{parts.fourth-pinion.teeth}} leaves, trading force for speed. It links the center wheel and the fourth wheel."
+    },
+    "time-fourth": {
+      "kicker": "4 · Going train",
+      "body": "It turns exactly once a minute. The seconds hand takes its motion from this wheel."
+    },
+    "time-escape": {
+      "kicker": "5 · Escapement",
+      "body": "The last wheel of the train. Left alone it would spin away; the pallet fork stops and releases it one tooth at a time. This is where the tick-tock comes from."
+    },
+    "time-fork": {
+      "kicker": "6 · Escapement",
+      "body": "Two ruby pallet stones lock the escape wheel in turn, and at each release give the balance a small push that keeps it swinging."
+    },
+    "time-balance": {
+      "kicker": "7 · Regulator",
+      "body": "Paired with its hairspring, it beats {{specs.beatsPerSecond}} times a second ({{specs.hz}} full swings). This steady period sets the pace of the whole watch."
+    },
+    "hands-overview": {
+      "kicker": "Motion works",
+      "title": "Under the dial",
+      "body": "Turn the movement over and the motion works appear under the dial. They split the center wheel's rotation into the speeds of the minute and hour hands."
+    },
+    "hands-cannon": {
+      "kicker": "1 · Motion works",
+      "body": "Held on the center arbor by friction, it carries the minute hand. When you set the time this friction slips, so the hands turn without forcing the train."
+    },
+    "hands-minute-wheel": {
+      "kicker": "2 · Motion works",
+      "body": "Its {{parts.minute-wheel.teeth}} teeth slow the cannon pinion by three, and its {{parts.minute-pinion.teeth}}-leaf pinion passes the motion on to the hour wheel."
+    },
+    "hands-hour": {
+      "kicker": "3 · Motion works",
+      "body": "It turns once in twelve hours and carries the hour hand. 3 × 4 = 12 gives exactly twelve turns of the minute hand per turn of the hour hand."
+    },
+    "date-driver": {
+      "kicker": "1 · Calendar",
+      "body": "Meshed with the hour wheel, it turns once a day. Its finger pushes one tooth of the date ring once every 24 hours."
+    },
+    "date-ring": {
+      "kicker": "2 · Calendar",
+      "body": "A ring with 31 teeth on the inside. Around midnight the finger pushes it forward by one day."
+    }
   },
   "parts": {
-    "plate": { "name": "Main plate", "en": "Main plate", "body": "The foundation every part sits on. The small overlapping circles are a decorative finish called perlage." },
-    "barrel": { "name": "Barrel", "en": "Barrel", "body": "The drum that holds the mainspring. Its toothed rim sends power into the going train." },
-    "ratchet": { "name": "Ratchet wheel", "en": "Ratchet wheel", "body": "Turns with the barrel arbor to wind the mainspring." },
-    "center": { "name": "Center wheel", "en": "Center wheel", "body": "Turns once an hour and drives the minute hand." },
-    "third": { "name": "Third wheel", "en": "Third wheel", "body": "The intermediate wheel between the center and fourth wheels." },
-    "fourth": { "name": "Fourth wheel", "en": "Fourth wheel", "body": "Turns once a minute and drives the seconds." },
-    "escape": { "name": "Escape wheel", "en": "Escape wheel", "body": "The last wheel of the train, released one tooth at a time by the pallet fork." },
-    "fork": { "name": "Pallet fork", "en": "Pallet fork", "body": "The lever that locks and releases the escape wheel and impulses the balance." },
-    "balance": { "name": "Balance wheel", "en": "Balance wheel", "body": "The oscillator that, with its hairspring, swings at a constant period." },
-    "train-bridge": { "name": "Train bridge", "en": "Train bridge", "body": "Holds the wheel arbors from above. The stripes are Côtes de Genève; the bearings are rubies." },
-    "barrel-bridge": { "name": "Barrel bridge", "en": "Barrel bridge", "body": "The large bridge that holds the barrel and ratchet wheel." },
-    "balance-cock": { "name": "Balance cock", "en": "Balance cock", "body": "Supports the balance from one side only." }
+    "plate": {
+      "name": "Main plate",
+      "en": "Main plate",
+      "body": "The foundation every part sits on. The small overlapping circles are a decorative finish called perlage."
+    },
+    "barrel": {
+      "name": "Barrel",
+      "en": "Barrel",
+      "body": "The drum that holds the mainspring. Its toothed rim sends power into the going train."
+    },
+    "ratchet": {
+      "name": "Ratchet wheel",
+      "en": "Ratchet wheel",
+      "body": "Turns with the barrel arbor to wind the mainspring."
+    },
+    "center": {
+      "name": "Center wheel",
+      "en": "Center wheel",
+      "body": "Turns once an hour and drives the minute hand."
+    },
+    "third": {
+      "name": "Third wheel",
+      "en": "Third wheel",
+      "body": "The intermediate wheel between the center and fourth wheels."
+    },
+    "fourth": {
+      "name": "Fourth wheel",
+      "en": "Fourth wheel",
+      "body": "Turns once a minute and drives the seconds."
+    },
+    "escape": {
+      "name": "Escape wheel",
+      "en": "Escape wheel",
+      "body": "The last wheel of the train, released one tooth at a time by the pallet fork."
+    },
+    "fork": {
+      "name": "Pallet fork",
+      "en": "Pallet fork",
+      "body": "The lever that locks and releases the escape wheel and impulses the balance."
+    },
+    "balance": {
+      "name": "Balance wheel",
+      "en": "Balance wheel",
+      "body": "The oscillator that, with its hairspring, swings at a constant period."
+    },
+    "train-bridge": {
+      "name": "Train bridge",
+      "en": "Train bridge",
+      "body": "Holds the wheel arbors from above. The stripes are Côtes de Genève; the bearings are rubies."
+    },
+    "barrel-bridge": {
+      "name": "Barrel bridge",
+      "en": "Barrel bridge",
+      "body": "The large bridge that holds the barrel and ratchet wheel."
+    },
+    "balance-cock": {
+      "name": "Balance cock",
+      "en": "Balance cock",
+      "body": "Supports the balance from one side only."
+    },
+    "cannon": {
+      "name": "Cannon pinion",
+      "en": "Cannon pinion",
+      "body": "The friction-fitted pinion that carries the minute hand."
+    },
+    "minute-wheel": {
+      "name": "Minute wheel",
+      "en": "Minute wheel",
+      "body": "Slows the cannon pinion down on its way to the hour wheel."
+    },
+    "hour": {
+      "name": "Hour wheel",
+      "en": "Hour wheel",
+      "body": "Turns once in twelve hours and carries the hour hand."
+    },
+    "date-driver": {
+      "name": "Date driving wheel",
+      "en": "Date driving wheel",
+      "body": "Turns once a day and advances the date ring with its finger."
+    },
+    "date-ring": {
+      "name": "Date ring",
+      "en": "Date ring",
+      "body": "The ring printed with the dates 1 to 31."
+    }
   }
 }

@@ -20,7 +20,8 @@
   "dock": {
     "back": "‹ ツアーに戻る",
     "explode": "分解",
-    "speed": "速度"
+    "speed": "速度",
+    "flip": "裏返す"
   },
   "hint": {
     "tour": "← → で移動 · ドラッグで回転",
@@ -39,7 +40,11 @@
     "pallets": "爪石",
     "lift": "振り角",
     "vph": "振動数 (vph)",
-    "frequency": "周波数"
+    "frequency": "周波数",
+    "ratio": "分針 : 時針",
+    "wheels": "歯車",
+    "reduction": "減速",
+    "step": "送り"
   },
   "fallback": {
     "title": "3D表示に対応していません",
