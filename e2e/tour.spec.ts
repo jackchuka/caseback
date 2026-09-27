@@ -199,3 +199,26 @@ test('free mode flip shows dial parts', async ({ page }) => {
   const selected = await page.evaluate(() => window.__caseback!.state().selected);
   expect(['date-ring', 'hour', 'cannon', 'minute-wheel', 'date-driver', 'plate']).toContain(selected);
 });
+
+test('self-winding raises the power reserve', async ({ page }) => {
+  await openTour(page);
+  await page.getByRole('button', { name: '自動で巻く' }).click();
+  await expect(page.locator('.info h1')).toHaveText('ローター');
+  const r0 = await page.evaluate(() => window.__caseback!.state().reserveH);
+  await page.waitForTimeout(4000);
+  const r1 = await page.evaluate(() => window.__caseback!.state().reserveH);
+  expect(r1).toBeGreaterThan(r0);
+  await expect(page.locator('.info .stats')).toContainText('時間');
+});
+
+test('clicking reversers through the rotor stays in the tour', async ({ page }) => {
+  await openTour(page);
+  await page.getByRole('button', { name: '自動で巻く' }).click();
+  await page.locator('button.next').click();
+  await page.waitForTimeout(2500);
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('reversers'));
+  await page.mouse.click(x, y);
+  await page.waitForTimeout(300);
+  expect(await state(page)).toMatchObject({ mode: 'tour' });
+  await expect(page.locator('.info h1')).toHaveText('切替車');
+});
