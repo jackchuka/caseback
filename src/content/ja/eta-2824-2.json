@@ -8,6 +8,9 @@
     },
     "date": {
       "title": "日付を送る"
+    },
+    "auto": {
+      "title": "自動で巻く"
     }
   },
   "steps": {
@@ -68,6 +71,22 @@
     "date-ring": {
       "kicker": "2 · Calendar",
       "body": "内側に31枚の歯を持つリング。毎晩0時前後に爪に押され、1日ぶん進む。"
+    },
+    "auto-rotor": {
+      "kicker": "Automatic",
+      "body": "腕の動きで揺れる半円の錘。どちら向きに回っても、ぜんまいを巻く力に変える。"
+    },
+    "auto-reversers": {
+      "kicker": "1 · Automatic",
+      "body": "ローターの往復運動を一方向の回転に整流する。片方の向きの回転だけが先へ伝わり、逆向きは空回りする。"
+    },
+    "auto-reduction": {
+      "kicker": "2 · Automatic",
+      "body": "整流された回転を大きく減速し、ゆっくりだが強い力にして角穴車へ渡す。"
+    },
+    "auto-ratchet": {
+      "kicker": "3 · Power",
+      "body": "香箱の芯と一体で回り、ぜんまいを巻き上げる。1回転で約{{hoursPerTurn}}時間ぶん。巻いた力は、また輪列へと流れていく。"
     }
   },
   "parts": {
@@ -155,6 +174,21 @@
       "name": "日車",
       "en": "Date ring",
       "body": "1から31までの数字が印刷されたリング。"
+    },
+    "rotor": {
+      "name": "ローター",
+      "en": "Rotor",
+      "body": "腕の動きで回る半円の錘。"
+    },
+    "reversers": {
+      "name": "切替車",
+      "en": "Reversing wheels",
+      "body": "ローターの両方向の回転を一方向に整える2つの車。"
+    },
+    "reduction": {
+      "name": "減速車",
+      "en": "Reduction wheel",
+      "body": "巻き上げの回転を減速する車。"
     }
   }
 }

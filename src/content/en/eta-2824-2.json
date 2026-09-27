@@ -8,6 +8,9 @@
     },
     "date": {
       "title": "Turning the date"
+    },
+    "auto": {
+      "title": "Self-winding"
     }
   },
   "steps": {
@@ -68,6 +71,22 @@
     "date-ring": {
       "kicker": "2 · Calendar",
       "body": "A ring with 31 teeth on the inside. Around midnight the finger pushes it forward by one day."
+    },
+    "auto-rotor": {
+      "kicker": "Automatic",
+      "body": "A half-moon weight that swings as your wrist moves. Whichever way it turns, it winds the mainspring."
+    },
+    "auto-reversers": {
+      "kicker": "1 · Automatic",
+      "body": "They turn the rotor's back-and-forth swing into rotation in one direction: one direction passes on, the other freewheels."
+    },
+    "auto-reduction": {
+      "kicker": "2 · Automatic",
+      "body": "It slows the rectified rotation down a lot, trading speed for the force needed to wind."
+    },
+    "auto-ratchet": {
+      "kicker": "3 · Power",
+      "body": "Turning with the barrel arbor, it winds the mainspring — about {{hoursPerTurn}} hours per turn. That energy flows back into the going train."
     }
   },
   "parts": {
@@ -155,6 +174,21 @@
       "name": "Date ring",
       "en": "Date ring",
       "body": "The ring printed with the dates 1 to 31."
+    },
+    "rotor": {
+      "name": "Rotor",
+      "en": "Rotor",
+      "body": "The half-moon weight turned by your wrist."
+    },
+    "reversers": {
+      "name": "Reversing wheels",
+      "en": "Reversing wheels",
+      "body": "Two wheels that turn both rotor directions into one."
+    },
+    "reduction": {
+      "name": "Reduction wheel",
+      "en": "Reduction wheel",
+      "body": "Slows the winding rotation down."
     }
   }
 }

@@ -81,3 +81,12 @@ describe('escapement direction', () => {
     }
   });
 });
+
+import { circleIntersection } from './gearMath';
+describe('circleIntersection', () => {
+  it('finds a point at the given distances from both centers', () => {
+    const p = circleIntersection({ x: 0, y: 0 }, 3, { x: 4, y: 0 }, 3, 1);
+    expect(Math.hypot(p.x, p.y)).toBeCloseTo(3);
+    expect(Math.hypot(p.x - 4, p.y)).toBeCloseTo(3);
+  });
+});

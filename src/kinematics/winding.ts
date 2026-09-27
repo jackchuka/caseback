@@ -6,7 +6,7 @@ export function accumulateWinding(wound: number, prevInput: number, input: numbe
 }
 
 // Hours of running per barrel turn = barrel teeth / center pinion leaves (the center wheel turns once an hour).
-function hoursPerBarrelTurn(c: Caliber): number {
+export function hoursPerBarrelTurn(c: Caliber): number {
   const barrel = c.parts.find((p) => p.shape.kind === 'barrel');
   const mesh = barrel && c.couplings.find((cp) => cp.type === 'mesh' && (cp.a === barrel.id || cp.b === barrel.id));
   if (!barrel || !mesh || mesh.type !== 'mesh') return 1;

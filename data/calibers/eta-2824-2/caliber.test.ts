@@ -130,3 +130,15 @@ describe('ETA 2824-2 explode and date finger', () => {
     expect(best.f).toBeLessThan(1);
   });
 });
+
+describe('ETA 2824-2 automatic', () => {
+  it('rotor drives reversers, one-way cut, ratchet winds the barrel side', () => {
+    expect(solve.info.oneWay?.inputKey).toBe('reverser-a');
+    expect(Math.abs(solve.info.ratchetFactor)).toBeGreaterThan(0);
+    expect(solve({ t: 0, explode: 0, rotor: 1 }).get('reverser-b')!.angle).toBe(0);
+  });
+  it('one ratchet turn adds seven hours', async () => {
+    const { reserveHours } = await import('../../../src/kinematics/winding');
+    expect(reserveHours(c, 1, 0, 10)).toBeCloseTo(17);
+  });
+});

@@ -1,5 +1,5 @@
 import type { Caliber, Part } from '../../../src/model/schema';
-import { centerDistance, place, type P2 } from '../../../src/kinematics/gearMath';
+import { centerDistance, circleIntersection, place, type P2 } from '../../../src/kinematics/gearMath';
 
 const sourced = (...sourceIds: string[]) => ({ confidence: 'sourced' as const, sourceIds });
 const estimated = (note: string) => ({ confidence: 'estimated' as const, sourceIds: [], note });
@@ -25,6 +25,14 @@ const dateDriver = place(center, centerDistance(mHour, MW.hourWheel, MW.dateDriv
 const dateDriverRest = ((Math.atan2(dateDriver.y, dateDriver.x) - Math.PI / 2 + 0.95 * Math.PI * 2) % (Math.PI * 2));
 const MOTION = 'Motion-works tooth counts give the required 1:12; the real 2824-2 counts are not sourced.';
 
+const AUTO = 'Self-winding layout and tooth counts are illustrative; the real 2824-2 reverser/reduction counts are not sourced.';
+const A = { rotorPinion: 12, revA: 18, revB: 14, redWheel: 22, redPinion: 9, ratchet: 50 };
+const mAuto = 0.1;
+const mRatchet = 0.12;
+const revA = place(center, centerDistance(mAuto, A.rotorPinion, A.revA), 20);
+const revB = place(revA, centerDistance(mAuto, A.revA, A.revB), 60);
+const reduction = circleIntersection(revB, centerDistance(mAuto, A.revB, A.redWheel), barrel, centerDistance(mRatchet, A.redPinion, A.ratchet), -1);
+
 const forkRest = Math.atan2(escape.y - fork.y, escape.x - fork.x) - Math.PI / 2; // pallets (+Y) face the escape wheel
 const balanceRest = Math.atan2(fork.y - balance.y, fork.x - balance.x); // roller jewel (+X) faces the fork
 const cockBase = { x: balance.x + 2.8, y: balance.y + 3.4 };
@@ -43,7 +51,7 @@ const parts: Part[] = [
   },
   {
     id: 'ratchet', mechanism: 'power', side: 'back', pos: at(barrel, 3.95), explode: { dz: 12.5 }, material: 'steel',
-    shape: { kind: 'ratchet', teeth: 50, module: 0.12, thickness: 0.28 }, provenance: estimated(LAYOUT),
+    shape: { kind: 'ratchet', teeth: A.ratchet, module: mRatchet, thickness: 0.28 }, provenance: estimated(LAYOUT),
   },
   {
     id: 'center-pinion', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, 0.75), explode: { dz: 4.4 }, material: 'steel',
@@ -131,6 +139,12 @@ const parts: Part[] = [
   { id: 'hour-hand', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, -2.95), explode: { dz: -6.2 }, material: 'blued', shape: { kind: 'hand', length: 6.2, width: 0.42, thickness: 0.08 }, provenance: estimated(LAYOUT) },
   { id: 'date-driver', arbor: 'date-driver', rest: dateDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dateDriver, -2.05), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.16, fingerLength: 3.4 }, provenance: estimated(MOTION) },
   { id: 'date-ring', mechanism: 'calendar', side: 'dial', pos: at(center, -2.35), explode: { dz: -1.6 }, material: 'plate', shape: { kind: 'date-ring', teeth: 31, innerRadius: 9.3, outerRadius: 12.3, thickness: 0.16 }, provenance: sourced('eta-17jewels') },
+  { id: 'rotor', arbor: 'rotor', mechanism: 'automatic', side: 'back', pos: at(center, 4.45), explode: { dz: 18 }, material: 'gilt', shape: { kind: 'rotor', radius: 12.5, hub: 1.2, thickness: 0.45 }, provenance: estimated(AUTO) },
+  { id: 'rotor-pinion', arbor: 'rotor', mechanism: 'automatic', side: 'back', pos: at(center, 4.1), explode: { dz: 18 }, material: 'steel', shape: { kind: 'pinion', leaves: A.rotorPinion, module: mAuto, length: 0.5 }, provenance: estimated(AUTO) },
+  { id: 'reverser-a', focus: 'reversers', mechanism: 'automatic', side: 'back', pos: at(revA, 4.1), explode: { dz: 15 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.revA, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
+  { id: 'reverser-b', focus: 'reversers', mechanism: 'automatic', side: 'back', pos: at(revB, 4.1), explode: { dz: 15 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.revB, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
+  { id: 'reduction-wheel', arbor: 'reduction', mechanism: 'automatic', side: 'back', pos: at(reduction, 4.1), explode: { dz: 16 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.redWheel, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
+  { id: 'reduction-pinion', arbor: 'reduction', mechanism: 'automatic', side: 'back', pos: at(reduction, 3.95), explode: { dz: 16 }, material: 'steel', shape: { kind: 'pinion', leaves: A.redPinion, module: mRatchet, length: 0.4 }, provenance: estimated(AUTO) },
 ];
 
 const caliber: Caliber = {
@@ -152,11 +166,16 @@ const caliber: Caliber = {
     { type: 'mesh', a: 'minute-pinion', b: 'hour-wheel' },
     { type: 'mesh', a: 'hour-wheel', b: 'date-driver' },
     { type: 'intermittent', driver: 'date-driver', driven: 'date-ring' },
+    { type: 'mesh', a: 'rotor-pinion', b: 'reverser-a' },
+    { type: 'one-way', input: 'reverser-a', output: 'reverser-b' },
+    { type: 'mesh', a: 'reverser-b', b: 'reduction-wheel' },
+    { type: 'mesh', a: 'reduction-pinion', b: 'ratchet' },
   ],
   chapters: [
     { id: 'time', flow: ['barrel', 'center', 'third', 'fourth', 'escape', 'fork', 'balance'] },
     { id: 'hands', flow: [] },
     { id: 'date', flow: [] },
+    { id: 'auto', flow: [] },
   ],
   tour: [
     { id: 'time-overview', chapter: 'time', focus: null, side: 'back', speed: 0.1, xray: false, rotor: 'hide', cameraOffset: [-20, 32, 36], stats: [{ label: 'parts', value: '~130' }, { label: 'jewels', value: '25' }] },
@@ -173,6 +192,10 @@ const caliber: Caliber = {
     { id: 'hands-hour', chapter: 'hands', focus: 'hour', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-10, 17, 18], stats: [{ label: 'teeth', value: '40' }, { label: 'rotation', value: '12 h' }] },
     { id: 'date-driver', chapter: 'date', focus: 'date-driver', side: 'dial', speed: 6000, xray: false, rotor: 'hide', cameraOffset: [-12, 20, 22], stats: [{ label: 'teeth', value: '80' }, { label: 'rotation', value: '24 h' }] },
     { id: 'date-ring', chapter: 'date', focus: 'date-ring', side: 'dial', speed: 6000, xray: false, rotor: 'hide', cameraOffset: [-14, 26, 28], stats: [{ label: 'teeth', value: '31' }, { label: 'step', value: '1 / day' }] },
+    { id: 'auto-rotor', chapter: 'auto', focus: 'rotor', side: 'back', speed: 0.1, xray: false, rotor: 'show', cameraOffset: [-18, 30, 32], stats: [{ label: 'direction', value: '⟲ ⟳' }, { label: 'powerReserve', value: 'live:reserve' }] },
+    { id: 'auto-reversers', chapter: 'auto', focus: 'reversers', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-12, 22, 24], stats: [{ label: 'system', value: 'ratchet' }, { label: 'powerReserve', value: 'live:reserve' }] },
+    { id: 'auto-reduction', chapter: 'auto', focus: 'reduction', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-12, 22, 24], stats: [{ label: 'teeth', value: '22 / 9' }, { label: 'powerReserve', value: 'live:reserve' }] },
+    { id: 'auto-ratchet', chapter: 'auto', focus: 'ratchet', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-13, 24, 26], stats: [{ label: 'teeth', value: '50' }, { label: 'powerReserve', value: 'live:reserve' }] },
   ],
   sources: [
     { id: 'eta-17jewels', title: 'ETA 2824-2 — 17jewels.info', url: 'https://17jewels.info/movements/e/eta/eta-2824-2/' },
