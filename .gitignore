@@ -1,0 +1,5 @@
+.superpowers/
+docs/superpowers/
+.playwright-cli/
+node_modules/
+dist/
