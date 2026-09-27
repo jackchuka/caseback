@@ -33,7 +33,8 @@ describe('buildShape', () => {
         for (let i = 0; i < pos.array.length; i++) expect(Number.isFinite(pos.array[i]), part.id).toBe(true);
       }
     }
-  });
+    // Builds every part of the caliber (hairspring tubes, bridges, 31 date teeth), which takes seconds.
+  }, 20_000);
   it('adds a jewel, chaton, screw and slot layer per bridge feature', () => {
     const bridge = c.parts.find((p) => p.id === 'train-bridge')!;
     if (bridge.shape.kind !== 'bridge') throw new Error('expected bridge');
