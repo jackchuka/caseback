@@ -11,6 +11,9 @@
     },
     "auto": {
       "title": "Self-winding"
+    },
+    "crown": {
+      "title": "Crown"
     }
   },
   "steps": {
@@ -87,6 +90,18 @@
     "auto-ratchet": {
       "kicker": "3 · Power",
       "body": "Turning with the barrel arbor, it winds the mainspring — about {{hoursPerTurn}} hours per turn. That energy flows back into the going train."
+    },
+    "crown-stem": {
+      "kicker": "1 · Keyless works",
+      "body": "The stem behind the crown. How far you pull it decides what it does. Pick a position below and turn the crown."
+    },
+    "crown-sliding": {
+      "kicker": "2 · Keyless works",
+      "body": "A small pinion that turns with the stem. At position 0 it meshes with the winding pinion to wind; at 2 it slides over to the setting wheel to set the hands."
+    },
+    "crown-hacking": {
+      "kicker": "3 · Hacking",
+      "body": "Pulled to position 2, the balance stops (hacking seconds). Set the hands, push the crown in, and it starts again. Avoid quick-setting the date (position 1) between 22:00 and 02:00."
     }
   },
   "parts": {
@@ -189,6 +204,21 @@
       "name": "Reduction wheel",
       "en": "Reduction wheel",
       "body": "Slows the winding rotation down."
+    },
+    "stem": {
+      "name": "Winding stem",
+      "en": "Winding stem",
+      "body": "Connected to the crown; its position selects winding, date or time setting."
+    },
+    "sliding-pinion": {
+      "name": "Sliding pinion",
+      "en": "Sliding pinion",
+      "body": "Slides along the stem to change what it meshes with."
+    },
+    "setting-wheel": {
+      "name": "Setting wheel",
+      "en": "Setting wheel",
+      "body": "Passes the stem's rotation to the minute wheel when setting the time."
     }
   }
 }
