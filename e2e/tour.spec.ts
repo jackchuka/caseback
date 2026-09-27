@@ -11,7 +11,7 @@ async function ready(page: Page) {
 }
 
 async function openTour(page: Page) {
-  await page.goto('/?lang=ja');
+  await page.goto('/calibers/eta-2824-2?lang=ja');
   await ready(page);
   await page.getByRole('button', { name: '裏蓋を開ける' }).click();
   await expect.poll(async () => (await state(page)).mode, { timeout: 45_000 }).toBe('tour');
@@ -68,10 +68,10 @@ test('language switch keeps the step', async ({ page }) => {
 });
 
 test('deep links open the requested step and ignore bad input', async ({ page }) => {
-  await page.goto('/?lang=en&ch=time&part=escape');
+  await page.goto('/calibers/eta-2824-2?lang=en&ch=time&part=escape');
   await expect(page.locator('.info h1')).toHaveText('Escape wheel');
   await page.goto('/calibers/nope?part=ghost');
-  await expect(page.getByRole('button', { name: /裏蓋を開ける|Open the caseback/ })).toBeVisible();
+  await expect(page.locator('.home')).toBeAttached();
 });
 
 test('keyboard arrows move through the tour', async ({ page }) => {
@@ -97,7 +97,7 @@ test('mobile layout has no horizontal scroll and shows panel and bar', async ({ 
 test('reduced motion skips the opening and starts paused', async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await ctx.newPage();
-  await page.goto('/?lang=ja');
+  await page.goto('/calibers/eta-2824-2?lang=ja');
   await ready(page);
   expect(await page.evaluate(() => ({ mode: window.__caseback!.state().mode, paused: window.__caseback!.state().paused }))).toEqual({ mode: 'tour', paused: true });
   await ctx.close();
@@ -107,7 +107,7 @@ test('webgl fallback', async ({ page }) => {
   await page.addInitScript(() => {
     HTMLCanvasElement.prototype.getContext = () => null;
   });
-  await page.goto('/?lang=ja');
+  await page.goto('/calibers/eta-2824-2?lang=ja');
   await expect(page.locator('.fallback h1')).toHaveText('3D表示に対応していません');
 });
 
@@ -144,7 +144,7 @@ test('clicking the focused gear during an x-ray step stays in the tour', async (
 
 test('tablet layout keeps the tour controls on screen', async ({ page }) => {
   await page.setViewportSize({ width: 834, height: 1112 });
-  await page.goto('/?lang=en');
+  await page.goto('/calibers/eta-2824-2?lang=en');
   await ready(page);
   await page.getByRole('button', { name: 'Open the caseback' }).click();
   await expect.poll(async () => (await state(page)).mode, { timeout: 45_000 }).toBe('tour');

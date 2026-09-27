@@ -6,7 +6,7 @@ test('renders the movement without console errors', async ({ page }) => {
     if (m.type() === 'error') errors.push(m.text());
   });
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/calibers/eta-2824-2');
   await expect(page.locator('canvas')).toBeVisible();
   await page.waitForTimeout(3000);
   await page.screenshot({ path: 'test-results/smoke.png' });

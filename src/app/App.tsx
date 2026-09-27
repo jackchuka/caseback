@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import type { i18n } from 'i18next';
 import * as THREE from 'three';
 import type { Caliber } from '../model/schema';
+import type { Watch } from '../model/watch';
 import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
 import { Exterior } from '../scene/Exterior';
@@ -21,7 +22,7 @@ import { Intro } from '../ui/Intro';
 import { TopBar } from '../ui/TopBar';
 import { TourBar } from '../ui/TourBar';
 
-export function App({ caliber, i18n, webgl }: { caliber: Caliber; i18n: i18n; webgl: boolean }) {
+export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i18n; webgl: boolean; watch?: Watch }) {
   const quality = useApp((s) => s.quality);
   const mode = useApp((s) => s.mode);
   useThemeAttr();
