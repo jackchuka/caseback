@@ -2,7 +2,9 @@ import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { Caliber } from '../model/schema';
+import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
+import { FlowPaths } from '../scene/FlowPaths';
 import { MaterialsProvider } from '../scene/materials';
 import { Movement } from '../scene/Movement';
 import { Studio } from '../scene/Studio';
@@ -22,7 +24,10 @@ export function App({ caliber }: { caliber: Caliber }) {
     >
       <MaterialsProvider>
         <Studio />
-        <Movement caliber={caliber} />
+        <Movement caliber={caliber}>
+          <FlowPaths caliber={caliber} />
+        </Movement>
+        <CameraRig caliber={caliber} />
       </MaterialsProvider>
       <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={90} />
       {quality === 'high' && <Effects />}

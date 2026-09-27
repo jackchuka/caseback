@@ -5,11 +5,12 @@ import type { Caliber } from '../model/schema';
 import { focusKey } from '../model/validate';
 import { appStore, useApp } from '../state/app';
 import { effectiveSpeed } from '../tour/engine';
+import { MOVEMENT_ROTATION_VALUE } from './focus';
 import { PartMesh } from './PartMesh';
 import { registry } from './registry';
 import { advance } from './simClock';
 
-export const MOVEMENT_ROTATION = -Math.PI / 2;
+export const MOVEMENT_ROTATION = MOVEMENT_ROTATION_VALUE;
 const XRAY_OPACITY = 0.12;
 
 export function Movement({ caliber, children }: { caliber: Caliber; children?: ReactNode }) {

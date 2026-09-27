@@ -8,7 +8,7 @@ import { createI18n } from './i18n';
 import { initAppStore } from './state/app';
 
 const caliber = getCaliber(DEFAULT_CALIBER)!;
-initAppStore(caliber, { mode: 'free', quality: detectQuality() });
+initAppStore(caliber, { mode: 'tour', quality: detectQuality() });
 const i18n = await createI18n('ja');
 
 createRoot(document.getElementById('root')!).render(
