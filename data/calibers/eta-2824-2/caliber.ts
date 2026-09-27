@@ -1,0 +1,150 @@
+import type { Caliber, Part } from '../../../src/model/schema';
+import { centerDistance, place, type P2 } from '../../../src/kinematics/gearMath';
+
+const sourced = (...sourceIds: string[]) => ({ confidence: 'sourced' as const, sourceIds });
+const estimated = (note: string) => ({ confidence: 'estimated' as const, sourceIds: [], note });
+const LAYOUT = 'Position and module chosen to fit the 25.6 mm movement; not measured from a real part.';
+
+const Z = { barrel: 84, centerPinion: 12, center: 80, thirdPinion: 10, third: 75, fourthPinion: 10, fourth: 84, escapePinion: 7, escape: 20 };
+const M = { barrel: 0.11, center: 0.085, third: 0.075, fourth: 0.06 };
+
+const center: P2 = { x: 0, y: 0 };
+const barrel = place(center, centerDistance(M.barrel, Z.barrel, Z.centerPinion), 90);
+const third = place(center, centerDistance(M.center, Z.center, Z.thirdPinion), -130);
+const fourth = place(third, centerDistance(M.third, Z.third, Z.fourthPinion), -50);
+const escape = place(fourth, centerDistance(M.fourth, Z.fourth, Z.escapePinion), -15);
+const fork = place(escape, 2.05, 30);
+const balance = place(fork, 3.9, 30);
+const cockBase = { x: balance.x + 2.8, y: balance.y + 3.4 };
+const offset = (p: P2, dx: number, dy: number) => ({ x: p.x + dx, y: p.y + dy });
+
+const at = (p: P2, z: number) => ({ x: p.x, y: p.y, z });
+
+const parts: Part[] = [
+  {
+    id: 'plate', mechanism: 'frame', side: 'back', pos: at(center, -0.6), explode: { dz: -3.5 }, material: 'plate',
+    shape: { kind: 'plate', radius: 12.8, thickness: 1.1 }, provenance: sourced('eta-17jewels'),
+  },
+  {
+    id: 'barrel', arbor: 'barrel', mechanism: 'power', side: 'back', pos: at(barrel, 0.6), explode: { dz: 3.2 }, material: 'gilt',
+    shape: { kind: 'barrel', teeth: Z.barrel, module: M.barrel, thickness: 0.35, drumHeight: 1.3 }, provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'ratchet', mechanism: 'power', side: 'back', pos: at(barrel, 3.95), explode: { dz: 12.5 }, material: 'steel',
+    shape: { kind: 'ratchet', teeth: 50, module: 0.12, thickness: 0.28 }, provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'center-pinion', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, 0.75), explode: { dz: 4.4 }, material: 'steel',
+    shape: { kind: 'pinion', leaves: Z.centerPinion, module: M.barrel, length: 0.9 }, provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'center-wheel', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, 1.25), explode: { dz: 4.4 }, material: 'gilt',
+    shape: { kind: 'wheel', teeth: Z.center, module: M.center, thickness: 0.28, spokes: 4 }, provenance: sourced('firgelli-train'),
+  },
+  {
+    id: 'third-pinion', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, 1.25), explode: { dz: 5.2 }, material: 'steel',
+    shape: { kind: 'pinion', leaves: Z.thirdPinion, module: M.center, length: 0.9 }, provenance: sourced('firgelli-train'),
+  },
+  {
+    id: 'third-wheel', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, 1.85), explode: { dz: 5.2 }, material: 'gilt',
+    shape: { kind: 'wheel', teeth: Z.third, module: M.third, thickness: 0.24, spokes: 5 }, provenance: sourced('firgelli-train'),
+  },
+  {
+    id: 'fourth-pinion', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, 1.85), explode: { dz: 6.0 }, material: 'steel',
+    shape: { kind: 'pinion', leaves: Z.fourthPinion, module: M.third, length: 0.9 }, provenance: sourced('firgelli-train'),
+  },
+  {
+    id: 'fourth-wheel', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, 2.35), explode: { dz: 6.0 }, material: 'gilt',
+    shape: { kind: 'wheel', teeth: Z.fourth, module: M.fourth, thickness: 0.22, spokes: 5 },
+    provenance: estimated('84 teeth derived from 28,800 vph with a 20-tooth escape wheel and a 7-leaf pinion; FIRGELLI lists 70.'),
+  },
+  {
+    id: 'escape-pinion', arbor: 'escape', mechanism: 'escapement', side: 'back', pos: at(escape, 2.35), explode: { dz: 6.8 }, material: 'steel',
+    shape: { kind: 'pinion', leaves: Z.escapePinion, module: M.fourth, length: 0.8 }, provenance: sourced('firgelli-train'),
+  },
+  {
+    id: 'escape-wheel', arbor: 'escape', mechanism: 'escapement', side: 'back', pos: at(escape, 1.9), explode: { dz: 6.8 }, material: 'steel',
+    shape: { kind: 'escape-wheel', teeth: Z.escape, outerRadius: 1.45, thickness: 0.16 }, provenance: sourced('eta-17jewels'),
+  },
+  {
+    id: 'pallet-fork', arbor: 'fork', mechanism: 'escapement', side: 'back', pos: at(fork, 1.9), explode: { dz: 7.4 }, material: 'steel',
+    shape: { kind: 'pallet-fork', span: 2.8, length: 3.0, thickness: 0.14 }, provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'balance-wheel', arbor: 'balance', mechanism: 'regulator', side: 'back', pos: at(balance, 2.0), explode: { dz: 9.0 }, material: 'balance',
+    shape: { kind: 'balance', radius: 4.1, rimThickness: 0.22, arms: 2 }, provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'hairspring', arbor: 'balance', mechanism: 'regulator', side: 'back', pos: at(balance, 2.55), explode: { dz: 9.0 }, material: 'steel',
+    shape: { kind: 'hairspring', turns: 12, innerRadius: 0.55, pitch: 0.2 }, provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'train-bridge', mechanism: 'frame', side: 'back', pos: at(center, 3.2), explode: { dz: 11 }, material: 'rhodium',
+    shape: {
+      kind: 'bridge', thickness: 0.55,
+      lobes: [
+        { ...center, r: 1.4 }, { ...third, r: 1.3 }, { ...fourth, r: 1.3 }, { ...escape, r: 1.1 },
+        { ...offset(third, 1.9, 1.2), r: 0.9 }, { ...offset(center, -1.7, -1.4), r: 0.9 },
+      ],
+      jewels: [center, third, fourth, escape],
+      screws: [offset(third, 1.9, 1.2), offset(center, -1.7, -1.4)],
+    },
+    provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'barrel-bridge', mechanism: 'frame', side: 'back', pos: at(center, 3.4), explode: { dz: 9.5 }, material: 'rhodium',
+    shape: {
+      kind: 'bridge', thickness: 0.55,
+      lobes: [{ ...barrel, r: 4.6 }, { ...offset(barrel, -3.2, 2.6), r: 0.9 }, { ...offset(barrel, 2.7, -3.3), r: 0.9 }],
+      jewels: [barrel],
+      screws: [offset(barrel, -3.2, 2.6), offset(barrel, 2.7, -3.3)],
+    },
+    provenance: estimated(LAYOUT),
+  },
+  {
+    id: 'balance-cock', mechanism: 'frame', side: 'back', pos: at(center, 3.1), explode: { dz: 13 }, material: 'rhodium',
+    shape: {
+      kind: 'bridge', thickness: 0.55,
+      lobes: [{ ...balance, r: 1.0 }, { x: (balance.x + cockBase.x) / 2, y: (balance.y + cockBase.y) / 2, r: 0.8 }, { ...cockBase, r: 1.3 }],
+      jewels: [balance],
+      screws: [cockBase],
+    },
+    provenance: estimated(LAYOUT),
+  },
+];
+
+const caliber: Caliber = {
+  id: 'eta-2824-2',
+  name: 'ETA 2824-2',
+  specs: {
+    diameterMm: 25.6, heightMm: 4.6, jewels: 25, vph: 28800, powerReserveH: 38, hacking: true, quickDate: true,
+    sourceIds: ['eta-17jewels', 'calibercorner', 'eta-manual'],
+  },
+  parts,
+  couplings: [
+    { type: 'mesh', a: 'barrel', b: 'center-pinion' },
+    { type: 'mesh', a: 'center-wheel', b: 'third-pinion' },
+    { type: 'mesh', a: 'third-wheel', b: 'fourth-pinion' },
+    { type: 'mesh', a: 'fourth-wheel', b: 'escape-pinion' },
+    { type: 'escapement', balance: 'balance-wheel', fork: 'pallet-fork', escapeWheel: 'escape-wheel' },
+  ],
+  chapters: [{ id: 'time', flow: ['barrel', 'center', 'third', 'fourth', 'escape', 'fork', 'balance'] }],
+  tour: [
+    { id: 'time-overview', chapter: 'time', focus: null, side: 'back', speed: 0.1, xray: false, rotor: 'hide', cameraOffset: [-20, 32, 36], stats: [{ label: 'parts', value: '~130' }, { label: 'jewels', value: '25' }] },
+    { id: 'time-barrel', chapter: 'time', focus: 'barrel', side: 'back', speed: 0.1, xray: false, rotor: 'hide', cameraOffset: [-14, 22, 24], stats: [{ label: 'teeth', value: '84' }, { label: 'powerReserve', value: '38 h' }] },
+    { id: 'time-center', chapter: 'time', focus: 'center', side: 'back', speed: 0.1, xray: true, rotor: 'hide', cameraOffset: [-12, 20, 22], stats: [{ label: 'teeth', value: '80' }, { label: 'rotation', value: '1 rph' }] },
+    { id: 'time-third', chapter: 'time', focus: 'third', side: 'back', speed: 0.1, xray: true, rotor: 'hide', cameraOffset: [-10, 18, 20], stats: [{ label: 'teeth', value: '75' }, { label: 'leaves', value: '10' }] },
+    { id: 'time-fourth', chapter: 'time', focus: 'fourth', side: 'back', speed: 0.1, xray: true, rotor: 'hide', cameraOffset: [-10, 17, 19], stats: [{ label: 'teeth', value: '84' }, { label: 'rotation', value: '1 rpm' }] },
+    { id: 'time-escape', chapter: 'time', focus: 'escape', side: 'back', speed: 0.1, xray: true, rotor: 'hide', cameraOffset: [-7, 12, 14], stats: [{ label: 'teeth', value: '20' }, { label: 'rotation', value: '12 rpm' }] },
+    { id: 'time-fork', chapter: 'time', focus: 'fork', side: 'back', speed: 0.1, xray: true, rotor: 'hide', cameraOffset: [-7, 12, 14], stats: [{ label: 'pallets', value: '2' }, { label: 'lift', value: '~10°' }] },
+    { id: 'time-balance', chapter: 'time', focus: 'balance', side: 'back', speed: 0.1, xray: false, rotor: 'hide', cameraOffset: [-12, 19, 21], stats: [{ label: 'vph', value: '28,800' }, { label: 'frequency', value: '4 Hz' }] },
+  ],
+  sources: [
+    { id: 'eta-17jewels', title: 'ETA 2824-2 — 17jewels.info', url: 'https://17jewels.info/movements/e/eta/eta-2824-2/' },
+    { id: 'calibercorner', title: 'ETA Caliber 2824-2 — Caliber Corner', url: 'https://calibercorner.com/eta-caliber-2824-2/' },
+    { id: 'eta-manual', title: 'ETA 2824-2 manual & instructions', url: 'https://markcarson.com/wp-content/uploads/2024/01/Instructions-ETA-2824-2.pdf' },
+    { id: 'firgelli-train', title: 'Watch Train Mechanism Explained — FIRGELLI', url: 'https://www.firgelliauto.com/blogs/mechanisms/watch-train' },
+  ],
+};
+
+export default caliber;
