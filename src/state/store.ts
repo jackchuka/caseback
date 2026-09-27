@@ -15,6 +15,8 @@ export type AppState = InitState & {
   explode: number;
   freeSpeedExp: number;
   freeSide: Side;
+  reserveH: number;
+  setReserve(h: number): void;
   setMode(m: Mode): void;
   toggleSide(): void;
   goStep(i: number): void;
@@ -47,6 +49,8 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
     explode: 0,
     freeSpeedExp: -1,
     freeSide: 'back',
+    reserveH: 0.45 * caliber.specs.powerReserveH,
+    setReserve: (reserveH) => set({ reserveH }),
     setMode: (mode) =>
       set(mode === 'free' ? { mode, selected: null, freeSide: caliber.tour[get().stepIndex]!.side } : { mode }),
     toggleSide: () => set({ freeSide: get().freeSide === 'back' ? 'dial' : 'back' }),

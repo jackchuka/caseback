@@ -73,4 +73,10 @@ describe('app store', () => {
     store.getState().pick('plate');
     expect(store.getState()).toMatchObject({ mode: 'free', selected: 'plate', freeSide: 'dial' });
   });
+  it('stores the power reserve', () => {
+    const store = make();
+    expect(store.getState().reserveH).toBeCloseTo(0.45 * miniCaliber().specs.powerReserveH);
+    store.getState().setReserve(12.5);
+    expect(store.getState().reserveH).toBe(12.5);
+  });
 });

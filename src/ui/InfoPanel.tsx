@@ -10,6 +10,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
   const stepIndex = useApp((s) => s.stepIndex);
   const selected = useApp((s) => s.selected);
   const lang = useApp((s) => s.lang);
+  const reserveH = useApp((s) => Math.round(s.reserveH * 10) / 10);
   const m = panelModel(caliber, mode, stepIndex, selected);
   if (!m) return <aside className="info glass hidden" aria-hidden />;
   const vars = caliberVars(caliber);
@@ -24,7 +25,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
           {m.stats.map((s) => (
             <div key={s.label}>
               {t(`ui:stats.${s.label}`)}
-              <b>{s.value}</b>
+              <b>{s.value === 'live:reserve' ? t('ui:reserveUnit', { h: reserveH.toFixed(1) }) : s.value}</b>
             </div>
           ))}
         </div>

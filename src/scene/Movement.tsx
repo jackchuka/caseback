@@ -3,17 +3,35 @@ import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { buildSolver } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
-import { focusKey } from '../model/validate';
+import { arborKey, focusKey } from '../model/validate';
+import { accumulateWinding, reserveHours, throttle, wristSwing } from '../kinematics/winding';
 import { appStore, useApp } from '../state/app';
 import { effectiveSpeed } from '../tour/engine';
 import { MOVEMENT_ROTATION_VALUE } from './focus';
 import { PartMesh } from './PartMesh';
-import { registry } from './registry';
+import { registry, type RegistryEntry } from './registry';
 import { advance, dayOfMonthIndex, localSeconds } from './simClock';
 
 export const MOVEMENT_ROTATION = MOVEMENT_ROTATION_VALUE;
 const XRAY_OPACITY = 0.12;
 const ignoreRaycast = () => {};
+const ROTOR_XRAY_OPACITY = 0.08;
+const INITIAL_RESERVE = 0.45;
+
+// Fades a part's own materials and stops it catching clicks once it is mostly see-through.
+function fadeTo(entry: RegistryEntry, target: number) {
+  for (const m of entry.materials) {
+    m.opacity += (target - m.opacity) * 0.08;
+    const transparent = m.opacity < 0.99;
+    if (m.transparent !== transparent) {
+      m.transparent = transparent;
+      m.needsUpdate = true;
+    }
+    m.depthWrite = m.opacity > 0.5;
+  }
+  const see = (entry.materials[0]?.opacity ?? 1) > 0.5;
+  for (const child of entry.group.children) (child as THREE.Mesh).raycast = see ? THREE.Mesh.prototype.raycast : ignoreRaycast;
+}
 
 export function Movement({ caliber, children }: { caliber: Caliber; children?: ReactNode }) {
   const solve = useMemo(() => buildSolver(caliber), [caliber]);
@@ -21,13 +39,32 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
   const t = useRef(localSeconds(new Date()));
   const dateBase = useMemo(() => dayOfMonthIndex(new Date()), []);
   const explode = useRef(0);
+  const wound = useRef(0);
+  const prevInput = useRef(0);
+  const t0 = useRef(t.current);
+  const publish = useMemo(() => throttle(250), []);
+  const oneWayInput = useMemo(() => {
+    const ow = solve.info.oneWay;
+    return ow ? caliber.parts.find((p) => arborKey(p) === ow.inputKey)!.id : null;
+  }, [caliber, solve]);
 
   useFrame((state, dt) => {
     const s = appStore().getState();
     const step = caliber.tour[s.stepIndex]!;
     t.current = advance(t.current, dt, effectiveSpeed(s.mode, step, s.freeSpeedExp, s.paused));
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;
-    const transforms = solve({ t: t.current, explode: explode.current, dateBase });
+    const rotorState = s.mode === 'tour' ? step.rotor : 'hide';
+    const rotor = rotorState === 'hide' ? 0 : wristSwing(state.clock.elapsedTime);
+    const transforms = solve({ t: t.current, explode: explode.current, dateBase, rotor, wound: wound.current });
+    if (oneWayInput && solve.info.oneWay) {
+      const input = transforms.get(oneWayInput)!.angle;
+      wound.current = accumulateWinding(wound.current, prevInput.current, input, solve.info.oneWay.ratio);
+      prevInput.current = input;
+    }
+    if (publish(performance.now())) {
+      const ratchetTurns = Math.abs(wound.current * solve.info.ratchetFactor) / (Math.PI * 2);
+      s.setReserve(reserveHours(caliber, ratchetTurns, t.current - t0.current, INITIAL_RESERVE * caliber.specs.powerReserveH));
+    }
     const highlight = s.mode === 'tour' ? step.focus : s.mode === 'free' ? s.selected : null;
     const xray = s.mode === 'tour' && step.xray;
     const pulse = 1.2 + Math.sin(state.clock.elapsedTime * 3) * 0.8;
@@ -42,24 +79,15 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
         entry.group.scale.set(k, k, 1);
       }
       const lit = highlight !== null && focusKey(entry.part) === highlight;
-      const isBridge = entry.part.shape.kind === 'bridge';
-      if (isBridge) {
-        const see = (entry.materials[0]?.opacity ?? 1) > 0.5;
-        for (const child of entry.group.children) (child as THREE.Mesh).raycast = see ? THREE.Mesh.prototype.raycast : ignoreRaycast;
-      }
+      const isRotor = arborKey(entry.part) === 'rotor' || entry.part.shape.kind === 'rotor';
+      const automatic = entry.part.mechanism === 'automatic';
+      entry.group.visible = isRotor ? rotorState !== 'hide' : automatic ? s.mode === 'free' || rotorState !== 'hide' : true;
       for (const m of entry.materials) {
         m.emissive.setHex(lit ? 0x3a2a10 : 0x000000);
         m.emissiveIntensity = lit ? pulse : 0;
-        if (isBridge) {
-          m.opacity += ((xray ? XRAY_OPACITY : 1) - m.opacity) * 0.08;
-          const transparent = m.opacity < 0.99;
-          if (m.transparent !== transparent) {
-            m.transparent = transparent;
-            m.needsUpdate = true;
-          }
-          m.depthWrite = m.opacity > 0.5;
-        }
       }
+      if (entry.part.shape.kind === 'bridge') fadeTo(entry, xray ? XRAY_OPACITY : 1);
+      if (isRotor) fadeTo(entry, rotorState === 'xray' ? ROTOR_XRAY_OPACITY : 1);
     }
   });
 
