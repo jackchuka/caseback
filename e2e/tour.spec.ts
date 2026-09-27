@@ -326,3 +326,25 @@ test('dive bezel watch opens into the same tour', async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
   await expect(page.locator('.info h1')).toHaveText('動力が時を刻むまで');
 });
+
+test('home lists calibers and watches and searches', async ({ page }) => {
+  await page.goto('/?lang=en');
+  await expect(page.locator('.home')).toBeVisible();
+  await expect(page.locator('.home .watch')).toHaveCount(3);
+  await page.getByRole('searchbox').fill('sinn');
+  await expect(page.locator('.home .watch')).toHaveCount(1);
+  await page.locator('.home .watch a').first().click();
+  await expect(page).toHaveURL(/\/watches\/sinn\/556/);
+  await expect(page.locator('.intro .eyebrow')).toContainText('Sinn 556');
+});
+
+test('caliber watch list', async ({ page }) => {
+  await page.goto('/calibers/eta-2824-2/watches?lang=ja');
+  await expect(page.locator('.caliber-watches .watch')).toHaveCount(3);
+  await expect(page.locator('.caliber-watches')).toContainText('ETA 2824-2');
+});
+
+test('unknown paths show the home page', async ({ page }) => {
+  await page.goto('/watches/tudor/nope');
+  await expect(page.locator('.home')).toBeVisible();
+});

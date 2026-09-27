@@ -60,5 +60,16 @@
     "pos1": "1 · 日付",
     "pos2": "2 · 時刻",
     "turn": "押している間 リューズを回す"
+  },
+  "home": {
+    "title": "機械式ムーブメントを覗く",
+    "search": "ブランド・モデル・キャリバーで検索",
+    "calibers": "キャリバー",
+    "watches": "時計",
+    "watchesWith": "{{name}} を搭載する時計",
+    "openTour": "中を見る",
+    "watchCount": "搭載時計 {{count}}",
+    "home": "ホーム",
+    "caliberSpecs": "直径 {{d}} mm · {{j}} 石 · {{v}} vph"
   }
 }

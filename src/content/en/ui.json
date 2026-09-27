@@ -60,5 +60,16 @@
     "pos1": "1 · Date",
     "pos2": "2 · Time",
     "turn": "Hold to turn the crown"
+  },
+  "home": {
+    "title": "Look inside mechanical movements",
+    "search": "Search brand, model or caliber",
+    "calibers": "Calibers",
+    "watches": "Watches",
+    "watchesWith": "Watches with the {{name}}",
+    "openTour": "Look inside",
+    "watchCount": "{{count}} watches",
+    "home": "Home",
+    "caliberSpecs": "{{d}} mm · {{j}} jewels · {{v}} vph"
   }
 }
