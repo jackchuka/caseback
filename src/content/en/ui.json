@@ -1,0 +1,33 @@
+{
+  "brand": "Caseback",
+  "tagline": "A mechanical watch you can touch",
+  "intro": {
+    "eyebrow": "{{name}} · Automatic",
+    "title": "What is happening\nbehind the caseback?",
+    "body": "Inside {{diameter}} millimetres, about 130 parts keep a rhythm of {{beats}} beats per second.",
+    "open": "Open the caseback",
+    "scroll": "or scroll ↓"
+  },
+  "tour": {
+    "label": "Tour",
+    "overview": "Overview",
+    "prev": "Previous",
+    "next": "Next",
+    "free": "Explore freely",
+    "pause": "Pause",
+    "play": "Play"
+  },
+  "dock": { "back": "‹ Back to tour", "explode": "Explode", "speed": "Speed" },
+  "hint": { "tour": "← → to move · drag to rotate", "free": "Click a part · drag to rotate · scroll to zoom" },
+  "speedBadge": "▶︎ {{speed}}× speed",
+  "estimated": "Includes estimated values",
+  "theme": "Toggle light/dark",
+  "stats": {
+    "parts": "Parts", "jewels": "Jewels", "teeth": "Teeth", "powerReserve": "Power reserve", "rotation": "Rotation",
+    "leaves": "Leaves", "pallets": "Pallet stones", "lift": "Lift angle", "vph": "Beat rate (vph)", "frequency": "Frequency"
+  },
+  "fallback": {
+    "title": "3D is not available",
+    "body": "This browser cannot use WebGL, so the watch model cannot be shown. Please try a recent Chrome, Safari or Firefox."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "brand": "Caseback",
+  "tagline": "手で触れる機械式時計",
+  "intro": {
+    "eyebrow": "{{name}} · Automatic",
+    "title": "裏蓋の向こうで、\n何が起きているのか。",
+    "body": "直径{{diameter}}ミリの中で、約130個の部品が1秒に{{beats}}回のリズムを刻み続けている。",
+    "open": "裏蓋を開ける",
+    "scroll": "または スクロール ↓"
+  },
+  "tour": {
+    "label": "ツアー",
+    "overview": "全体",
+    "prev": "前へ",
+    "next": "次へ",
+    "free": "自由に見る",
+    "pause": "一時停止",
+    "play": "再生"
+  },
+  "dock": { "back": "‹ ツアーに戻る", "explode": "分解", "speed": "速度" },
+  "hint": { "tour": "← → で移動 · ドラッグで回転", "free": "部品をクリック · ドラッグで回転 · スクロールでズーム" },
+  "speedBadge": "▶︎ {{speed}} 倍速",
+  "estimated": "推定値を含む",
+  "theme": "ライト/ダーク切替",
+  "stats": {
+    "parts": "部品数", "jewels": "石数", "teeth": "歯数", "powerReserve": "パワーリザーブ", "rotation": "回転",
+    "leaves": "カナ", "pallets": "爪石", "lift": "振り角", "vph": "振動数 (vph)", "frequency": "周波数"
+  },
+  "fallback": {
+    "title": "3D表示に対応していません",
+    "body": "このブラウザではWebGLが使えないため、時計の3Dモデルを表示できません。最新のChrome、Safari、Firefoxでお試しください。"
+  }
+}
