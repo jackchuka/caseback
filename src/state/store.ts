@@ -57,7 +57,7 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
       if (get().mode === 'tour') {
         const i = caliber.tour.findIndex((s) => s.focus === focus);
         if (i >= 0) return set({ stepIndex: i });
-        return set({ mode: 'free', selected: focus });
+        return set({ mode: 'free', selected: focus, freeSide: caliber.tour[get().stepIndex]!.side });
       }
       if (get().mode === 'free') set({ selected: focus });
     },

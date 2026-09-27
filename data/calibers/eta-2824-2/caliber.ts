@@ -20,6 +20,9 @@ const mMotion = 0.1;
 const mHour = 0.096;
 const minuteWheel = place(center, centerDistance(mMotion, MW.cannon, MW.minuteWheel), -20);
 const dateDriver = place(center, centerDistance(mHour, MW.hourWheel, MW.dateDriver), 150);
+// The finger (+Y) should point outward, along the driver's direction from the center, in the middle of the
+// date-change window (95 % of a turn). The driver turns clockwise in local coordinates (negative angles).
+const dateDriverRest = ((Math.atan2(dateDriver.y, dateDriver.x) - Math.PI / 2 + 0.95 * Math.PI * 2) % (Math.PI * 2));
 const MOTION = 'Motion-works tooth counts give the required 1:12; the real 2824-2 counts are not sourced.';
 
 const forkRest = Math.atan2(escape.y - fork.y, escape.x - fork.x) - Math.PI / 2; // pallets (+Y) face the escape wheel
@@ -31,7 +34,7 @@ const at = (p: P2, z: number) => ({ x: p.x, y: p.y, z });
 
 const parts: Part[] = [
   {
-    id: 'plate', mechanism: 'frame', side: 'back', pos: at(center, -0.6), explode: { dz: -3.5 }, material: 'plate',
+    id: 'plate', mechanism: 'frame', side: 'back', pos: at(center, -0.6), explode: { dz: -0.5 }, material: 'plate',
     shape: { kind: 'plate', radius: 12.8, thickness: 1.1 }, provenance: sourced('eta-17jewels'),
   },
   {
@@ -126,7 +129,7 @@ const parts: Part[] = [
   { id: 'minute-pinion', arbor: 'minute-wheel', mechanism: 'motion-works', side: 'dial', pos: at(minuteWheel, -2.05), explode: { dz: -3.2 }, material: 'steel', shape: { kind: 'pinion', leaves: MW.minutePinion, module: mHour, length: 0.6 }, provenance: estimated(MOTION) },
   { id: 'hour-wheel', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, -2.05), explode: { dz: -4.2 }, material: 'gilt', shape: { kind: 'wheel', teeth: MW.hourWheel, module: mHour, thickness: 0.16, spokes: 4 }, provenance: estimated(MOTION) },
   { id: 'hour-hand', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, -2.95), explode: { dz: -6.2 }, material: 'blued', shape: { kind: 'hand', length: 6.2, width: 0.42, thickness: 0.08 }, provenance: estimated(LAYOUT) },
-  { id: 'date-driver', arbor: 'date-driver', mechanism: 'calendar', side: 'dial', pos: at(dateDriver, -2.05), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.16, fingerLength: 3.4 }, provenance: estimated(MOTION) },
+  { id: 'date-driver', arbor: 'date-driver', rest: dateDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dateDriver, -2.05), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.16, fingerLength: 3.4 }, provenance: estimated(MOTION) },
   { id: 'date-ring', mechanism: 'calendar', side: 'dial', pos: at(center, -2.35), explode: { dz: -1.6 }, material: 'plate', shape: { kind: 'date-ring', teeth: 31, innerRadius: 9.3, outerRadius: 12.3, thickness: 0.16 }, provenance: sourced('eta-17jewels') },
 ];
 

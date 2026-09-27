@@ -93,3 +93,40 @@ describe('ETA 2824-2 dial side', () => {
     expect(h / TAU).toBeCloseTo((10 + 8 / 60) / 12, 6);
   });
 });
+
+describe('ETA 2824-2 explode and date finger', () => {
+  const half = (p: (typeof c.parts)[number]) => {
+    const s = p.shape;
+    if (s.kind === 'pinion') return s.length / 2;
+    if ('thickness' in s) return s.thickness / 2 + 0.12;
+    return 0.2;
+  };
+  const plate = c.parts.find((p) => p.id === 'plate')!;
+  const overlap = (p: (typeof c.parts)[number], e: number) => {
+    const pz = plate.pos.z + plate.explode.dz * e;
+    const z = p.pos.z + p.explode.dz * e;
+    return Math.max(0, Math.min(pz + half(plate), z + half(p)) - Math.max(pz - half(plate), z - half(p)));
+  };
+  it('dial parts leave the plate when exploded', () => {
+    for (const p of c.parts.filter((q) => q.side === 'dial')) {
+      expect(overlap(p, 1), p.id).toBe(0);
+      expect(overlap(p, 0.5), p.id).toBeLessThanOrEqual(overlap(p, 0));
+    }
+  });
+  it('the date finger reaches furthest out while the ring jumps', () => {
+    const dd = c.parts.find((p) => p.id === 'date-driver')!;
+    if (dd.shape.kind !== 'date-driver') throw new Error('shape');
+    const L = dd.shape.fingerLength;
+    let best = { r: 0, f: 0 };
+    for (let i = 0; i < 1000; i++) {
+      const f = i / 1000;
+      const a = (dd.rest ?? 0) + solve({ t: f * 86400, explode: 0 }).get('date-driver')!.angle;
+      const x = dd.pos.x - Math.sin(a) * L;
+      const y = dd.pos.y + Math.cos(a) * L;
+      const r = Math.hypot(x, y);
+      if (r > best.r) best = { r, f };
+    }
+    expect(best.f).toBeGreaterThanOrEqual(0.9);
+    expect(best.f).toBeLessThan(1);
+  });
+});

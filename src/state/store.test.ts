@@ -66,4 +66,11 @@ describe('app store', () => {
     store.getState().toggleSide();
     expect(store.getState().freeSide).toBe('dial');
   });
+  it('picking a part without a step keeps the side of the current step', () => {
+    const c = miniCaliber();
+    c.tour[1]!.side = 'dial';
+    const store = createAppStore(c, { mode: 'tour', stepIndex: 1 });
+    store.getState().pick('plate');
+    expect(store.getState()).toMatchObject({ mode: 'free', selected: 'plate', freeSide: 'dial' });
+  });
 });
