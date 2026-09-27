@@ -1,6 +1,8 @@
 import { Environment, Lightformer } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
-import { useEffect } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useRef } from 'react';
+import type * as THREE from 'three';
+import { flipGroup } from './flip';
 import { useApp } from '../state/app';
 import { LOOKS } from './looks';
 
@@ -15,6 +17,11 @@ export function Studio() {
     gl.toneMappingExposure = look.exposure;
     scene.environmentIntensity = look.envIntensity;
   }, [gl, scene, look]);
+
+  const floor = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    if (floor.current) floor.current.position.y = -3 - 2.4 * ((flipGroup.current?.rotation.x ?? 0) / Math.PI);
+  });
 
   const shadowSize = quality === 'high' ? 2048 : 1024;
   return (
@@ -37,7 +44,7 @@ export function Studio() {
         <orthographicCamera attach="shadow-camera" args={[-20, 20, 20, -20, 0.5, 80]} />
       </directionalLight>
       <directionalLight position={[20, 8, -20]} intensity={look.rim} color={look.rimColor} />
-      <mesh rotation-x={-Math.PI / 2} position-y={-3} receiveShadow>
+      <mesh ref={floor} rotation-x={-Math.PI / 2} position-y={-3} receiveShadow>
         <circleGeometry args={[80, 64]} />
         <shadowMaterial opacity={look.shadowOpacity} />
       </mesh>

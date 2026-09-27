@@ -33,3 +33,12 @@ describe('advance', () => {
     expect(advance(10, 0.01, 2)).toBeCloseTo(10.02);
   });
 });
+
+import { dayOfMonthIndex, localSeconds } from '../scene/simClock';
+describe('local time', () => {
+  it('converts a date to seconds since local midnight and a date index', () => {
+    const d = new Date(2026, 8, 28, 10, 8, 30);
+    expect(localSeconds(d)).toBe(10 * 3600 + 8 * 60 + 30);
+    expect(dayOfMonthIndex(d)).toBe(27);
+  });
+});

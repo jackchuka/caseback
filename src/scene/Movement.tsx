@@ -9,7 +9,7 @@ import { effectiveSpeed } from '../tour/engine';
 import { MOVEMENT_ROTATION_VALUE } from './focus';
 import { PartMesh } from './PartMesh';
 import { registry } from './registry';
-import { advance } from './simClock';
+import { advance, dayOfMonthIndex, localSeconds } from './simClock';
 
 export const MOVEMENT_ROTATION = MOVEMENT_ROTATION_VALUE;
 const XRAY_OPACITY = 0.12;
@@ -18,7 +18,8 @@ const ignoreRaycast = () => {};
 export function Movement({ caliber, children }: { caliber: Caliber; children?: ReactNode }) {
   const solve = useMemo(() => buildSolver(caliber), [caliber]);
   const pick = useApp((s) => s.pick);
-  const t = useRef(0);
+  const t = useRef(localSeconds(new Date()));
+  const dateBase = useMemo(() => dayOfMonthIndex(new Date()), []);
   const explode = useRef(0);
 
   useFrame((state, dt) => {
@@ -26,7 +27,7 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
     const step = caliber.tour[s.stepIndex]!;
     t.current = advance(t.current, dt, effectiveSpeed(s.mode, step, s.freeSpeedExp, s.paused));
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;
-    const transforms = solve({ t: t.current, explode: explode.current });
+    const transforms = solve({ t: t.current, explode: explode.current, dateBase });
     const highlight = s.mode === 'tour' ? step.focus : s.mode === 'free' ? s.selected : null;
     const xray = s.mode === 'tour' && step.xray;
     const pulse = 1.2 + Math.sin(state.clock.elapsedTime * 3) * 0.8;

@@ -7,6 +7,7 @@ import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
 import { Exterior } from '../scene/Exterior';
 import { FlowPaths } from '../scene/FlowPaths';
+import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
 import { Movement } from '../scene/Movement';
 import { Studio } from '../scene/Studio';
@@ -38,10 +39,12 @@ export function App({ caliber, i18n, webgl }: { caliber: Caliber; i18n: i18n; we
       >
         <MaterialsProvider>
           <Studio />
+          <group ref={(g) => { flipGroup.current = g; }}>
           <Movement caliber={caliber}>
             <FlowPaths caliber={caliber} />
             <Exterior caliber={caliber} />
           </Movement>
+          </group>
           <CameraRig caliber={caliber} />
         </MaterialsProvider>
         <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={90} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />

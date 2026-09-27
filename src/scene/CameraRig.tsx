@@ -6,12 +6,13 @@ import type { Caliber } from '../model/schema';
 import { appStore, useApp } from '../state/app';
 import type { AppState } from '../state/store';
 import { focusCenterLocal, toWorld, type V3 } from './focus';
+import { flipGroup } from './flip';
 import { shotFor } from './shots';
 import { Tween } from './tween';
 
 declare global {
   interface Window {
-    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number] };
+    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number };
   }
 }
 
@@ -21,25 +22,29 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
   const size = useThree((s) => s.size);
   const mode = useApp((s) => s.mode);
   const stepIndex = useApp((s) => s.stepIndex);
+  const freeSide = useApp((s) => s.freeSide);
   const tween = useRef<Tween | null>(null);
   const shift = useRef(-0.16);
 
   useEffect(() => {
     if (!controls) return;
-    tween.current = new Tween(camera.position.toArray() as V3, controls.target.toArray() as V3, shotFor(caliber, mode, stepIndex));
+    tween.current = new Tween(camera.position.toArray() as V3, controls.target.toArray() as V3, shotFor(caliber, mode, stepIndex, freeSide), flipGroup.current?.rotation.x ?? 0);
     window.__caseback = {
       target: () => controls.target.toArray() as V3,
       state: () => appStore().getState(),
       project: (focus) => {
-        const v = new THREE.Vector3(...toWorld(focusCenterLocal(caliber, focus), 'back')).project(camera);
+        const side = (flipGroup.current?.rotation.x ?? 0) > Math.PI / 2 ? 'dial' : 'back';
+        const v = new THREE.Vector3(...toWorld(focusCenterLocal(caliber, focus, side), side)).project(camera);
         return [((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height];
       },
+      flip: () => flipGroup.current?.rotation.x ?? 0,
     };
-  }, [caliber, camera, controls, mode, stepIndex, size]);
+  }, [caliber, camera, controls, mode, stepIndex, freeSide, size]);
 
   useFrame((_, dt) => {
     if (controls && tween.current) {
-      const { position, target, done } = tween.current.step(Math.min(dt, 0.05));
+      const { position, target, flip, done } = tween.current.step(Math.min(dt, 0.05));
+      if (flipGroup.current) flipGroup.current.rotation.x = flip;
       camera.position.set(...position);
       controls.target.set(...target);
       controls.enabled = done;
