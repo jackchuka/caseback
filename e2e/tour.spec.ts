@@ -248,3 +248,63 @@ test('the rotor stays still while paused', async ({ page }) => {
   await page.waitForTimeout(3000);
   expect(await page.evaluate(() => window.__caseback!.state().reserveH)).toBeCloseTo(a0, 3);
 });
+
+async function toCrown(page: Page) {
+  await openTour(page);
+  await page.getByRole('button', { name: 'リューズ' }).click();
+  await expect(page.locator('.info h1')).toHaveText('巻真');
+}
+async function hold(page: Page, ms: number) {
+  const b = await page.locator('.crown-ctl .turn').boundingBox();
+  await page.mouse.move(b!.x + b!.width / 2, b!.y + b!.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
+}
+
+test('position 2 sets the hands and stops the train', async ({ page }) => {
+  await toCrown(page);
+  await page.getByRole('radio', { name: '2 · 時刻' }).click();
+  const esc0 = await page.evaluate(() => window.__caseback!.angle('escape-wheel'));
+  const min0 = await page.evaluate(() => window.__caseback!.angle('minute-hand'));
+  await hold(page, 1000);
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => window.__caseback!.angle('escape-wheel'))).toBeCloseTo(esc0, 6);
+  expect(Math.abs((await page.evaluate(() => window.__caseback!.angle('minute-hand'))) - min0)).toBeGreaterThan(0.5);
+});
+
+test('position 1 advances the date', async ({ page }) => {
+  await toCrown(page);
+  await page.getByRole('radio', { name: '1 · 日付' }).click();
+  const r0 = await page.evaluate(() => window.__caseback!.angle('date-ring'));
+  await hold(page, 1500);
+  await page.waitForTimeout(500);
+  expect(Math.abs((await page.evaluate(() => window.__caseback!.angle('date-ring'))) - r0)).toBeGreaterThan(0.15);
+});
+
+test('position 0 winds the mainspring up to the limit', async ({ page }) => {
+  await toCrown(page);
+  const r0 = await page.evaluate(() => window.__caseback!.state().reserveH);
+  await hold(page, 3000);
+  await page.waitForTimeout(400);
+  const r1 = await page.evaluate(() => window.__caseback!.state().reserveH);
+  expect(r1).toBeGreaterThan(r0);
+  expect(r1).toBeLessThanOrEqual(38);
+});
+
+test('turning stops on pointerup outside the button', async ({ page }) => {
+  await toCrown(page);
+  const b = await page.locator('.crown-ctl .turn').boundingBox();
+  await page.mouse.move(b!.x + 5, b!.y + 5);
+  await page.mouse.down();
+  await page.mouse.move(10, 10);
+  await page.mouse.up();
+  expect(await page.evaluate(() => window.__caseback!.state().turning)).toBe(false);
+});
+
+test('leaving the crown chapter restarts the balance', async ({ page }) => {
+  await toCrown(page);
+  await page.getByRole('radio', { name: '2 · 時刻' }).click();
+  await page.getByRole('button', { name: '時を刻む' }).click();
+  expect(await page.evaluate(() => window.__caseback!.state().crownPos)).toBe(0);
+});
