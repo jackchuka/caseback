@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
-import { buildSolver } from '../kinematics/solver';
+import { buildSolver, settleQuick } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { arborKey, focusKey } from '../model/validate';
 import { accumulateWinding, CROWN_WIND_RATIO, stepReserve, throttle, wristSwing } from '../kinematics/winding';
@@ -63,7 +63,7 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
         crownState.woundTurns += (d / (Math.PI * 2)) * CROWN_WIND_RATIO;
       } else if (s.crownPos === 1) crownState.quick += d;
       else crownState.set += d;
-    }
+    } else crownState.quick = settleQuick(crownState.quick, Math.min(dt, 0.05));
     t.current = advance(t.current, dt, speed);
     if (!s.paused) swingT.current += Math.min(dt, 0.05);
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;

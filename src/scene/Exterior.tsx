@@ -6,7 +6,7 @@ import { extrudeCentered } from '../geometry/gear';
 import type { Caliber } from '../model/schema';
 import { appStore } from '../state/app';
 import { useMaterials } from './materials';
-import { crownState } from './crown';
+import { crownEuler, crownState } from './crown';
 import { openingPose } from './opening';
 import { engraving } from './textures';
 
@@ -53,7 +53,7 @@ export function Exterior({ caliber }: { caliber: Caliber }) {
     }
     if (crown.current) {
       crown.current.position.x = r + 4.3 + s.crownPos * 0.7;
-      crown.current.rotation.x = crownState.rot;
+      crown.current.rotation.copy(crownEuler(crownState.rot));
     }
     if (s.mode === 'opening' && pose.done) {
       openT.current = 0;
@@ -69,7 +69,7 @@ export function Exterior({ caliber }: { caliber: Caliber }) {
           <RoundedBox key={`${sx}${sy}`} args={[2.8, 7.5, 3.2]} radius={1.1} smoothness={6} position={[sx * r * 0.52, sy * (r + 4.2), 0.5]} rotation-z={sx * sy * -0.12} material={caseMat} castShadow />
         )),
       )}
-      <mesh ref={crown} position={[r + 4.3, 0, -1.5]} rotation={[0, 0, Math.PI / 2, 'ZXY']} material={caseMat}>
+      <mesh ref={crown} position={[r + 4.3, 0, -1.5]} rotation={[0, 0, Math.PI / 2, 'ZYX']} material={caseMat}>
         <cylinderGeometry args={[1.25, 1.25, 2.0, 48]} />
       </mesh>
       <group ref={back}>

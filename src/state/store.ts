@@ -38,6 +38,8 @@ export type AppState = InitState & {
 export type AppStore = StoreApi<AppState>;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+// Leaving crown controls pushes the crown in, so the watch never stays stopped by accident.
+const PUSH_IN = { crownPos: 0 as const, turning: false };
 
 export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}): AppStore {
   const last = caliber.tour.length - 1;
@@ -60,20 +62,22 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
     setCrownPos: (crownPos) => set({ crownPos }),
     setTurning: (turning) => set({ turning }),
     setMode: (mode) =>
-      set(mode === 'free' ? { mode, selected: null, freeSide: caliber.tour[get().stepIndex]!.side } : { mode }),
+      set(mode === 'free' ? { mode, selected: null, freeSide: caliber.tour[get().stepIndex]!.side, ...PUSH_IN } : mode === 'tour' ? { mode } : { mode, ...PUSH_IN }),
     toggleSide: () => set({ freeSide: get().freeSide === 'back' ? 'dial' : 'back' }),
     goStep: (i) => {
       const stepIndex = clamp(Math.round(i), 0, last);
       // Leaving the crown chapter pushes the crown in, so the watch never stays stopped by accident.
-      set(caliber.tour[stepIndex]!.ctl ? { stepIndex } : { stepIndex, crownPos: 0, turning: false });
+      set(caliber.tour[stepIndex]!.ctl ? { stepIndex } : { stepIndex, ...PUSH_IN });
     },
     next: () => get().goStep(get().stepIndex + 1),
     prev: () => get().goStep(get().stepIndex - 1),
     pick: (focus) => {
       if (get().mode === 'tour') {
-        const i = caliber.tour.findIndex((s) => s.focus === focus);
-        if (i >= 0) return set({ stepIndex: i });
-        return set({ mode: 'free', selected: focus, freeSide: caliber.tour[get().stepIndex]!.side });
+        const chapter = caliber.tour[get().stepIndex]!.chapter;
+        const here = caliber.tour.findIndex((s) => s.focus === focus && s.chapter === chapter);
+        const i = here >= 0 ? here : caliber.tour.findIndex((s) => s.focus === focus);
+        if (i >= 0) return get().goStep(i);
+        return set({ mode: 'free', selected: focus, freeSide: caliber.tour[get().stepIndex]!.side, ...PUSH_IN });
       }
       if (get().mode === 'free') set({ selected: focus });
     },

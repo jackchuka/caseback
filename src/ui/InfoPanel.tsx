@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { caliberVars } from '../i18n/caliberVars';
 import type { Caliber } from '../model/schema';
@@ -15,6 +16,21 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
   const setCrownPos = useApp((s) => s.setCrownPos);
   const setTurning = useApp((s) => s.setTurning);
   const ctl = mode === 'tour' ? caliber.tour[stepIndex]!.ctl : undefined;
+  const turning = useApp((s) => s.turning);
+  // Pointer capture is lost silently when the button unmounts; stop turning on any release or blur, and on unmount.
+  useEffect(() => {
+    if (!turning) return;
+    const stop = () => setTurning(false);
+    addEventListener('pointerup', stop);
+    addEventListener('pointercancel', stop);
+    addEventListener('blur', stop);
+    return () => {
+      removeEventListener('pointerup', stop);
+      removeEventListener('pointercancel', stop);
+      removeEventListener('blur', stop);
+    };
+  }, [turning, setTurning]);
+  useEffect(() => () => setTurning(false), [setTurning]);
   const m = panelModel(caliber, mode, stepIndex, selected);
   if (!m) return <aside className="info glass hidden" aria-hidden />;
   const vars = caliberVars(caliber);

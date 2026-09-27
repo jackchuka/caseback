@@ -38,3 +38,18 @@ describe('keyless works', () => {
     expect(turns('hour-hand', 43200)).toBeCloseTo(1, 9);
   });
 });
+
+import { settleQuick, snapDates } from './solver';
+describe('quick-set release', () => {
+  it('settles on a whole date whatever turn it was released at', () => {
+    for (const turns of [0.25, 0.6, 0.75, 0.9, 1.67]) {
+      let q = turns * TAU;
+      for (let i = 0; i < 200; i++) q = settleQuick(q, 1 / 60);
+      const d = snapDates(q / TAU);
+      expect(d, `released at ${turns}`).toBeCloseTo(Math.round(d), 9);
+    }
+  });
+  it('never moves the date backwards', () => {
+    expect(settleQuick(0.6 * TAU, 1 / 60)).toBeGreaterThanOrEqual(0.6 * TAU);
+  });
+});

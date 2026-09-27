@@ -88,4 +88,30 @@ describe('app store', () => {
     store.getState().goStep(1);
     expect(store.getState()).toMatchObject({ crownPos: 0, turning: false });
   });
+  it('picking a part from a crown step pushes the crown in', () => {
+    const c = miniCaliber();
+    c.tour[2]!.ctl = 'crown';
+    const store = createAppStore(c, { mode: 'tour', stepIndex: 2 });
+    store.getState().setCrownPos(2);
+    store.getState().setTurning(true);
+    store.getState().pick('a');
+    expect(store.getState()).toMatchObject({ stepIndex: 1, crownPos: 0, turning: false });
+  });
+  it('picking prefers a step in the current chapter', () => {
+    const c = miniCaliber();
+    c.chapters.push({ id: 'other', flow: [] });
+    c.tour.push({ ...c.tour[1]!, id: 'other-a', chapter: 'other' });
+    const store = createAppStore(c, { mode: 'tour', stepIndex: 3 });
+    store.getState().pick('a');
+    expect(store.getState().stepIndex).toBe(3);
+  });
+  it('entering free mode pushes the crown in', () => {
+    const c = miniCaliber();
+    c.tour[2]!.ctl = 'crown';
+    const store = createAppStore(c, { mode: 'tour', stepIndex: 2 });
+    store.getState().setCrownPos(2);
+    store.getState().setTurning(true);
+    store.getState().setMode('free');
+    expect(store.getState()).toMatchObject({ crownPos: 0, turning: false });
+  });
 });

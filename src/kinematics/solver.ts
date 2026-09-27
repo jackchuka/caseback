@@ -6,6 +6,13 @@ import { smoothstep } from './gearMath';
 // Quick-set advances one date per crown turn and settles on whole dates in the second half of each turn.
 export const snapDates = (q: number) => Math.floor(q) + smoothstep((q - Math.floor(q) - 0.5) / 0.5);
 
+// After the crown is released, finish the current turn so the ring never rests between two dates.
+export function settleQuick(quickRot: number, dt: number): number {
+  const TAU = Math.PI * 2;
+  const target = Math.ceil(quickRot / TAU - 1e-9) * TAU;
+  return quickRot + Math.min(target - quickRot, dt * 4);
+}
+
 export type PartTransform = { angle: number; dz: number; dx: number };
 export type KinematicsInput = {
   t: number;
