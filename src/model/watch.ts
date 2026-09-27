@@ -18,6 +18,7 @@ export const WatchSchema = z.object({
   year: z.number().int().optional(),
   caliberId: z.string(),
   caliberNotes: z.string().optional(),
+  movement: z.object({ name: z.string(), vph: z.number().int().positive(), powerReserveH: z.number().positive(), sourceIds: z.array(z.string()).min(1) }).optional(),
   exterior: WatchExteriorSchema,
   sources: z.array(SourceSchema).min(1),
 });

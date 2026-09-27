@@ -6,7 +6,8 @@
     "title": "What is happening\nbehind the caseback?",
     "body": "Inside {{diameter}} millimetres, about 130 parts keep a rhythm of {{beats}} beats per second.",
     "open": "Open the caseback",
-    "scroll": "or scroll ↓"
+    "scroll": "or scroll ↓",
+    "base": "This tour explains the mechanism using the base {{base}}."
   },
   "tour": {
     "label": "Tour",

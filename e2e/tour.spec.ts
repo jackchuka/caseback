@@ -348,3 +348,17 @@ test('unknown paths show the home page', async ({ page }) => {
   await page.goto('/watches/tudor/nope');
   await expect(page.locator('.home')).toBeVisible();
 });
+
+test('display caseback lets you see the movement, a solid one does not', async ({ page }) => {
+  const firstHits = async (url: string) => {
+    await page.goto(url);
+    await ready(page);
+    await page.waitForTimeout(1500);
+    const [x, y] = await page.evaluate(() => window.__caseback!.project('balance'));
+    return page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
+  };
+  const glass = await firstHits('/watches/hamilton/khaki-field-auto-h70455553?lang=en');
+  expect(glass[0]).toBe('caseback-glass');
+  const solid = await firstHits('/watches/sinn/556?lang=en');
+  expect(solid[0]).toBe('caseback-solid');
+});

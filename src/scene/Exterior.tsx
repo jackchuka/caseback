@@ -8,7 +8,7 @@ import type { Watch } from '../model/watch';
 import { appStore } from '../state/app';
 import { useMaterials } from './materials';
 import { crownEuler, crownState } from './crown';
-import { caseRadii } from './caseGeometry';
+import { bezelProfile, caseRadii, casingRing, stemExtension } from './caseGeometry';
 import { openingPose } from './opening';
 import { engraving } from './textures';
 
@@ -28,7 +28,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
   const bezel = useMemo(() => {
     if (ext?.bezel.kind !== 'dive') return null;
     const o = outer;
-    const prof = [[o - 3.0, bottom], [o - 0.3, bottom], [o - 0.2, bottom - 0.5], [o - 0.5, bottom - 1.0], [o - 3.0, bottom - 1.0], [o - 3.0, bottom]].map(([x, y]) => new THREE.Vector2(x, y));
+    const prof = bezelProfile(o, bottom).map(([x, y]) => new THREE.Vector2(x, y));
     const ring = new THREE.LatheGeometry(prof, 160).rotateX(Math.PI / 2);
     const mat = new THREE.MeshPhysicalMaterial({ color: ext.bezel.color ?? '#222222', metalness: 0.2, roughness: 0.3, clearcoat: 1 });
     const tickMat = new THREE.MeshStandardMaterial({ color: 0xf4f1e8, roughness: 0.5 });
@@ -58,6 +58,14 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
   const lug = ext ? { x: ext.case.lugWidthMm / 2 + 1.4, y: outer + 3.0 } : { x: r * 0.52, y: r + 4.2 };
   const crownSize = ext ? { radius: ext.crown.diameterMm / 2, length: ext.crown.lengthMm } : { radius: 1.25, length: 2.0 };
   const crownX = ext ? outer + crownSize.length / 2 - 0.2 : r + 4.3;
+  const casing = casingRing(r, inner);
+  // Seen from both the caseback and the dial side, so it needs both faces.
+  const casingMat = useMemo(() => Object.assign(materials.plate.clone(), { side: THREE.DoubleSide }), [materials]);
+  const stemPart = caliber.parts.find((p) => p.shape.kind === 'stem');
+  const stemEnd = stemPart && stemPart.shape.kind === 'stem' ? stemPart.pos.x + stemPart.shape.length / 2 : null;
+  const stemExt = stemEnd === null ? null : stemExtension(stemEnd, crownX, crownSize.length);
+  const stemRadius = stemPart && stemPart.shape.kind === 'stem' ? stemPart.shape.radius : 0.26;
+  const stemTube = useRef<THREE.Group>(null);
   const back = useRef<THREE.Group>(null);
   const rotor = useRef<THREE.Group>(null);
   const openT = useRef(0);
@@ -84,6 +92,10 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       crown.current.position.x = crownX + s.crownPos * 0.7;
       crown.current.rotation.copy(crownEuler(crownState.rot));
     }
+    if (stemTube.current) {
+      stemTube.current.position.x = s.crownPos * 0.7;
+      stemTube.current.rotation.x = crownState.rot;
+    }
     if (s.mode === 'opening' && pose.done) {
       openT.current = 0;
       s.finishOpening();
@@ -101,9 +113,26 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       <mesh ref={crown} position={[crownX, 0, -1.5]} rotation={[0, 0, Math.PI / 2, 'ZYX']} material={caseMat}>
         <cylinderGeometry args={[crownSize.radius, crownSize.radius, crownSize.length, 48]} />
       </mesh>
+      {casing && (
+        <mesh rotation-x={Math.PI / 2} material={casingMat} receiveShadow>
+          <cylinderGeometry args={[casing.rOut, casing.rOut, 4.4, 160, 1, true]} />
+        </mesh>
+      )}
+      {casing && (
+        <mesh position-z={-1.15} material={casingMat} receiveShadow>
+          <ringGeometry args={[casing.rIn, casing.rOut, 160]} />
+        </mesh>
+      )}
+      {stemExt && stemExt.to > stemExt.from && (
+        <group ref={stemTube}>
+          <mesh position={[(stemExt.from + stemExt.to) / 2, 0, -1.5]} rotation-z={Math.PI / 2} material={materials.steel}>
+            <cylinderGeometry args={[stemRadius, stemRadius, stemExt.to - stemExt.from, 24]} />
+          </mesh>
+        </group>
+      )}
       {bezel && (
         <group>
-          <mesh geometry={bezel.ring} material={bezel.mat} castShadow />
+          <mesh geometry={bezel.ring} material={bezel.mat} />
           {bezel.ticks.map((g, i) => (
             <mesh key={i} geometry={g} material={bezel.tickMat} />
           ))}
@@ -115,12 +144,12 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
             <mesh rotation-x={Math.PI / 2} material={caseMat} castShadow>
               <cylinderGeometry args={[outer - 1.1, outer - 0.8, 1.0, 160, 1, true]} />
             </mesh>
-            <mesh rotation-x={Math.PI / 2} material={glassMat}>
+            <mesh name="caseback-glass" rotation-x={Math.PI / 2} material={glassMat}>
               <cylinderGeometry args={[outer - 1.15, outer - 1.15, 0.6, 160]} />
             </mesh>
           </>
         ) : (
-          <mesh rotation-x={Math.PI / 2} material={[caseMat, backMat, caseMat]} castShadow>
+          <mesh name="caseback-solid" rotation-x={Math.PI / 2} material={[caseMat, backMat, caseMat]} castShadow>
             <cylinderGeometry args={[outer - 1.1, outer - 0.8, 1.0, 160]} />
           </mesh>
         )}
