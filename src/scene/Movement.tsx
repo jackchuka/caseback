@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { buildSolver } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { arborKey, focusKey } from '../model/validate';
-import { accumulateWinding, reserveHours, throttle, wristSwing } from '../kinematics/winding';
+import { accumulateWinding, stepReserve, throttle, wristSwing } from '../kinematics/winding';
 import { appStore, useApp } from '../state/app';
 import { effectiveSpeed } from '../tour/engine';
 import { MOVEMENT_ROTATION_VALUE } from './focus';
@@ -41,7 +41,9 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
   const explode = useRef(0);
   const wound = useRef(0);
   const prevInput = useRef(0);
-  const t0 = useRef(t.current);
+  const swingT = useRef(0);
+  const reserve = useRef(INITIAL_RESERVE * caliber.specs.powerReserveH);
+  const prevRatchetTurns = useRef(0);
   const publish = useMemo(() => throttle(250), []);
   const oneWayInput = useMemo(() => {
     const ow = solve.info.oneWay;
@@ -51,20 +53,23 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
   useFrame((state, dt) => {
     const s = appStore().getState();
     const step = caliber.tour[s.stepIndex]!;
-    t.current = advance(t.current, dt, effectiveSpeed(s.mode, step, s.freeSpeedExp, s.paused));
+    const speed = effectiveSpeed(s.mode, step, s.freeSpeedExp, s.paused);
+    t.current = advance(t.current, dt, speed);
+    if (!s.paused) swingT.current += Math.min(dt, 0.05);
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;
     const rotorState = s.mode === 'tour' ? step.rotor : 'hide';
-    const rotor = rotorState === 'hide' ? 0 : wristSwing(state.clock.elapsedTime);
+    const rotor = rotorState === 'hide' ? 0 : wristSwing(swingT.current);
     const transforms = solve({ t: t.current, explode: explode.current, dateBase, rotor, wound: wound.current });
     if (oneWayInput && solve.info.oneWay) {
       const input = transforms.get(oneWayInput)!.angle;
       wound.current = accumulateWinding(wound.current, prevInput.current, input, solve.info.oneWay.ratio);
       prevInput.current = input;
     }
-    if (publish(performance.now())) {
-      const ratchetTurns = Math.abs(wound.current * solve.info.ratchetFactor) / (Math.PI * 2);
-      s.setReserve(reserveHours(caliber, ratchetTurns, t.current - t0.current, INITIAL_RESERVE * caliber.specs.powerReserveH));
-    }
+    // Fast-forward demos drain at no more than real time so the reserve stays readable across chapters.
+    const ratchetTurns = Math.abs(wound.current * solve.info.ratchetFactor) / (Math.PI * 2);
+    reserve.current = stepReserve(caliber, reserve.current, ratchetTurns - prevRatchetTurns.current, Math.min(dt, 0.05) * Math.min(speed, 1));
+    prevRatchetTurns.current = ratchetTurns;
+    if (publish(performance.now())) s.setReserve(reserve.current);
     const highlight = s.mode === 'tour' ? step.focus : s.mode === 'free' ? s.selected : null;
     const xray = s.mode === 'tour' && step.xray;
     const pulse = 1.2 + Math.sin(state.clock.elapsedTime * 3) * 0.8;
@@ -88,6 +93,9 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
       }
       if (entry.part.shape.kind === 'bridge') fadeTo(entry, xray ? XRAY_OPACITY : 1);
       if (isRotor) fadeTo(entry, rotorState === 'xray' ? ROTOR_XRAY_OPACITY : 1);
+      // three.js raycasts ignore `visible`, so hidden parts must opt out explicitly.
+      if (!entry.group.visible) for (const child of entry.group.children) (child as THREE.Mesh).raycast = ignoreRaycast;
+      else if (!isRotor && entry.part.shape.kind !== 'bridge') for (const child of entry.group.children) (child as THREE.Mesh).raycast = THREE.Mesh.prototype.raycast;
     }
   });
 

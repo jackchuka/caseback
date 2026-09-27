@@ -31,3 +31,9 @@ export function throttle(intervalMs: number): (now: number) => boolean {
     return true;
   };
 }
+
+// Integrates the reserve so it never carries hidden debt below 0 h or surplus above the maximum.
+export function stepReserve(c: Caliber, reserveH: number, ratchetTurnsDelta: number, drainS: number): number {
+  const h = reserveH + ratchetTurnsDelta * hoursPerBarrelTurn(c) - drainS / 3600;
+  return Math.min(c.specs.powerReserveH, Math.max(0, h));
+}

@@ -222,3 +222,29 @@ test('clicking reversers through the rotor stays in the tour', async ({ page }) 
   expect(await state(page)).toMatchObject({ mode: 'tour' });
   await expect(page.locator('.info h1')).toHaveText('切替車');
 });
+
+test('hidden rotor does not catch clicks in the first chapter', async ({ page }) => {
+  await openTour(page);
+  await page.waitForTimeout(2000);
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('barrel'));
+  await page.mouse.click(x, y);
+  await page.waitForTimeout(300);
+  const s = await page.evaluate(() => {
+    const st = window.__caseback!.state();
+    return { selected: st.selected, stepIndex: st.stepIndex };
+  });
+  expect(['rotor', 'reversers', 'reduction']).not.toContain(s.selected);
+  expect(s.stepIndex).toBeLessThan(14);
+});
+
+test('the rotor stays still while paused', async ({ page }) => {
+  await openTour(page);
+  await page.getByRole('button', { name: '自動で巻く' }).click();
+  await page.waitForTimeout(2000);
+  await page.locator('.tourbar').getByRole('button', { name: '一時停止' }).click();
+  // The reserve is published every 250 ms; let the last pre-pause value land first.
+  await page.waitForTimeout(500);
+  const a0 = await page.evaluate(() => window.__caseback!.state().reserveH);
+  await page.waitForTimeout(3000);
+  expect(await page.evaluate(() => window.__caseback!.state().reserveH)).toBeCloseTo(a0, 3);
+});

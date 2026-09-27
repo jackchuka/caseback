@@ -79,3 +79,29 @@ describe('winding and reserve', () => {
     expect(tick(260)).toBe(true);
   });
 });
+
+import { stepReserve } from './winding';
+import { buildShape } from '../geometry/parts';
+describe('integrated reserve', () => {
+  const c = autoCaliber();
+  it('never builds hidden debt: after draining past 0, winding raises it immediately', () => {
+    let r = 1;
+    r = stepReserve(c, r, 0, 10 * 3600);
+    expect(r).toBe(0);
+    r = stepReserve(c, r, 0.5, 0);
+    expect(r).toBeGreaterThan(0);
+  });
+  it('never builds hidden surplus above the maximum', () => {
+    let r = stepReserve(c, 37, 100, 0);
+    expect(r).toBe(c.specs.powerReserveH);
+    r = stepReserve(c, r, 0, 3600);
+    expect(r).toBeCloseTo(c.specs.powerReserveH - 1);
+  });
+});
+
+describe('wheel arbors', () => {
+  it('only spoked wheels carry a long arbor pin', () => {
+    expect(buildShape({ kind: 'wheel', teeth: 18, module: 0.1, thickness: 0.16, spokes: 0 }, 'gilt')).toHaveLength(1);
+    expect(buildShape({ kind: 'wheel', teeth: 80, module: 0.085, thickness: 0.28, spokes: 4 }, 'gilt')).toHaveLength(2);
+  });
+});

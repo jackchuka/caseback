@@ -39,3 +39,13 @@ describe('i18n', () => {
     }
   });
 });
+
+describe('self-winding content', () => {
+  it('does not claim that one rotor direction freewheels', async () => {
+    for (const lang of ['ja', 'en'] as const) {
+      const i18n = await createI18n(lang);
+      const body = i18n.t('eta-2824-2:steps.auto-reversers.body');
+      expect(body).not.toMatch(/空回り|freewheels/);
+    }
+  });
+});

@@ -30,7 +30,9 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
       const s = gearOutline(shape.teeth, shape.module);
       const rf = (shape.module * shape.teeth) / 2 - 1.55 * shape.module;
       if (shape.spokes > 0) addSpokes(s, Math.max(0.6, rf * 0.28), rf * 0.8, shape.spokes, Math.max(0.28, rf * 0.09));
-      return [{ geometry: extrudeCentered(s, shape.thickness, 0.03), material }, { geometry: disc(0.12, 4.2, 16), material: 'steel' }];
+      const body: Layer = { geometry: extrudeCentered(s, shape.thickness, 0.03), material };
+      // Spoked train wheels show their arbor pin between plate and bridge; solid wheels sit on pinions and need none.
+      return shape.spokes > 0 ? [body, { geometry: disc(0.12, 4.2, 16), material: 'steel' }] : [body];
     }
     case 'pinion':
       return [{ geometry: extrudeCentered(gearOutline(shape.leaves, shape.module, PINION), shape.length, 0.01), material }];
