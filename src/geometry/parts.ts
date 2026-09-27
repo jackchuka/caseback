@@ -60,6 +60,12 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     }
     case 'bridge':
       return bridge(shape, material);
+    case 'rotor': {
+      const s = new THREE.Shape();
+      s.absarc(0, 0, shape.radius, 0, Math.PI, false);
+      s.absarc(0, 0, shape.hub, Math.PI, 0, true);
+      return [{ geometry: extrudeCentered(s, shape.thickness, 0.06), material }, { geometry: disc(shape.hub * 0.75, shape.thickness + 0.15, 48), material: 'steel' }];
+    }
     case 'hand':
       return hand(shape.length, shape.width, shape.thickness, material);
     case 'date-driver': {

@@ -1,11 +1,14 @@
 import type { Caliber } from '../model/schema';
-import { focusKey, toothCount } from '../model/validate';
+import { arborKey, toothCount } from '../model/validate';
 import { escapementState } from './escapement';
 import { smoothstep } from './gearMath';
 
 export type PartTransform = { angle: number; dz: number };
-export type KinematicsInput = { t: number; explode: number; dateBase?: number };
-export type Solver = (input: KinematicsInput) => Map<string, PartTransform>;
+export type KinematicsInput = { t: number; explode: number; dateBase?: number; rotor?: number; wound?: number };
+export type OneWayInfo = { inputKey: string; outputKey: string; ratio: number };
+export type Solver = ((input: KinematicsInput) => Map<string, PartTransform>) & {
+  info: { oneWay: OneWayInfo | null; ratchetFactor: number };
+};
 
 export function buildSolver(c: Caliber): Solver {
   const byId = new Map(c.parts.map((p) => [p.id, p]));
@@ -28,43 +31,63 @@ export function buildSolver(c: Caliber): Solver {
       const b = byId.get(cp.b)!;
       const za = toothCount(a.shape)!;
       const zb = toothCount(b.shape)!;
-      link(focusKey(a), focusKey(b), -za / zb);
-      link(focusKey(b), focusKey(a), -zb / za);
+      link(arborKey(a), arborKey(b), -za / zb);
+      link(arborKey(b), arborKey(a), -zb / za);
     } else if (cp.type === 'slip') {
-      const a = focusKey(byId.get(cp.a)!);
-      const b = focusKey(byId.get(cp.b)!);
+      const a = arborKey(byId.get(cp.a)!);
+      const b = arborKey(byId.get(cp.b)!);
       link(a, b, 1);
       link(b, a, 1);
     }
   }
 
-  const root = focusKey(escapePart);
-  const factor = new Map<string, number>([[root, 1]]);
-  const queue = [root];
-  while (queue.length > 0) {
-    const key = queue.shift()!;
-    for (const e of edges.get(key) ?? []) {
-      if (factor.has(e.to)) continue;
-      factor.set(e.to, factor.get(key)! * e.factor);
-      queue.push(e.to);
+  // Each root (escapement, rotor, one-way output) drives its own connected component.
+  const bfs = (root: string) => {
+    const factor = new Map<string, number>([[root, 1]]);
+    const queue = [root];
+    while (queue.length > 0) {
+      const key = queue.shift()!;
+      for (const e of edges.get(key) ?? []) {
+        if (factor.has(e.to)) continue;
+        factor.set(e.to, factor.get(key)! * e.factor);
+        queue.push(e.to);
+      }
     }
-  }
+    return factor;
+  };
+  const escapeFactor = bfs(arborKey(escapePart));
+  const rotorPart = c.parts.find((p) => p.shape.kind === 'rotor');
+  const rotorFactor = rotorPart ? bfs(arborKey(rotorPart)) : new Map<string, number>();
+  const oneWayCp = c.couplings.find((cp) => cp.type === 'one-way');
+  const oneWay: OneWayInfo | null =
+    oneWayCp && oneWayCp.type === 'one-way'
+      ? {
+          inputKey: arborKey(byId.get(oneWayCp.input)!),
+          outputKey: arborKey(byId.get(oneWayCp.output)!),
+          ratio: toothCount(byId.get(oneWayCp.input)!.shape)! / toothCount(byId.get(oneWayCp.output)!.shape)!,
+        }
+      : null;
+  const woundFactor = oneWay ? bfs(oneWay.outputKey) : new Map<string, number>();
+  const ratchetPart = c.parts.find((p) => p.shape.kind === 'ratchet');
+  const ratchetFactor = ratchetPart ? (woundFactor.get(arborKey(ratchetPart)) ?? 0) : 0;
 
-  const balanceKey = focusKey(byId.get(esc.balance)!);
-  const forkKey = focusKey(byId.get(esc.fork)!);
+  const balanceKey = arborKey(byId.get(esc.balance)!);
+  const forkKey = arborKey(byId.get(esc.fork)!);
 
   const intermittents = c.couplings.flatMap((cp) =>
     cp.type === 'intermittent'
-      ? [{ driverKey: focusKey(byId.get(cp.driver)!), drivenKey: focusKey(byId.get(cp.driven)!), teeth: toothCount(byId.get(cp.driven)!.shape)! }]
+      ? [{ driverKey: arborKey(byId.get(cp.driver)!), drivenKey: arborKey(byId.get(cp.driven)!), teeth: toothCount(byId.get(cp.driven)!.shape)! }]
       : [],
   );
   const WINDOW = 0.1; // the driven part moves during the last 10 % of each driver turn
 
-  return ({ t, explode, dateBase = 0 }) => {
+  const solver = (({ t, explode, dateBase = 0, rotor = 0, wound = 0 }: KinematicsInput) => {
     const s = escapementState(t, c.specs.vph, escapeTeeth);
     const e = smoothstep(explode);
     const byKey = new Map<string, number>();
-    for (const [key, f] of factor) byKey.set(key, f * s.escape);
+    for (const [key, f] of escapeFactor) byKey.set(key, f * s.escape);
+    for (const [key, f] of rotorFactor) byKey.set(key, f * rotor);
+    for (const [key, f] of woundFactor) byKey.set(key, f * wound);
     byKey.set(balanceKey, s.balance);
     byKey.set(forkKey, s.fork);
     for (const im of intermittents) {
@@ -77,9 +100,11 @@ export function buildSolver(c: Caliber): Solver {
     }
     const out = new Map<string, PartTransform>();
     for (const p of c.parts) {
-      const angle = byKey.get(focusKey(p)) ?? 0;
+      const angle = byKey.get(arborKey(p)) ?? 0;
       out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e });
     }
     return out;
-  };
+  }) as Solver;
+  solver.info = { oneWay, ratchetFactor };
+  return solver;
 }

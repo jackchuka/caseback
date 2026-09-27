@@ -1,7 +1,11 @@
 import type { Caliber, Part, Shape } from './schema';
 
-export function focusKey(part: Part): string {
+export function arborKey(part: Part): string {
   return part.arbor ?? part.id;
+}
+
+export function focusKey(part: Part): string {
+  return part.focus ?? part.arbor ?? part.id;
 }
 
 export function toothCount(shape: Shape): number | null {
@@ -45,6 +49,13 @@ export function validateCaliber(c: Caliber): string[] {
     } else if (cp.type === 'slip') {
       ref('slip', cp.a);
       ref('slip', cp.b);
+    } else if (cp.type === 'one-way') {
+      ref('one-way', cp.input);
+      ref('one-way', cp.output);
+      for (const id of [cp.input, cp.output]) {
+        const p = byId.get(id);
+        if (p && toothCount(p.shape) === null) errors.push(`one-way: ${id} has no teeth`);
+      }
     } else if (cp.type === 'intermittent') {
       ref('intermittent', cp.driver);
       ref('intermittent', cp.driven);

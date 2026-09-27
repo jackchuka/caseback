@@ -17,6 +17,7 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('balance'), radius: pos, rimThickness: pos, arms: int }),
   z.object({ kind: z.literal('hairspring'), turns: pos, innerRadius: pos, pitch: pos }),
   z.object({ kind: z.literal('plate'), radius: pos, thickness: pos }),
+  z.object({ kind: z.literal('rotor'), radius: pos, hub: pos, thickness: pos }),
   z.object({ kind: z.literal('hand'), length: pos, width: pos, thickness: pos }),
   z.object({ kind: z.literal('date-driver'), teeth: int, module: pos, thickness: pos, fingerLength: pos }),
   z.object({ kind: z.literal('date-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
@@ -39,6 +40,7 @@ export const PartSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   mechanism: z.enum(['frame', 'power', 'going-train', 'escapement', 'regulator', 'motion-works', 'calendar', 'automatic', 'keyless']),
   arbor: z.string().optional(),
+  focus: z.string().optional(),
   rest: z.number().optional(),
   side: z.enum(['back', 'dial']),
   pos: Vec3Schema,
@@ -52,6 +54,7 @@ export const CouplingSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('mesh'), a: z.string(), b: z.string() }),
   z.object({ type: z.literal('escapement'), balance: z.string(), fork: z.string(), escapeWheel: z.string() }),
   z.object({ type: z.literal('slip'), a: z.string(), b: z.string() }),
+  z.object({ type: z.literal('one-way'), input: z.string(), output: z.string() }),
   z.object({ type: z.literal('intermittent'), driver: z.string(), driven: z.string() }),
 ]);
 
