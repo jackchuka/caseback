@@ -7,7 +7,7 @@ export function Dock() {
   const explode = useApp((s) => s.explode);
   const speedExp = useApp((s) => s.freeSpeedExp);
   const paused = useApp((s) => s.paused);
-  const { setMode, setExplode, setFreeSpeedExp, togglePaused } = useApp((s) => s);
+  const { setMode, setExplode, setFreeSpeedExp, togglePaused, toggleSide } = useApp((s) => s);
   const speed = 10 ** speedExp;
   return (
     <div className={`dock glass ${mode === 'free' ? '' : 'hidden'}`}>
@@ -20,6 +20,9 @@ export function Dock() {
         }}
       >
         {t('ui:dock.back')}
+      </button>
+      <button type="button" className="mode flip" onClick={toggleSide}>
+        {t('ui:dock.flip')}
       </button>
       <span className="sep" />
       <label>

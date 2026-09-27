@@ -170,3 +170,32 @@ test('the info panel shows sources and estimate notes', async ({ page }) => {
   await expect(page.locator('.info details.sources')).toContainText('FIRGELLI');
   await expect(page.locator('.info details.sources')).toContainText('84 teeth');
 });
+
+test('dial chapters flip the movement and fast-forward', async ({ page }) => {
+  await openTour(page);
+  await page.getByRole('button', { name: '針を動かす' }).click();
+  await expect(page.locator('.info h1')).toHaveText('文字盤の下へ');
+  await expect.poll(() => page.evaluate(() => window.__caseback!.flip()), { timeout: 10_000 }).toBeCloseTo(Math.PI, 2);
+  await expect(page.locator('.info .badge').first()).toContainText('60');
+  await page.getByRole('button', { name: '日付を送る' }).click();
+  await expect(page.locator('.info h1')).toHaveText('日回し車');
+});
+
+test('flips back to the bridge side', async ({ page }) => {
+  await openTour(page);
+  await page.getByRole('button', { name: '針を動かす' }).click();
+  await page.waitForTimeout(600);
+  await page.getByRole('button', { name: '時を刻む' }).click();
+  await expect.poll(() => page.evaluate(() => window.__caseback!.flip()), { timeout: 10_000 }).toBeCloseTo(0, 3);
+});
+
+test('free mode flip shows dial parts', async ({ page }) => {
+  await openTour(page);
+  await page.locator('button.to-free').click();
+  await page.locator('.dock button.flip').click();
+  await expect.poll(() => page.evaluate(() => window.__caseback!.flip()), { timeout: 10_000 }).toBeCloseTo(Math.PI, 2);
+  await page.mouse.click(700, 450);
+  await expect.poll(() => page.evaluate(() => window.__caseback!.state().selected)).not.toBeNull();
+  const selected = await page.evaluate(() => window.__caseback!.state().selected);
+  expect(['date-ring', 'hour', 'cannon', 'minute-wheel', 'date-driver', 'plate']).toContain(selected);
+});
