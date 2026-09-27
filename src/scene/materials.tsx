@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import * as THREE from 'three';
 import type { LayerMaterial } from '../geometry/parts';
-import { cotesDeGeneve, perlage, sunburst } from './textures';
+import { cotesDeGeneve, dateNumbers, perlage, sunburst } from './textures';
 
 export type MaterialSet = Record<LayerMaterial, THREE.MeshPhysicalMaterial>;
 
@@ -9,6 +9,8 @@ export function createMaterials(): MaterialSet {
   const cotes = cotesDeGeneve();
   const pearl = perlage();
   const sun = sunburst();
+  const dates = dateNumbers();
+  dates.wrapS = dates.wrapT = THREE.ClampToEdgeWrapping;
   return {
     gilt: new THREE.MeshPhysicalMaterial({ color: 0xe8c07a, metalness: 1, roughness: 0.22, bumpMap: sun, bumpScale: 0.25, clearcoat: 0.3, clearcoatRoughness: 0.2 }),
     steel: new THREE.MeshPhysicalMaterial({ color: 0xeef0f3, metalness: 1, roughness: 0.12 }),
@@ -21,6 +23,7 @@ export function createMaterials(): MaterialSet {
     }),
     blued: new THREE.MeshPhysicalMaterial({ color: 0x1b3aa8, metalness: 1, roughness: 0.18, iridescence: 0.5, iridescenceIOR: 1.6 }),
     slot: new THREE.MeshPhysicalMaterial({ color: 0x050a1a, metalness: 0.5, roughness: 0.6 }),
+    date: new THREE.MeshPhysicalMaterial({ map: dates, roughness: 0.45, clearcoat: 0.4 }),
   };
 }
 

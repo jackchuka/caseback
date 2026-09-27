@@ -10,6 +10,8 @@ export function toothCount(shape: Shape): number | null {
     case 'barrel':
     case 'ratchet':
     case 'escape-wheel':
+    case 'date-driver':
+    case 'date-ring':
       return shape.teeth;
     case 'pinion':
       return shape.leaves;
@@ -40,6 +42,14 @@ export function validateCaliber(c: Caliber): string[] {
         const p = byId.get(id);
         if (p && toothCount(p.shape) === null) errors.push(`mesh: ${id} has no teeth`);
       }
+    } else if (cp.type === 'slip') {
+      ref('slip', cp.a);
+      ref('slip', cp.b);
+    } else if (cp.type === 'intermittent') {
+      ref('intermittent', cp.driver);
+      ref('intermittent', cp.driven);
+      const d = byId.get(cp.driven);
+      if (d && toothCount(d.shape) === null) errors.push(`intermittent: ${cp.driven} has no teeth`);
     } else {
       ref('escapement', cp.balance);
       ref('escapement', cp.fork);

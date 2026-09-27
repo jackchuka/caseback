@@ -58,4 +58,12 @@ describe('app store', () => {
     expect(store.getState().explode).toBe(1);
     expect(store.getState().freeSpeedExp).toBe(1);
   });
+  it('free side starts from the current step side and toggles', () => {
+    const store = make();
+    store.getState().setMode('tour');
+    store.getState().setMode('free');
+    expect(store.getState().freeSide).toBe('back');
+    store.getState().toggleSide();
+    expect(store.getState().freeSide).toBe('dial');
+  });
 });

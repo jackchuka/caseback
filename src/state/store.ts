@@ -1,5 +1,6 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { Caliber } from '../model/schema';
+import type { Side } from '../scene/focus';
 
 export type Mode = 'intro' | 'opening' | 'tour' | 'free';
 export type Theme = 'dark' | 'light';
@@ -13,7 +14,9 @@ export type AppState = InitState & {
   selected: string | null;
   explode: number;
   freeSpeedExp: number;
+  freeSide: Side;
   setMode(m: Mode): void;
+  toggleSide(): void;
   goStep(i: number): void;
   next(): void;
   prev(): void;
@@ -43,7 +46,10 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
     selected: null,
     explode: 0,
     freeSpeedExp: -1,
-    setMode: (mode) => set(mode === 'free' ? { mode, selected: null } : { mode }),
+    freeSide: 'back',
+    setMode: (mode) =>
+      set(mode === 'free' ? { mode, selected: null, freeSide: caliber.tour[get().stepIndex]!.side } : { mode }),
+    toggleSide: () => set({ freeSide: get().freeSide === 'back' ? 'dial' : 'back' }),
     goStep: (i) => set({ stepIndex: clamp(Math.round(i), 0, last) }),
     next: () => get().goStep(get().stepIndex + 1),
     prev: () => get().goStep(get().stepIndex - 1),

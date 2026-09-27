@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { MaterialKey, Shape } from '../model/schema';
 import { addSpokes, extrudeCentered, gearOutline, PINION } from './gear';
 
-export type LayerMaterial = MaterialKey | 'slot';
+export type LayerMaterial = MaterialKey | 'slot' | 'date';
 export type Layer = { geometry: THREE.BufferGeometry; material: LayerMaterial };
 
 type Bridge = Extract<Shape, { kind: 'bridge' }>;
@@ -60,6 +60,18 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     }
     case 'bridge':
       return bridge(shape, material);
+    case 'hand':
+      return hand(shape.length, shape.width, shape.thickness, material);
+    case 'date-driver': {
+      const s = gearOutline(shape.teeth, shape.module);
+      const rf = (shape.module * shape.teeth) / 2 - 1.55 * shape.module;
+      addSpokes(s, Math.max(0.6, rf * 0.28), rf * 0.8, 5, Math.max(0.28, rf * 0.09));
+      const finger = new THREE.BoxGeometry(0.28, shape.fingerLength, 0.18).translate(0, shape.fingerLength / 2, -0.3);
+      const tip = disc(0.2, 0.2, 16).translate(0, shape.fingerLength, -0.3);
+      return [{ geometry: extrudeCentered(s, shape.thickness, 0.03), material }, { geometry: finger, material: 'steel' }, { geometry: tip, material: 'steel' }];
+    }
+    case 'date-ring':
+      return dateRing(shape.teeth, shape.innerRadius, shape.outerRadius, shape.thickness);
   }
 }
 
@@ -165,6 +177,44 @@ function bridge(shape: Bridge, material: MaterialKey): Layer[] {
   for (const sc of shape.screws) {
     layers.push({ geometry: disc(0.42, 0.28).translate(sc.x, sc.y, top + 0.1), material: 'blued' });
     layers.push({ geometry: new THREE.BoxGeometry(0.85, 0.09, 0.12).rotateZ(sc.x).translate(sc.x, sc.y, top + 0.22), material: 'slot' });
+  }
+  return layers;
+}
+
+// Hands point to local −Y (12 o'clock) at angle 0.
+function hand(length: number, width: number, thickness: number, material: MaterialKey): Layer[] {
+  const s = new THREE.Shape();
+  s.moveTo(-width * 0.35, 1.6);
+  s.lineTo(width * 0.35, 1.6);
+  s.lineTo(width, 0);
+  s.lineTo(width * 0.22, -length);
+  s.lineTo(0, -length - 0.25);
+  s.lineTo(-width * 0.22, -length);
+  s.lineTo(-width, 0);
+  s.closePath();
+  const hole = new THREE.Path();
+  hole.absarc(0, 0, 0.3, 0, Math.PI * 2, true);
+  s.holes.push(hole);
+  return [{ geometry: extrudeCentered(s, thickness, 0.02), material }, { geometry: disc(width + 0.1, 0.2, 32), material }];
+}
+
+// Printed ring: UVs map the band's mid radius to 0.87 of the texture radius (see textures.dateNumbers).
+function dateRing(teeth: number, rIn: number, rOut: number, thickness: number): Layer[] {
+  const s = new THREE.Shape();
+  s.absarc(0, 0, rOut, 0, Math.PI * 2, false);
+  const hole = new THREE.Path();
+  hole.absarc(0, 0, rIn, 0, Math.PI * 2, true);
+  s.holes.push(hole);
+  const g = extrudeCentered(s, thickness, 0.02);
+  const scale = ((rIn + rOut) / 2) / 0.87;
+  const pos = g.getAttribute('position');
+  const uv = g.getAttribute('uv');
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, 0.5 + pos.getX(i) / (2 * scale), 0.5 + pos.getY(i) / (2 * scale));
+  uv.needsUpdate = true;
+  const layers: Layer[] = [{ geometry: g, material: 'date' }];
+  for (let i = 0; i < teeth; i++) {
+    const a = ((i + 0.5) / teeth) * Math.PI * 2;
+    layers.push({ geometry: new THREE.BoxGeometry(0.34, 0.7, thickness).rotateZ(-a).translate(Math.sin(a) * (rIn - 0.25), Math.cos(a) * (rIn - 0.25), 0), material: 'steel' });
   }
   return layers;
 }

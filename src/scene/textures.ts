@@ -127,3 +127,23 @@ export function flowStripe() {
   });
   return t;
 }
+
+// Numbers 1..31 around a circle at 0.87 of the texture radius, mirrored vertically so they read correctly from the dial side.
+export function dateNumbers(count = 31) {
+  return canvasTexture(2048, (g, s) => {
+    g.fillStyle = '#f3f0e8';
+    g.fillRect(0, 0, s, s);
+    g.translate(s / 2, s / 2);
+    g.scale(1, -1);
+    g.fillStyle = '#1a1a1a';
+    g.font = `600 ${s * 0.05}px Inter, sans-serif`;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    for (let d = 1; d <= count; d++) {
+      g.save();
+      g.rotate(((d - 1) / count) * Math.PI * 2);
+      g.fillText(String(d), 0, -(s / 2) * 0.87);
+      g.restore();
+    }
+  }, true);
+}

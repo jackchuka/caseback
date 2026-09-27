@@ -17,6 +17,9 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('balance'), radius: pos, rimThickness: pos, arms: int }),
   z.object({ kind: z.literal('hairspring'), turns: pos, innerRadius: pos, pitch: pos }),
   z.object({ kind: z.literal('plate'), radius: pos, thickness: pos }),
+  z.object({ kind: z.literal('hand'), length: pos, width: pos, thickness: pos }),
+  z.object({ kind: z.literal('date-driver'), teeth: int, module: pos, thickness: pos, fingerLength: pos }),
+  z.object({ kind: z.literal('date-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
   z.object({
     kind: z.literal('bridge'),
     lobes: z.array(Point.extend({ r: pos })).min(1),
@@ -48,6 +51,8 @@ export const PartSchema = z.object({
 export const CouplingSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('mesh'), a: z.string(), b: z.string() }),
   z.object({ type: z.literal('escapement'), balance: z.string(), fork: z.string(), escapeWheel: z.string() }),
+  z.object({ type: z.literal('slip'), a: z.string(), b: z.string() }),
+  z.object({ type: z.literal('intermittent'), driver: z.string(), driven: z.string() }),
 ]);
 
 export const StatSchema = z.object({ label: z.string(), value: z.string() });

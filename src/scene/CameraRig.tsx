@@ -31,7 +31,7 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
       target: () => controls.target.toArray() as V3,
       state: () => appStore().getState(),
       project: (focus) => {
-        const v = new THREE.Vector3(...toWorld(focusCenterLocal(caliber, focus))).project(camera);
+        const v = new THREE.Vector3(...toWorld(focusCenterLocal(caliber, focus), 'back')).project(camera);
         return [((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height];
       },
     };
