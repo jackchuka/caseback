@@ -1,4 +1,6 @@
 import type { Caliber, Stat } from '../model/schema';
+
+type Source = Caliber['sources'][number];
 import { focusKey } from '../model/validate';
 import type { Mode } from '../state/store';
 
@@ -10,10 +12,19 @@ export type PanelModel = {
   stats: Stat[];
   speed: number | null;
   estimated: boolean;
+  sources: Source[];
+  notes: string[];
 };
 
 const isEstimated = (c: Caliber, key: string | null) =>
   key !== null && c.parts.some((p) => focusKey(p) === key && p.provenance.confidence === 'estimated');
+
+function provenanceOf(c: Caliber, key: string | null): { sources: Source[]; notes: string[] } {
+  const group = key === null ? [] : c.parts.filter((p) => focusKey(p) === key);
+  const ids = new Set(group.flatMap((p) => p.provenance.sourceIds));
+  const notes = [...new Set(group.flatMap((p) => (p.provenance.note ? [p.provenance.note] : [])))];
+  return { sources: c.sources.filter((s) => ids.has(s.id)), notes };
+}
 
 export function panelModel(c: Caliber, mode: Mode, stepIndex: number, selected: string | null): PanelModel | null {
   const ns = c.id;
@@ -27,6 +38,7 @@ export function panelModel(c: Caliber, mode: Mode, stepIndex: number, selected: 
       stats: s.stats,
       speed: s.speed > 1 ? s.speed : null,
       estimated: isEstimated(c, s.focus),
+      ...provenanceOf(c, s.focus),
     };
   }
   if (mode === 'free' && selected) {
@@ -38,6 +50,7 @@ export function panelModel(c: Caliber, mode: Mode, stepIndex: number, selected: 
       stats: [],
       speed: null,
       estimated: isEstimated(c, selected),
+      ...provenanceOf(c, selected),
     };
   }
   return null;

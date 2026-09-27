@@ -19,16 +19,15 @@ import { InfoPanel } from '../ui/InfoPanel';
 import { Intro } from '../ui/Intro';
 import { TopBar } from '../ui/TopBar';
 import { TourBar } from '../ui/TourBar';
-import { hasWebGL } from './webgl';
 
-export function App({ caliber, i18n }: { caliber: Caliber; i18n: i18n }) {
+export function App({ caliber, i18n, webgl }: { caliber: Caliber; i18n: i18n; webgl: boolean }) {
   const quality = useApp((s) => s.quality);
   const mode = useApp((s) => s.mode);
   useThemeAttr();
   useI18nLang(i18n);
   useKeyboard();
   useUrlSync(caliber);
-  if (!hasWebGL()) return <Fallback />;
+  if (!webgl) return <Fallback />;
   return (
     <>
       <Canvas

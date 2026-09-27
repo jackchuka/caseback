@@ -31,6 +31,25 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
       )}
       {m.speed && <div className="badge">{t('ui:speedBadge', { speed: m.speed.toLocaleString() })}</div>}
       {m.estimated && <div className="badge">{t('ui:estimated')}</div>}
+      {(m.sources.length > 0 || m.notes.length > 0) && (
+        <details className="sources">
+          <summary>{t('ui:sources')}</summary>
+          <ul>
+            {m.sources.map((s) => (
+              <li key={s.id}>
+                <a href={s.url} target="_blank" rel="noreferrer">
+                  {s.title}
+                </a>
+              </li>
+            ))}
+            {m.notes.map((n) => (
+              <li key={n} className="note">
+                {n}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </aside>
   );
 }

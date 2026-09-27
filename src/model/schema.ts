@@ -36,6 +36,7 @@ export const PartSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   mechanism: z.enum(['frame', 'power', 'going-train', 'escapement', 'regulator', 'motion-works', 'calendar', 'automatic', 'keyless']),
   arbor: z.string().optional(),
+  rest: z.number().optional(),
   side: z.enum(['back', 'dial']),
   pos: Vec3Schema,
   explode: z.object({ dz: z.number() }),

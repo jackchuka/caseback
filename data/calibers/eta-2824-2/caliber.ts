@@ -15,6 +15,8 @@ const fourth = place(third, centerDistance(M.third, Z.third, Z.fourthPinion), -5
 const escape = place(fourth, centerDistance(M.fourth, Z.fourth, Z.escapePinion), -15);
 const fork = place(escape, 2.05, 30);
 const balance = place(fork, 3.9, 30);
+const forkRest = Math.atan2(escape.y - fork.y, escape.x - fork.x) - Math.PI / 2; // pallets (+Y) face the escape wheel
+const balanceRest = Math.atan2(fork.y - balance.y, fork.x - balance.x); // roller jewel (+X) faces the fork
 const cockBase = { x: balance.x + 2.8, y: balance.y + 3.4 };
 const offset = (p: P2, dx: number, dy: number) => ({ x: p.x + dx, y: p.y + dy });
 
@@ -67,11 +69,11 @@ const parts: Part[] = [
     shape: { kind: 'escape-wheel', teeth: Z.escape, outerRadius: 1.45, thickness: 0.16 }, provenance: sourced('eta-17jewels'),
   },
   {
-    id: 'pallet-fork', arbor: 'fork', mechanism: 'escapement', side: 'back', pos: at(fork, 1.9), explode: { dz: 7.4 }, material: 'steel',
-    shape: { kind: 'pallet-fork', span: 2.8, length: 3.0, thickness: 0.14 }, provenance: estimated(LAYOUT),
+    id: 'pallet-fork', arbor: 'fork', rest: forkRest, mechanism: 'escapement', side: 'back', pos: at(fork, 1.9), explode: { dz: 7.4 }, material: 'steel',
+    shape: { kind: 'pallet-fork', span: 2.6, length: 3.0, thickness: 0.14 }, provenance: estimated(LAYOUT),
   },
   {
-    id: 'balance-wheel', arbor: 'balance', mechanism: 'regulator', side: 'back', pos: at(balance, 2.0), explode: { dz: 9.0 }, material: 'balance',
+    id: 'balance-wheel', arbor: 'balance', rest: balanceRest, mechanism: 'regulator', side: 'back', pos: at(balance, 2.0), explode: { dz: 9.0 }, material: 'balance',
     shape: { kind: 'balance', radius: 4.1, rimThickness: 0.22, arms: 2 }, provenance: estimated(LAYOUT),
   },
   {

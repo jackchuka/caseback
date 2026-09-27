@@ -46,3 +46,28 @@ describe('ETA 2824-2 invariants', () => {
     for (const p of c.parts) expect(Math.hypot(p.pos.x, p.pos.y)).toBeLessThan(c.specs.diameterMm / 2);
   });
 });
+
+describe('ETA 2824-2 escapement layout', () => {
+  const byId = (id: string) => c.parts.find((p) => p.id === id)!;
+  const rot = (x: number, y: number, a: number) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)] as const;
+  const fork = byId('pallet-fork');
+  const esc = byId('escape-wheel');
+  const bal = byId('balance-wheel');
+  const forkShape = fork.shape;
+  const escShape = esc.shape;
+  if (forkShape.kind !== 'pallet-fork' || escShape.kind !== 'escape-wheel') throw new Error('shapes');
+  const h = forkShape.span / 2 - 0.08;
+  it('puts both pallet stones on the escape wheel teeth', () => {
+    for (const sx of [-1, 1]) {
+      const [px, py] = rot(sx * h, 1.28, fork.rest ?? 0);
+      const d = Math.hypot(fork.pos.x + px - esc.pos.x, fork.pos.y + py - esc.pos.y);
+      expect(d).toBeLessThanOrEqual(escShape.outerRadius + 0.05);
+      expect(d).toBeGreaterThanOrEqual(escShape.outerRadius * 0.72);
+    }
+  });
+  it('puts the fork horn at the roller jewel', () => {
+    const [tx, ty] = rot(0, -forkShape.length, fork.rest ?? 0);
+    const [jx, jy] = rot(0.9, 0, bal.rest ?? 0);
+    expect(Math.hypot(fork.pos.x + tx - (bal.pos.x + jx), fork.pos.y + ty - (bal.pos.y + jy))).toBeLessThan(0.3);
+  });
+});

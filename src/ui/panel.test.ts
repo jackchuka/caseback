@@ -29,4 +29,13 @@ describe('panelModel', () => {
     fast.tour[1]!.speed = 60;
     expect(panelModel(fast, 'tour', 1, null)!.speed).toBe(60);
   });
+  it('lists the sources and estimate notes of the focused parts', () => {
+    const c2 = miniCaliber();
+    c2.parts[0]!.provenance = { confidence: 'sourced', sourceIds: ['s1'] };
+    c2.parts[1]!.provenance = { confidence: 'estimated', sourceIds: [], note: 'guess' };
+    const m = panelModel(c2, 'tour', 1, null)!;
+    expect(m.sources).toEqual([{ id: 's1', title: 'Source 1', url: 'https://example.com/s1' }]);
+    const esc = panelModel(c2, 'tour', 2, null)!;
+    expect(esc.notes).toEqual(['guess']);
+  });
 });

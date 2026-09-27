@@ -117,3 +117,56 @@ test('theme toggle flips the document theme', async ({ page }) => {
   await page.locator('.topbar .theme').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
+
+test('toggling tour and free mode many times keeps the webgl context', async ({ page }) => {
+  const lost: string[] = [];
+  page.on('console', (m) => {
+    if (/Context Lost|Too many active WebGL/.test(m.text())) lost.push(m.text());
+  });
+  await openTour(page);
+  for (let i = 0; i < 30; i++) {
+    await page.locator('button.to-free').click();
+    await page.locator('.dock button.to-tour').click();
+  }
+  await page.waitForTimeout(1000);
+  expect(lost).toEqual([]);
+});
+
+test('clicking the focused gear during an x-ray step stays in the tour', async ({ page }) => {
+  await openTour(page);
+  for (let i = 0; i < 3; i++) await page.locator('button.next').click();
+  await page.waitForTimeout(2500);
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('third'));
+  await page.mouse.click(x, y);
+  await page.waitForTimeout(300);
+  expect(await state(page)).toMatchObject({ mode: 'tour', stepIndex: 3 });
+});
+
+test('tablet layout keeps the tour controls on screen', async ({ page }) => {
+  await page.setViewportSize({ width: 834, height: 1112 });
+  await page.goto('/?lang=en');
+  await ready(page);
+  await page.getByRole('button', { name: 'Open the caseback' }).click();
+  await expect.poll(async () => (await state(page)).mode, { timeout: 45_000 }).toBe('tour');
+  const prev = await page.locator('button.prev').boundingBox();
+  const free = await page.locator('button.to-free').boundingBox();
+  expect(prev!.x).toBeGreaterThanOrEqual(0);
+  expect(free!.x + free!.width).toBeLessThanOrEqual(834);
+});
+
+test('the hint never overlaps the tour bar', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await openTour(page);
+  const hint = await page.locator('.hint').boundingBox();
+  const bar = await page.locator('.tourbar').boundingBox();
+  if (hint) expect(hint.x + hint.width <= bar!.x || hint.y + hint.height <= bar!.y).toBe(true);
+});
+
+test('the info panel shows sources and estimate notes', async ({ page }) => {
+  await openTour(page);
+  for (let i = 0; i < 4; i++) await page.locator('button.next').click();
+  await expect(page.locator('.info h1')).toHaveText('四番車');
+  await page.locator('.info details.sources summary').click();
+  await expect(page.locator('.info details.sources')).toContainText('FIRGELLI');
+  await expect(page.locator('.info details.sources')).toContainText('84 teeth');
+});

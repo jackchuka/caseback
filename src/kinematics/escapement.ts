@@ -12,7 +12,7 @@ export function escapementState(t: number, vph: number, escapeTeeth: number) {
   const k = Math.floor(beats);
   const i = impulse(beats - k);
   const escape = -(k + i) * (Math.PI / escapeTeeth);
-  const side = k % 2 === 0 ? -1 : 1;
+  const side = k % 2 === 0 ? 1 : -1;
   const fork = FORK_AMPLITUDE * side * (1 - 2 * i);
   return { balance, fork, escape };
 }

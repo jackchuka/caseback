@@ -1,5 +1,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
+import * as THREE from 'three';
 import { buildSolver } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { focusKey } from '../model/validate';
@@ -12,6 +13,7 @@ import { advance } from './simClock';
 
 export const MOVEMENT_ROTATION = MOVEMENT_ROTATION_VALUE;
 const XRAY_OPACITY = 0.12;
+const ignoreRaycast = () => {};
 
 export function Movement({ caliber, children }: { caliber: Caliber; children?: ReactNode }) {
   const solve = useMemo(() => buildSolver(caliber), [caliber]);
@@ -32,7 +34,7 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
     for (const [id, entry] of registry) {
       const tr = transforms.get(id);
       if (!tr) continue;
-      entry.group.rotation.z = tr.angle;
+      entry.group.rotation.z = (entry.part.rest ?? 0) + tr.angle;
       entry.group.position.z = entry.part.pos.z + tr.dz;
       if (entry.part.shape.kind === 'hairspring') {
         const k = 1 + 0.02 * tr.angle;
@@ -40,6 +42,10 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
       }
       const lit = highlight !== null && focusKey(entry.part) === highlight;
       const isBridge = entry.part.shape.kind === 'bridge';
+      if (isBridge) {
+        const see = (entry.materials[0]?.opacity ?? 1) > 0.5;
+        for (const child of entry.group.children) (child as THREE.Mesh).raycast = see ? THREE.Mesh.prototype.raycast : ignoreRaycast;
+      }
       for (const m of entry.materials) {
         m.emissive.setHex(lit ? 0x3a2a10 : 0x000000);
         m.emissiveIntensity = lit ? pulse : 0;

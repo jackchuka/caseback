@@ -69,3 +69,15 @@ describe('buildSolver', () => {
     expect(Math.abs(angle(t0 + 60, 'w1') - angle(t0, 'w1'))).toBeCloseTo(TAU, 6);
   });
 });
+
+describe('escapement direction', () => {
+  it('turns the pallet fork against the balance during impulse, like meshing parts', () => {
+    for (const k of [0, 1, 2, 3]) {
+      const t0 = k / 8 + 0.001 / 8;
+      const t1 = k / 8 + 0.1 / 8;
+      const df = escapementState(t1, 28800, 20).fork - escapementState(t0, 28800, 20).fork;
+      const db = escapementState(t1, 28800, 20).balance - escapementState(t0, 28800, 20).balance;
+      expect(Math.sign(df), `beat ${k}`).toBe(-Math.sign(db));
+    }
+  });
+});

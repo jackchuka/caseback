@@ -17,17 +17,33 @@
     "pause": "一時停止",
     "play": "再生"
   },
-  "dock": { "back": "‹ ツアーに戻る", "explode": "分解", "speed": "速度" },
-  "hint": { "tour": "← → で移動 · ドラッグで回転", "free": "部品をクリック · ドラッグで回転 · スクロールでズーム" },
+  "dock": {
+    "back": "‹ ツアーに戻る",
+    "explode": "分解",
+    "speed": "速度"
+  },
+  "hint": {
+    "tour": "← → で移動 · ドラッグで回転",
+    "free": "部品をクリック · ドラッグで回転 · スクロールでズーム"
+  },
   "speedBadge": "▶︎ {{speed}} 倍速",
   "estimated": "推定値を含む",
   "theme": "ライト/ダーク切替",
   "stats": {
-    "parts": "部品数", "jewels": "石数", "teeth": "歯数", "powerReserve": "パワーリザーブ", "rotation": "回転",
-    "leaves": "カナ", "pallets": "爪石", "lift": "振り角", "vph": "振動数 (vph)", "frequency": "周波数"
+    "parts": "部品数",
+    "jewels": "石数",
+    "teeth": "歯数",
+    "powerReserve": "パワーリザーブ",
+    "rotation": "回転",
+    "leaves": "カナ",
+    "pallets": "爪石",
+    "lift": "振り角",
+    "vph": "振動数 (vph)",
+    "frequency": "周波数"
   },
   "fallback": {
     "title": "3D表示に対応していません",
     "body": "このブラウザではWebGLが使えないため、時計の3Dモデルを表示できません。最新のChrome、Safari、Firefoxでお試しください。"
-  }
+  },
+  "sources": "出典と推定の根拠"
 }

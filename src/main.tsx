@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { calibers, DEFAULT_CALIBER } from '../data/calibers';
 import { App } from './app/App';
 import { detectQuality } from './app/quality';
+import { hasWebGL } from './app/webgl';
 import { parseLocation } from './app/url';
 import { createI18n } from './i18n';
 import { initAppStore } from './state/app';
@@ -24,11 +25,12 @@ initAppStore(caliber, {
   paused: reducedMotion,
 });
 const i18n = await createI18n(lang);
+const webgl = hasWebGL();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <I18nextProvider i18n={i18n}>
-      <App caliber={caliber} i18n={i18n} />
+      <App caliber={caliber} i18n={i18n} webgl={webgl} />
     </I18nextProvider>
   </StrictMode>,
 );
