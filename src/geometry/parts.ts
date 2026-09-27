@@ -62,6 +62,8 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     }
     case 'bridge':
       return bridge(shape, material);
+    case 'stem':
+      return [{ geometry: disc(shape.radius, shape.length, 24).rotateY(Math.PI / 2), material }];
     case 'rotor': {
       const s = new THREE.Shape();
       s.absarc(0, 0, shape.radius, 0, Math.PI, false);

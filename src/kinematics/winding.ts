@@ -37,3 +37,6 @@ export function stepReserve(c: Caliber, reserveH: number, ratchetTurnsDelta: num
   const h = reserveH + ratchetTurnsDelta * hoursPerBarrelTurn(c) - drainS / 3600;
   return Math.min(c.specs.powerReserveH, Math.max(0, h));
 }
+
+// Ratchet turns per crown turn at position 0.
+export const CROWN_WIND_RATIO = 0.2;

@@ -16,6 +16,10 @@ export type AppState = InitState & {
   freeSpeedExp: number;
   freeSide: Side;
   reserveH: number;
+  crownPos: 0 | 1 | 2;
+  turning: boolean;
+  setCrownPos(p: 0 | 1 | 2): void;
+  setTurning(b: boolean): void;
   setReserve(h: number): void;
   setMode(m: Mode): void;
   toggleSide(): void;
@@ -51,10 +55,18 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
     freeSide: 'back',
     reserveH: 0.45 * caliber.specs.powerReserveH,
     setReserve: (reserveH) => set({ reserveH }),
+    crownPos: 0,
+    turning: false,
+    setCrownPos: (crownPos) => set({ crownPos }),
+    setTurning: (turning) => set({ turning }),
     setMode: (mode) =>
       set(mode === 'free' ? { mode, selected: null, freeSide: caliber.tour[get().stepIndex]!.side } : { mode }),
     toggleSide: () => set({ freeSide: get().freeSide === 'back' ? 'dial' : 'back' }),
-    goStep: (i) => set({ stepIndex: clamp(Math.round(i), 0, last) }),
+    goStep: (i) => {
+      const stepIndex = clamp(Math.round(i), 0, last);
+      // Leaving the crown chapter pushes the crown in, so the watch never stays stopped by accident.
+      set(caliber.tour[stepIndex]!.ctl ? { stepIndex } : { stepIndex, crownPos: 0, turning: false });
+    },
     next: () => get().goStep(get().stepIndex + 1),
     prev: () => get().goStep(get().stepIndex - 1),
     pick: (focus) => {

@@ -79,4 +79,13 @@ describe('app store', () => {
     store.getState().setReserve(12.5);
     expect(store.getState().reserveH).toBe(12.5);
   });
+  it('leaving the crown chapter pushes the crown in', () => {
+    const c = miniCaliber();
+    c.tour[2]!.ctl = 'crown';
+    const store = createAppStore(c, { mode: 'tour', stepIndex: 2 });
+    store.getState().setCrownPos(2);
+    store.getState().setTurning(true);
+    store.getState().goStep(1);
+    expect(store.getState()).toMatchObject({ crownPos: 0, turning: false });
+  });
 });

@@ -27,6 +27,13 @@ describe('tour engine', () => {
   });
 });
 
+describe('hacking', () => {
+it('stops the balance with the crown at position 2', () => {
+  expect(effectiveSpeed('tour', tour[1]!, 0, false, 2)).toBe(0);
+  expect(effectiveSpeed('tour', tour[1]!, 0, false, 1)).toBe(0.1);
+});
+});
+
 describe('advance', () => {
   it('clamps long frames so a background tab does not jump', () => {
     expect(advance(10, 5, 1)).toBeCloseTo(10.05);

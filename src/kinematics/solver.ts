@@ -3,8 +3,22 @@ import { arborKey, toothCount } from '../model/validate';
 import { escapementState } from './escapement';
 import { smoothstep } from './gearMath';
 
-export type PartTransform = { angle: number; dz: number };
-export type KinematicsInput = { t: number; explode: number; dateBase?: number; rotor?: number; wound?: number };
+// Quick-set advances one date per crown turn and settles on whole dates in the second half of each turn.
+export const snapDates = (q: number) => Math.floor(q) + smoothstep((q - Math.floor(q) - 0.5) / 0.5);
+
+export type PartTransform = { angle: number; dz: number; dx: number };
+export type KinematicsInput = {
+  t: number;
+  explode: number;
+  dateBase?: number;
+  rotor?: number;
+  wound?: number;
+  crownPos?: 0 | 1 | 2;
+  crownRot?: number;
+  windRot?: number;
+  quickRot?: number;
+  setRot?: number;
+};
 export type OneWayInfo = { inputKey: string; outputKey: string; ratio: number };
 export type Solver = ((input: KinematicsInput) => Map<string, PartTransform>) & {
   info: { oneWay: OneWayInfo | null; ratchetFactor: number };
@@ -33,11 +47,6 @@ export function buildSolver(c: Caliber): Solver {
       const zb = toothCount(b.shape)!;
       link(arborKey(a), arborKey(b), -za / zb);
       link(arborKey(b), arborKey(a), -zb / za);
-    } else if (cp.type === 'slip') {
-      const a = arborKey(byId.get(cp.a)!);
-      const b = arborKey(byId.get(cp.b)!);
-      link(a, b, 1);
-      link(b, a, 1);
     }
   }
 
@@ -68,6 +77,26 @@ export function buildSolver(c: Caliber): Solver {
         }
       : null;
   const woundFactor = oneWay ? bfs(oneWay.outputKey) : new Map<string, number>();
+  // The cannon side follows the center wheel through friction, so it is its own root: setting the hands moves it alone.
+  const slipCp = c.couplings.find((cp) => cp.type === 'slip');
+  const slip =
+    slipCp && slipCp.type === 'slip'
+      ? { aKey: arborKey(byId.get(slipCp.a)!), bKey: arborKey(byId.get(slipCp.b)!), bTeeth: toothCount(byId.get(slipCp.b)!.shape) ?? 1 }
+      : null;
+  const cannonFactor = slip ? bfs(slip.bKey) : new Map<string, number>();
+  const keylessCp = c.couplings.find((cp) => cp.type === 'keyless');
+  const keyless =
+    keylessCp && keylessCp.type === 'keyless'
+      ? {
+          stemKey: arborKey(byId.get(keylessCp.stem)!),
+          slidingKey: arborKey(byId.get(keylessCp.slidingPinion)!),
+          windingKey: arborKey(byId.get(keylessCp.windingPinion)!),
+          settingKey: arborKey(byId.get(keylessCp.settingWheel)!),
+          slidingTeeth: toothCount(byId.get(keylessCp.slidingPinion)!.shape)!,
+          settingTeeth: toothCount(byId.get(keylessCp.settingWheel)!.shape)!,
+          pull: keylessCp.pull,
+        }
+      : null;
   const ratchetPart = c.parts.find((p) => p.shape.kind === 'ratchet');
   const ratchetFactor = ratchetPart ? (woundFactor.get(arborKey(ratchetPart)) ?? 0) : 0;
 
@@ -81,7 +110,7 @@ export function buildSolver(c: Caliber): Solver {
   );
   const WINDOW = 0.1; // the driven part moves during the last 10 % of each driver turn
 
-  const solver = (({ t, explode, dateBase = 0, rotor = 0, wound = 0 }: KinematicsInput) => {
+  const solver = (({ t, explode, dateBase = 0, rotor = 0, wound = 0, crownPos = 0, crownRot = 0, windRot = 0, quickRot = 0, setRot = 0 }: KinematicsInput) => {
     const s = escapementState(t, c.specs.vph, escapeTeeth);
     const e = smoothstep(explode);
     const byKey = new Map<string, number>();
@@ -90,18 +119,33 @@ export function buildSolver(c: Caliber): Solver {
     for (const [key, f] of woundFactor) byKey.set(key, f * wound);
     byKey.set(balanceKey, s.balance);
     byKey.set(forkKey, s.fork);
+    if (slip) {
+      const setOffset = keyless ? setRot * (keyless.settingTeeth / slip.bTeeth) : 0;
+      const base = (byKey.get(slip.aKey) ?? 0) + setOffset;
+      for (const [key, f] of cannonFactor) byKey.set(key, f * base);
+    }
     for (const im of intermittents) {
       const driver = byKey.get(im.driverKey) ?? 0;
       const turns = Math.abs(driver) / (Math.PI * 2);
       const whole = Math.floor(turns);
       const step = smoothstep((turns - whole - (1 - WINDOW)) / WINDOW);
       const sign = driver < 0 ? -1 : 1;
-      byKey.set(im.drivenKey, sign * (dateBase + whole + step) * ((Math.PI * 2) / im.teeth));
+      byKey.set(im.drivenKey, sign * (dateBase + snapDates(quickRot / (Math.PI * 2)) + whole + step) * ((Math.PI * 2) / im.teeth));
+    }
+    const dx = new Map<string, number>();
+    if (keyless) {
+      byKey.set(keyless.stemKey, crownRot);
+      byKey.set(keyless.slidingKey, crownRot);
+      byKey.set(keyless.windingKey, windRot);
+      byKey.set(keyless.settingKey, -setRot * (keyless.slidingTeeth / keyless.settingTeeth));
+      dx.set(keyless.stemKey, crownPos * keyless.pull);
+      // At position 2 the sliding pinion moves inward onto the setting wheel.
+      dx.set(keyless.slidingKey, crownPos * keyless.pull + (crownPos === 2 ? -1.05 : 0));
     }
     const out = new Map<string, PartTransform>();
     for (const p of c.parts) {
       const angle = byKey.get(arborKey(p)) ?? 0;
-      out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e });
+      out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e, dx: dx.get(arborKey(p)) ?? 0 });
     }
     return out;
   }) as Solver;

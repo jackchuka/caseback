@@ -49,6 +49,8 @@ export function validateCaliber(c: Caliber): string[] {
     } else if (cp.type === 'slip') {
       ref('slip', cp.a);
       ref('slip', cp.b);
+    } else if (cp.type === 'keyless') {
+      for (const id of [cp.stem, cp.slidingPinion, cp.windingPinion, cp.settingWheel]) ref('keyless', id);
     } else if (cp.type === 'one-way') {
       ref('one-way', cp.input);
       ref('one-way', cp.output);

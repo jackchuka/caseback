@@ -18,7 +18,8 @@ export function flowStates(nodeCount: number, local: number): number[] {
   });
 }
 
-export function effectiveSpeed(mode: Mode, step: TourStep, freeSpeedExp: number, paused: boolean): number {
-  if (paused) return 0;
+// Crown position 2 stops the balance (hacking), so the train does not advance.
+export function effectiveSpeed(mode: Mode, step: TourStep, freeSpeedExp: number, paused: boolean, crownPos = 0): number {
+  if (paused || crownPos === 2) return 0;
   return mode === 'free' ? 10 ** freeSpeedExp : step.speed;
 }
