@@ -11,6 +11,10 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
   const selected = useApp((s) => s.selected);
   const lang = useApp((s) => s.lang);
   const reserveH = useApp((s) => Math.round(s.reserveH * 10) / 10);
+  const crownPos = useApp((s) => s.crownPos);
+  const setCrownPos = useApp((s) => s.setCrownPos);
+  const setTurning = useApp((s) => s.setTurning);
+  const ctl = mode === 'tour' ? caliber.tour[stepIndex]!.ctl : undefined;
   const m = panelModel(caliber, mode, stepIndex, selected);
   if (!m) return <aside className="info glass hidden" aria-hidden />;
   const vars = caliberVars(caliber);
@@ -25,9 +29,33 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
           {m.stats.map((s) => (
             <div key={s.label}>
               {t(`ui:stats.${s.label}`)}
-              <b>{s.value === 'live:reserve' ? t('ui:reserveUnit', { h: reserveH.toFixed(1) }) : s.value}</b>
+              <b>{s.value === 'live:reserve' ? t('ui:reserveUnit', { h: reserveH.toFixed(1) }) : s.value === 'live:crown' ? t(`ui:crown.pos${crownPos}`) : s.value}</b>
             </div>
           ))}
+        </div>
+      )}
+      {ctl === 'crown' && (
+        <div className="crown-ctl">
+          <div className="seg" role="radiogroup">
+            {([0, 1, 2] as const).map((p) => (
+              <button key={p} type="button" role="radio" aria-checked={crownPos === p} onClick={() => setCrownPos(p)}>
+                {t(`ui:crown.pos${p}`)}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="turn"
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              setTurning(true);
+            }}
+            onPointerUp={() => setTurning(false)}
+            onPointerCancel={() => setTurning(false)}
+            onLostPointerCapture={() => setTurning(false)}
+          >
+            {t('ui:crown.turn')}
+          </button>
         </div>
       )}
       {m.speed && <div className="badge">{t('ui:speedBadge', { speed: m.speed.toLocaleString() })}</div>}

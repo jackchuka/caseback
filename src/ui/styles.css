@@ -121,3 +121,10 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
   .dock input[type='range'] { width: 90px; }
   .hint { display: none; }
 }
+
+.crown-ctl { margin-top: 16px; }
+.crown-ctl .seg { display: flex; gap: 4px; margin-bottom: 8px; }
+.crown-ctl .seg button, .crown-ctl .turn { flex: 1; text-align: center; padding: 8px 6px; border-radius: 10px; font-size: 12px; border: 1px solid var(--line); color: var(--muted); }
+.crown-ctl .seg button[aria-checked='true'] { color: var(--fg); border-color: var(--acc); }
+.crown-ctl .turn { display: block; width: 100%; color: var(--fg); background: rgba(217, 179, 108, 0.12); border-color: var(--acc); user-select: none; touch-action: none; }
+.crown-ctl .turn:active { background: rgba(217, 179, 108, 0.3); }

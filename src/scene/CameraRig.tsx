@@ -7,12 +7,13 @@ import { appStore, useApp } from '../state/app';
 import type { AppState } from '../state/store';
 import { focusCenterLocal, toWorld, type V3 } from './focus';
 import { flipGroup } from './flip';
+import { registry } from './registry';
 import { shotFor } from './shots';
 import { Tween } from './tween';
 
 declare global {
   interface Window {
-    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number };
+    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number };
   }
 }
 
@@ -38,6 +39,10 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
         return [((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height];
       },
       flip: () => flipGroup.current?.rotation.x ?? 0,
+      angle: (id) => {
+        const e = registry.get(id);
+        return e ? (e.part.axis === 'x' ? e.group.rotation.x : e.group.rotation.z) : NaN;
+      },
     };
   }, [caliber, camera, controls, mode, stepIndex, freeSide, size]);
 

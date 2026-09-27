@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import { buildSolver } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { arborKey, focusKey } from '../model/validate';
-import { accumulateWinding, stepReserve, throttle, wristSwing } from '../kinematics/winding';
+import { accumulateWinding, CROWN_WIND_RATIO, stepReserve, throttle, wristSwing } from '../kinematics/winding';
+import { crownState } from './crown';
 import { appStore, useApp } from '../state/app';
 import { effectiveSpeed } from '../tour/engine';
 import { MOVEMENT_ROTATION_VALUE } from './focus';
@@ -53,20 +54,40 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
   useFrame((state, dt) => {
     const s = appStore().getState();
     const step = caliber.tour[s.stepIndex]!;
-    const speed = effectiveSpeed(s.mode, step, s.freeSpeedExp, s.paused);
+    const speed = effectiveSpeed(s.mode, step, s.freeSpeedExp, s.paused, s.crownPos);
+    if (s.turning) {
+      const d = Math.min(dt, 0.05) * 7;
+      crownState.rot += d;
+      if (s.crownPos === 0) {
+        crownState.wind += d;
+        crownState.woundTurns += (d / (Math.PI * 2)) * CROWN_WIND_RATIO;
+      } else if (s.crownPos === 1) crownState.quick += d;
+      else crownState.set += d;
+    }
     t.current = advance(t.current, dt, speed);
     if (!s.paused) swingT.current += Math.min(dt, 0.05);
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;
     const rotorState = s.mode === 'tour' ? step.rotor : 'hide';
     const rotor = rotorState === 'hide' ? 0 : wristSwing(swingT.current);
-    const transforms = solve({ t: t.current, explode: explode.current, dateBase, rotor, wound: wound.current });
+    const transforms = solve({
+      t: t.current,
+      explode: explode.current,
+      dateBase,
+      rotor,
+      wound: wound.current,
+      crownPos: s.crownPos,
+      crownRot: crownState.rot,
+      windRot: crownState.wind,
+      quickRot: crownState.quick,
+      setRot: crownState.set,
+    });
     if (oneWayInput && solve.info.oneWay) {
       const input = transforms.get(oneWayInput)!.angle;
       wound.current = accumulateWinding(wound.current, prevInput.current, input, solve.info.oneWay.ratio);
       prevInput.current = input;
     }
     // Fast-forward demos drain at no more than real time so the reserve stays readable across chapters.
-    const ratchetTurns = Math.abs(wound.current * solve.info.ratchetFactor) / (Math.PI * 2);
+    const ratchetTurns = Math.abs(wound.current * solve.info.ratchetFactor) / (Math.PI * 2) + crownState.woundTurns;
     reserve.current = stepReserve(caliber, reserve.current, ratchetTurns - prevRatchetTurns.current, Math.min(dt, 0.05) * Math.min(speed, 1));
     prevRatchetTurns.current = ratchetTurns;
     if (publish(performance.now())) s.setReserve(reserve.current);
@@ -77,7 +98,10 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
     for (const [id, entry] of registry) {
       const tr = transforms.get(id);
       if (!tr) continue;
-      entry.group.rotation.z = (entry.part.rest ?? 0) + tr.angle;
+      if (entry.part.axis === 'x') {
+        entry.group.rotation.x = tr.angle;
+        entry.group.position.x = entry.part.pos.x + tr.dx;
+      } else entry.group.rotation.z = (entry.part.rest ?? 0) + tr.angle;
       entry.group.position.z = entry.part.pos.z + tr.dz;
       if (entry.part.shape.kind === 'hairspring') {
         const k = 1 + 0.02 * tr.angle;

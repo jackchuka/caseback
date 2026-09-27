@@ -20,6 +20,8 @@ export function PartMesh({ part, onPick }: { part: Part; onPick: (focus: string)
     };
   }, [part, mats]);
 
+  const meshes = layers.map((l, i) => <mesh key={i} geometry={l.geometry} material={mats[i]} castShadow receiveShadow />);
+
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 4) return;
     e.stopPropagation();
@@ -40,9 +42,11 @@ export function PartMesh({ part, onPick }: { part: Part; onPick: (focus: string)
         document.body.style.cursor = '';
       }}
     >
-      {layers.map((l, i) => (
-        <mesh key={i} geometry={l.geometry} material={mats[i]} castShadow receiveShadow />
-      ))}
+      {part.axis === 'x' && part.shape.kind !== 'stem' ? (
+        <group rotation-y={Math.PI / 2}>{meshes}</group>
+      ) : (
+        meshes
+      )}
     </group>
   );
 }
