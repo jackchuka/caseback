@@ -36,7 +36,8 @@ export type ExteriorContext = { movement: MovementFrame; quality: 'high' | 'low'
 // defaults to true.
 export type ExteriorLayer = { geometry: THREE.BufferGeometry; material: string | string[]; name?: string; castShadow?: boolean };
 
-export type ExteriorBuild = {
+// Geometry only, so a worker can build it and hand it over; materials stay on the main thread with their canvases.
+export type ExteriorGeometry = {
   parts: {
     case: ExteriorLayer[];
     bezel: ExteriorLayer[];
@@ -50,11 +51,16 @@ export type ExteriorBuild = {
     // Pivot at the origin, 12 o'clock toward −Y. Movement materials only: they replace the movement's own hands.
     hands: { hour: HandLayer[]; minute: HandLayer[]; seconds: HandLayer[] };
   };
-  // Built lazily so geometry tests never touch a canvas.
-  materials: Record<string, () => THREE.Material>;
   // seatRadius: the round movement seat's radius, which drives the casing ring in Exterior.tsx. caseBackZ: the case
   // middle's back face (the caseback's seat), where the casing ring must stop.
   anchors: { seatRadius: number; crownX: number; caseBackZ: number };
 };
 
-export type ExteriorBuilder = (ctx: ExteriorContext) => ExteriorBuild;
+// Built lazily so geometry tests never touch a canvas.
+export type ExteriorMaterials = Record<string, () => THREE.Material>;
+
+export type ExteriorBuild = ExteriorGeometry & { materials: ExteriorMaterials };
+
+export type ExteriorBuilder = { geometry: (ctx: ExteriorContext) => ExteriorGeometry; materials: () => ExteriorMaterials };
+
+export const buildExterior = (b: ExteriorBuilder, ctx: ExteriorContext): ExteriorBuild => ({ ...b.geometry(ctx), materials: b.materials() });

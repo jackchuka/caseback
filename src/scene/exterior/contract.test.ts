@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../data/calibers';
 import { watches } from '../../../data/watches';
-import type { ExteriorBuild, ExteriorBuilder, ExteriorLayer } from './contract';
+import { buildExterior, type ExteriorBuild, type ExteriorBuilder, type ExteriorLayer } from './contract';
 import { movementFrame } from './frame';
 import { genericCase } from './generic';
 import { buildShape } from '../../geometry/parts';
@@ -36,7 +36,7 @@ describe('exterior contract', () => {
       let all: ExteriorLayer[];
 
       beforeAll(() => {
-        b = builder(ctx);
+        b = buildExterior(builder, ctx);
         p = b.parts;
         all = [...p.case, ...p.bezel, ...p.dial, ...p.crystal, ...p.strap, ...p.caseback, ...p.crown, ...p.hands.hour, ...p.hands.minute, ...p.hands.seconds];
       });

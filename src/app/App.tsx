@@ -1,15 +1,15 @@
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { i18n } from 'i18next';
-import { useMemo } from 'react';
+import { Suspense, use, useMemo } from 'react';
 import * as THREE from 'three';
 import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
 import { Exterior } from '../scene/Exterior';
+import type { ExteriorBuild } from '../scene/exterior/contract';
 import { movementFrame } from '../scene/exterior/frame';
-import { genericCase } from '../scene/exterior/generic';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
@@ -25,16 +25,9 @@ import { Intro } from '../ui/Intro';
 import { TopBar } from '../ui/TopBar';
 import { TourBar } from '../ui/TourBar';
 
-export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i18n; webgl: boolean; watch?: Watch }) {
+export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Caliber; i18n: i18n; webgl: boolean; watch?: Watch; exterior: ExteriorBuild | Promise<ExteriorBuild> }) {
   const quality = useApp((s) => s.quality);
   const mode = useApp((s) => s.mode);
-  const frame = useMemo(() => movementFrame(caliber), [caliber]);
-  const build = useMemo(() => (watch?.exterior ?? genericCase)({ movement: frame, quality }), [watch, frame, quality]);
-  // A watch's own hands replace the movement's; the generic case keeps the movement's.
-  const handLayers = useMemo(
-    () => (build.parts.hands.hour.length > 0 ? { 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute } : undefined),
-    [build],
-  );
   useThemeAttr();
   useI18nLang(i18n);
   useKeyboard();
@@ -50,13 +43,9 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
       >
         <MaterialsProvider>
           <Studio />
-          <group ref={(g) => { flipGroup.current = g; }}>
-          <Movement caliber={caliber} handLayers={handLayers}>
-            <FlowPaths caliber={caliber} />
-            <Exterior caliber={caliber} build={build} frame={frame} watchFront={!!watch} />
-          </Movement>
-          </group>
-          <CameraRig caliber={caliber} watchFront={!!watch} />
+          <Suspense fallback={null}>
+            <Scene caliber={caliber} exterior={exterior} watchFront={!!watch} />
+          </Suspense>
         </MaterialsProvider>
         <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={140} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />
         {quality === 'high' && <Effects />}
@@ -67,6 +56,29 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
       <TourBar caliber={caliber} />
       <Dock />
       <Hint />
+    </>
+  );
+}
+
+// Suspends until a watch's exterior arrives from its worker; the camera rig waits with it so its opening flip
+// starts on a mounted group.
+function Scene({ caliber, exterior, watchFront }: { caliber: Caliber; exterior: ExteriorBuild | Promise<ExteriorBuild>; watchFront: boolean }) {
+  const build = exterior instanceof Promise ? use(exterior) : exterior;
+  const frame = useMemo(() => movementFrame(caliber), [caliber]);
+  // A watch's own hands replace the movement's; the generic case keeps the movement's.
+  const handLayers = useMemo(
+    () => (build.parts.hands.hour.length > 0 ? { 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute } : undefined),
+    [build],
+  );
+  return (
+    <>
+      <group ref={(g) => { flipGroup.current = g; }}>
+        <Movement caliber={caliber} handLayers={handLayers}>
+          <FlowPaths caliber={caliber} />
+          <Exterior caliber={caliber} build={build} frame={frame} watchFront={watchFront} />
+        </Movement>
+      </group>
+      <CameraRig caliber={caliber} watchFront={watchFront} />
     </>
   );
 }

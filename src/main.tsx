@@ -8,6 +8,10 @@ import { detectQuality } from './app/quality';
 import { hasWebGL } from './app/webgl';
 import { legacyRedirect, parseLocation, parseRoute } from './app/url';
 import { createI18n } from './i18n';
+import { buildExterior } from './scene/exterior/contract';
+import { buildExteriorGeometry } from './scene/exterior/buildAsync';
+import { movementFrame } from './scene/exterior/frame';
+import { genericCase } from './scene/exterior/generic';
 import { initAppStore } from './state/app';
 import { CaliberWatches } from './ui/CaliberWatches';
 import { Home } from './ui/Home';
@@ -32,15 +36,20 @@ async function start() {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lang = url.lang ?? (navigator.language.startsWith('ja') ? 'ja' : 'en');
   const skipIntro = reducedMotion || url.stepIndex !== null;
+  const quality = detectQuality();
 
   initAppStore(caliber, {
     mode: skipIntro ? 'tour' : 'intro',
     stepIndex: url.stepIndex ?? 0,
     lang,
     theme: matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark',
-    quality: detectQuality(),
+    quality,
     paused: reducedMotion,
   });
+  const watch = route.kind === 'watch' ? getWatch(route.watchId) : undefined;
+  // Started before i18n and React so the worker meshes the watch while the rest of the page boots.
+  const ctx = { movement: movementFrame(caliber), quality };
+  const watchExterior = watch && buildExteriorGeometry(watch.id, ctx).then((g) => ({ ...g, materials: watch.exterior.materials() }));
   const i18n = await createI18n(lang);
 
   const page =
@@ -49,7 +58,7 @@ async function start() {
     ) : route.kind === 'caliber-watches' ? (
       <CaliberWatches caliberId={route.caliberId} />
     ) : (
-      <App caliber={caliber} i18n={i18n} webgl={hasWebGL()} watch={route.kind === 'watch' ? getWatch(route.watchId) : undefined} />
+      <App caliber={caliber} i18n={i18n} webgl={hasWebGL()} watch={watch} exterior={watchExterior ?? buildExterior(genericCase, ctx)} />
     );
 
   createRoot(document.getElementById('root')!).render(

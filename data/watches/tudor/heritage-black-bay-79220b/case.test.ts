@@ -142,7 +142,7 @@ describe('Tudor 79220B case build cost', () => {
     let best = Infinity;
     for (let i = 0; i < 3; i++) {
       const t0 = performance.now();
-      tudor79220b({ movement: m, quality: 'high' });
+      tudor79220b.geometry({ movement: m, quality: 'high' });
       best = Math.min(best, performance.now() - t0);
     }
     expect(best).toBeLessThan(1500);

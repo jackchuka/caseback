@@ -4,6 +4,7 @@ import type * as THREE from 'three';
 import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { Exterior } from '../scene/Exterior';
+import { buildExterior } from '../scene/exterior/contract';
 import { movementFrame } from '../scene/exterior/frame';
 import { MaterialsProvider } from '../scene/materials';
 import { Movement } from '../scene/Movement';
@@ -62,7 +63,7 @@ export function Compare({ caliber, watch, shots, shotId, view, mode: initialMode
   const [mode, setMode] = useState<Mode>(shot ? initialMode : 'model');
   const [opacity, setOpacity] = useState(0.5);
   const frame = useMemo(() => movementFrame(caliber), [caliber]);
-  const build = useMemo(() => watch.exterior({ movement: frame, quality: 'high' }), [watch, frame]);
+  const build = useMemo(() => buildExterior(watch.exterior, { movement: frame, quality: 'high' }), [watch, frame]);
   const hands = useMemo(() => ({ 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute }), [build]);
   const time = parseTime(shot?.time ?? DEFAULT_TIME);
 

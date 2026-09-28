@@ -13,7 +13,7 @@ import { strap } from './strap';
 
 export function legacyRound(config: LegacyConfig): ExteriorBuilder {
   const e = LegacyConfigSchema.parse(config);
-  return ({ movement: m, quality }) => {
+  const geometry: ExteriorBuilder['geometry'] = ({ movement: m, quality }) => {
     const errors = validateLegacy(e, m.diameterMm);
     if (errors.length > 0) throw new Error(errors.join('\n'));
     const r = caseRadii(m, e);
@@ -29,8 +29,8 @@ export function legacyRound(config: LegacyConfig): ExteriorBuilder {
         crown: crown(e, r),
         hands: { hour: hands.hour, minute: hands.minute, seconds: e.hands.seconds ? hands.seconds : [] },
       },
-      materials: legacyMaterials(e),
       anchors: { seatRadius: r.inner, crownX: crownX(e, r), caseBackZ: r.bottom + r.height },
     };
   };
+  return { geometry, materials: () => legacyMaterials(e) };
 }
