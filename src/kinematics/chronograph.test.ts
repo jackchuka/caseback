@@ -84,6 +84,29 @@ describe('chronograph state', () => {
     expect(t).toMatchObject({ runner: 0, hours: 0, zero: 0, hammer: 1 });
     expect(steps).toBeLessThan(12);
   });
+  it('lets a start pressed while the hearts are turning wait for them, then runs from zero', () => {
+    const ratios = { runner: 1, hours: 1 };
+    let t: ChronoTrack = { ...CHRONO_REST, runner: 7.3 * TAU, hours: 1, hammer: 0 };
+    let pinion = 0;
+    const step = (mode: ChronoMode) => {
+      pinion += 0.05;
+      t = trackChrono(t, { mode, presses: 3 }, ratios, { pinion, driver: pinion }, 0.05);
+    };
+    // Reset until the hearts are partway round.
+    while (t.zero === 0 || t.zero < 0.3) step('reset');
+    const partway = t.runner;
+    step('running');
+    // Still going home, not snapping back to the old reading nor running on from it.
+    expect(t.runner).toBe(partway);
+    expect(t.zero).toBeGreaterThan(0.3);
+    let n = 0;
+    while (t.runner !== 0 && n++ < 40) step('running');
+    expect(t).toMatchObject({ runner: 0, hours: 0, zero: 0 });
+    step('running');
+    step('running');
+    expect(t.runner).toBeGreaterThan(0);
+    expect(t.runner).toBeLessThan(0.2);
+  });
   it('turns a heart home the shorter way', () => {
     expect(heartAngle(TAU * 3 + 0.4, 0.5)).toBeCloseTo(0.2);
     expect(heartAngle(TAU * 3 - 0.4, 0.5)).toBeCloseTo(-0.2);

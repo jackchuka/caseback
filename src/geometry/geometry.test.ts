@@ -101,9 +101,9 @@ describe('Magic Lever and plate shapes', () => {
   it('builds the chronograph shapes to their size: heart, cam, lever and day ring', () => {
     const box = (g: THREE.BufferGeometry) => (g.computeBoundingBox(), g.boundingBox!);
     const heart = buildShape({ kind: 'heart', radius: 1.2, thickness: 0.2 }, 'steel')[0]!.geometry;
-    // The point along +X reaches the full radius; the cleft opposite stands in.
-    expect(box(heart).max.x).toBeCloseTo(1.2, 1);
-    expect(-box(heart).min.x).toBeLessThan(0.8);
+    // The high point along −X reaches the full radius; the cleft along +X stands in, where the hammer lands at zero.
+    expect(-box(heart).min.x).toBeCloseTo(1.2, 1);
+    expect(box(heart).max.x).toBeLessThan(0.75);
     expect(maxRadius(buildShape({ kind: 'cam', teeth: 8, radius: 1.5, thickness: 0.3 }, 'steel')[0]!.geometry)).toBeCloseTo(1.5, 1);
     const lever = buildShape({ kind: 'lever', outline: [{ x: -1, y: -0.5 }, { x: 5, y: -0.5 }, { x: 5, y: 0.5 }, { x: -1, y: 0.5 }], thickness: 0.2, hole: 0.3 }, 'steel');
     expect(box(lever[0]!.geometry).max.x).toBeCloseTo(5, 1);

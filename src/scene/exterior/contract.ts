@@ -9,8 +9,10 @@ import type { MovementMaterial } from '../../geometry/parts';
 //   caseback-glass), then movement materials, in that order; an unknown key throws;
 // - hands use movement materials only, never the build's own;
 // - every instantiated crystal material is transparent;
-// - own materials named after the movement's calendar discs (DISC_MATERIALS) dress those discs instead of the
-//   movement's own print, so a watch can show white-on-black dates;
+// - own materials named after the movement's calendar discs (DISC_MATERIALS: date, day) take precedence over the
+//   movement's own for those discs, so a watch can show white-on-black dates; they must be MeshPhysicalMaterials;
+// - a centre seconds hand goes in hands.seconds; hands.extra is for the movement's other hand parts (a small seconds,
+//   a chronograph's hands), which MovementFrame.extraHands lists;
 // - the caseback is placed at its closed position; the opening animation only adds lift, and turn if it screws down;
 // - a new builder adds its own closed-case mesh test.
 
@@ -31,8 +33,8 @@ export type MovementFrame = {
   dayWindow: { x: number; width: number; height: number } | null;
   plateFrontZ: number;
   rotorBackZ: number;
-  // Hands the movement carries besides the hour and minute hands (a small seconds, a chronograph's hands): the
-  // movement part each belongs to and its pivot.
+  // Hands the movement carries besides the hour and minute hands and a centre seconds (a small seconds, a
+  // chronograph's hands): the movement part each belongs to and its pivot.
   extraHands: Array<{ id: string; x: number; y: number; z: number }>;
   // Chronograph pushers: where each one meets the case flank, as an angle from 3 o'clock toward 6 (radians), and the
   // height of its axis.
@@ -76,7 +78,8 @@ export type ExteriorGeometry = {
 export const DISC_MATERIALS = ['date', 'day'] as const;
 
 // Built lazily so geometry tests never touch a canvas.
-export type ExteriorMaterials = Record<string, () => THREE.Material>;
+export type DiscMaterial = (typeof DISC_MATERIALS)[number];
+export type ExteriorMaterials = Record<string, () => THREE.Material> & Partial<Record<DiscMaterial, () => THREE.MeshPhysicalMaterial>>;
 
 export type ExteriorBuild = ExteriorGeometry & { materials: ExteriorMaterials };
 

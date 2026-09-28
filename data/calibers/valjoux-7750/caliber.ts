@@ -45,14 +45,15 @@ const intermediate = place(minuteCounter, centerDistance(mMotion, C.minutes, C.i
 const fingerRest = Math.atan2(intermediate.y, intermediate.x) + 0.03 * Math.PI * 2;
 const cam = { x: 7.2, y: -4.6 };
 // The hammers drop toward 9 o'clock (−X). The back one has an arm for the runner's heart and one for the minute
-// counter's; the hour hammer works the hour counter's heart on the dial side. Outlines are drawn in movement
-// coordinates and turned into each lever's own frame (+X along its stroke).
+// counter's; the hour hammer works the hour counter's heart on the dial side. Every heart's cleft faces +X at zero
+// (rest 0), so each face stands clear of its heart's high point and lands just outside its cleft. Outlines are drawn in
+// movement coordinates and turned into each lever's own frame (+X along its stroke).
 const HAMMER_REST = Math.PI;
 const lever = (pivot: P2, pts: Array<[number, number]>) => pts.map(([x, y]) => ({ x: pivot.x - x, y: pivot.y - y }));
 const hammerPivot = { x: 4.4, y: -2.6 };
-const hammerOutline = lever(hammerPivot, [[5.0, -2.2], [2.2, 1.0], [1.5, 1.0], [1.5, -0.9], [3.6, -2.6], [1.3, -7.4], [1.3, -9.0], [2.0, -9.0], [5.0, -3.0]]);
+const hammerOutline = lever(hammerPivot, [[5.0, -2.2], [2.2, 1.0], [1.5, 1.0], [1.5, -0.9], [3.6, -2.6], [1.4, -7.4], [1.4, -9.0], [2.1, -9.0], [5.0, -3.0]]);
 const hourHammerPivot = { x: 3.2, y: 5.2 };
-const hourHammerOutline = lever(hourHammerPivot, [[3.7, 4.7], [3.9, 5.5], [1.9, 9.0], [1.3, 9.0], [1.3, 7.4], [2.6, 5.0]]);
+const hourHammerOutline = lever(hourHammerPivot, [[3.7, 4.7], [3.9, 5.5], [2.0, 9.0], [1.4, 9.0], [1.4, 7.4], [2.6, 5.0]]);
 
 // Calendar: two finger wheels off the hour wheel. The date disc runs round outside the sub-dial arbors; the day disc
 // is a small disc of its own beside the centre, toward 3 o'clock, with its day star underneath (ETA's day star with
@@ -408,7 +409,7 @@ const caliber: Caliber = {
     {
       type: 'chronograph', cam: 'cam', pinion: 'oscillating-pinion', runner: 'chronograph-wheel', swing: 0.25,
       minutes: { wheel: 'minute-counting-wheel' }, hours: { driver: 'barrel-hour-pinion', wheel: 'hour-counting-wheel' },
-      hearts: ['runner-heart', 'minute-heart', 'hour-heart'], hammers: ['hammer', 'hour-hammer'], stroke: 0.35,
+      hearts: ['runner-heart', 'minute-heart', 'hour-heart'], hammers: ['hammer', 'hour-hammer'], stroke: 0.8,
     },
     { type: 'mesh', a: 'rotor-pinion', b: 'reversing-wheel' },
     // Clockwise, seen from the back, the rotor turns the reversing wheel the + way: only then does its click take hold.

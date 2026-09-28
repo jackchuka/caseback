@@ -5,7 +5,8 @@ import { CHRONO_REST, trackChrono, type ChronoMode, type ChronoTrack } from '../
 import { centerDistance } from '../../../src/kinematics/gearMath';
 import { hoursPerBarrelTurn, reserveHours } from '../../../src/kinematics/winding';
 import { arborKey, toothCount } from '../../../src/model/validate';
-import { buildShape } from '../../../src/geometry/parts';
+import { buildShape, heartPoints } from '../../../src/geometry/parts';
+import { polygonSdf } from '../../../src/scene/exterior/kit/sdf';
 import { movementFrame } from '../../../src/scene/exterior/frame';
 
 const TAU = Math.PI * 2;
@@ -197,26 +198,33 @@ describe('Valjoux 7750 chronograph', () => {
     const pose = solve({ t: 0, explode: 0, chrono: t });
     for (const id of ['chrono-seconds-hand', 'minute-counter-hand', 'hour-counter-hand', 'runner-heart', 'minute-heart', 'hour-heart']) expect(pose.get(id)!.angle, id).toBe(0);
   });
-  it('drops each hammer onto its hearts and keeps them clear while running', () => {
-    const tip = (hammer: string, heart: string, h: number) => {
+  it('drops each hammer onto its heart\'s cleft at zero, and keeps it clear of the heart\'s high point while running', () => {
+    // Signed distance from the heart's rim to the hammer's outline (negative where they overlap), for the heart turned
+    // `turn` from zero and the hammer `h` of the way down, in movement coordinates.
+    const clearance = (hammer: string, heart: string, h: number, turn: number) => {
       const p = part(hammer);
       if (p.shape.kind !== 'lever') throw new Error('shape');
       const tr = solve({ t: 0, explode: 0, chrono: { runner: 0, hours: 0, engage: 0, cam: 0, hammer: h, zero: 0 } }).get(hammer)!;
       const r = p.rest ?? 0;
+      const outline = p.shape.outline.map((q): [number, number] => [p.pos.x + tr.dx + q.x * Math.cos(r) - q.y * Math.sin(r), p.pos.y + tr.dy + q.x * Math.sin(r) + q.y * Math.cos(r)]);
+      const inside = polygonSdf(outline);
       const hp = part(heart);
-      const rad = (hp.shape as { radius: number }).radius;
-      const world = p.shape.outline.map((q) => ({ x: p.pos.x + tr.dx + q.x * Math.cos(r) - q.y * Math.sin(r), y: p.pos.y + tr.dy + q.x * Math.sin(r) + q.y * Math.cos(r) }));
-      // How near the hammer's outline comes to the heart's centre, less the heart's radius.
-      const edge = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const k = Math.max(0, Math.min(1, ((hp.pos.x - a.x) * dx + (hp.pos.y - a.y) * dy) / (dx * dx + dy * dy)));
-        return Math.hypot(a.x + k * dx - hp.pos.x, a.y + k * dy - hp.pos.y);
-      };
-      return Math.min(...world.map((a, i) => edge(a, world[(i + 1) % world.length]!))) - rad;
+      const a = (hp.rest ?? 0) + turn;
+      const rim = heartPoints((hp.shape as { radius: number }).radius, 180).map(([x, y]) => ({ x, y, wx: hp.pos.x + x * Math.cos(a) - y * Math.sin(a), wy: hp.pos.y + x * Math.sin(a) + y * Math.cos(a) }));
+      const d = rim.map((q) => ({ q, d: inside(q.wx, q.wy) }));
+      return d.reduce((best, x) => (x.d < best.d ? x : best));
     };
     for (const [hammer, heart] of [['hammer', 'runner-heart'], ['hammer', 'minute-heart'], ['hour-hammer', 'hour-heart']] as const) {
-      expect(tip(hammer, heart, 0), `${hammer} clear of ${heart}`).toBeGreaterThan(0.1);
-      expect(Math.abs(tip(hammer, heart, 1)), `${hammer} on ${heart}`).toBeLessThan(0.2);
+      const R = (part(heart).shape as { radius: number }).radius;
+      for (let k = 0; k < 16; k++) expect(clearance(hammer, heart, 0, (k / 16) * TAU).d, `${hammer} clear of ${heart}`).toBeGreaterThan(0.1);
+      const landed = clearance(hammer, heart, 1, 0);
+      expect(landed.d, `${hammer} on ${heart}`).toBeGreaterThan(-0.03);
+      expect(landed.d, `${hammer} on ${heart}`).toBeLessThan(0.12);
+      // It meets the heart at its cleft, the low point, not on a flank or the high point.
+      expect(landed.q.x, heart).toBeGreaterThan(0.5 * R);
+      expect(Math.abs(landed.q.y), heart).toBeLessThan(0.35 * R);
+      // Off zero, the same drop would press into the heart's rising flank: that is what turns it home.
+      expect(clearance(hammer, heart, 1, 1.2).d, heart).toBeLessThan(0);
     }
   });
   it('places the pushers at 2 and 4 o\'clock', () => {

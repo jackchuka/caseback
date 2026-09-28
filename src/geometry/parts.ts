@@ -367,18 +367,19 @@ function hand(length: number, width: number, thickness: number, material: Materi
   return [{ geometry: extrudeCentered(handOutline(style, length, width), thickness, 0.02), material }, { geometry: disc(width + 0.1, 0.2, 32), material }];
 }
 
-// A heart cam, its point along +X at the rim and its cleft on the far side, with an arbor hole at the origin. The rim
-// runs as a spiral from the cleft to the point on each side, so a hammer pressing it always turns it toward the point.
-function heartOutline(radius: number): THREE.Shape {
-  const s = new THREE.Shape();
-  const n = 48;
-  const r = (a: number) => radius * (0.55 + 0.45 * (1 - Math.abs(a) / Math.PI));
-  for (let i = 0; i <= n; i++) {
+// A heart cam's rim, with its low point (the cleft, 0.55 of its radius) along +X and its high point along −X. The rim
+// rises as a spiral from the cleft to the high point on each side, so a hammer pressing it always turns it until the
+// cleft faces the hammer: its zero.
+export function heartPoints(radius: number, n = 48): Array<[number, number]> {
+  const r = (a: number) => radius * (0.55 + (0.45 * Math.abs(a)) / Math.PI);
+  return Array.from({ length: n }, (_, i) => {
     const a = -Math.PI + (2 * Math.PI * i) / n;
-    const x = r(a) * Math.cos(a), y = r(a) * Math.sin(a) * 0.9;
-    if (i === 0) s.moveTo(x, y);
-    else s.lineTo(x, y);
-  }
+    return [r(a) * Math.cos(a), r(a) * Math.sin(a) * 0.9];
+  });
+}
+
+function heartOutline(radius: number): THREE.Shape {
+  const s = new THREE.Shape(heartPoints(radius).map(([x, y]) => new THREE.Vector2(x, y)));
   s.holes.push(new THREE.Path().absarc(0, 0, 0.18, 0, Math.PI * 2, true));
   return s;
 }

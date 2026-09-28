@@ -224,9 +224,9 @@ export function buildSolver(c: Caliber): Solver {
     }
     const dx = new Map<string, number>();
     const dy = new Map<string, number>();
-    // Offsets for one part rather than its whole arbor.
-    const shift = new Map<string, { x: number; y: number }>();
-    if (chrono) {
+    // Offsets for one part rather than its whole arbor; only a chronograph moves single parts.
+    const shift = chrono ? new Map<string, { x: number; y: number }>() : null;
+    if (chrono && shift) {
       const p = pose ?? { runner: 0, hours: 0, engage: 0, cam: 0, hammer: 1, zero: 0 };
       const home = (factor: Map<string, number>, root: number) => {
         for (const [key, f] of factor) byKey.set(key, f * heartAngle(root, p.zero));
@@ -259,7 +259,7 @@ export function buildSolver(c: Caliber): Solver {
     const out = new Map<string, PartTransform>();
     for (const p of c.parts) {
       const angle = byKey.get(arborKey(p)) ?? 0;
-      const own = shift.get(p.id);
+      const own = shift?.get(p.id);
       out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e, dx: own?.x ?? dx.get(arborKey(p)) ?? 0, dy: own?.y ?? dy.get(arborKey(p)) ?? 0 });
     }
     return out;

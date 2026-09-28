@@ -93,7 +93,7 @@
     },
     "chrono-pinion": {
       "kicker": "2 · Coupling",
-      "body": "A short arbor with a pinion at each end. The lower one is always turned by the fourth wheel; when the cam lets it, the arbor tilts and the upper one drops into the chronograph wheel's teeth. Stop, and it swings out again. Watch it move as you press."
+      "body": "A short arbor with a pinion at each end. The lower one is always turned by the fourth wheel; when the cam lets it, the arbor swings over and the upper one drops into the chronograph wheel's teeth. Stop, and it swings out again. Watch it move as you press (the real arbor pivots at its lower end; here it simply slides across)."
     },
     "chrono-runner": {
       "kicker": "3 · Seconds",
@@ -218,7 +218,7 @@
     "oscillating-pinion": {
       "name": "Oscillating pinion",
       "en": "Oscillating pinion",
-      "body": "Two pinions on one tilting arbor: the lower always meshed with the fourth wheel, the upper swung into the chronograph wheel to start it."
+      "body": "Two pinions on one swinging arbor: the lower always meshed with the fourth wheel, the upper swung into the chronograph wheel to start it."
     },
     "runner": {
       "name": "Chronograph wheel",

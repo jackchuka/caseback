@@ -5,7 +5,7 @@ import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { Exterior } from '../scene/Exterior';
 import { buildExterior } from '../scene/exterior/contract';
-import { discMaterials } from '../scene/exterior/discMaterials';
+import { useDiscMaterials } from '../scene/exterior/discMaterials';
 import { movementFrame } from '../scene/exterior/frame';
 import { MaterialsProvider } from '../scene/materials';
 import { Movement } from '../scene/Movement';
@@ -66,7 +66,7 @@ export function Compare({ caliber, watch, shots, shotId, view, mode: initialMode
   const frame = useMemo(() => movementFrame(caliber), [caliber]);
   const build = useMemo(() => buildExterior(watch.exterior, { movement: frame, quality: 'high' }), [watch, frame]);
   const hands = useMemo(() => ({ 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute, ...build.parts.hands.extra }), [build]);
-  const discs = useMemo(() => discMaterials(build.materials), [build]);
+  const discs = useDiscMaterials(build.materials);
   const time = parseTime(shot?.time ?? DEFAULT_TIME);
 
   useEffect(() => { window.__compare = { shots: shots.map((s) => s.id) }; }, [shots]);

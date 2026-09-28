@@ -154,3 +154,19 @@ test('the Sinn 103\'s display back shows the movement', async ({ page }) => {
   expect(hits[0]).toBe('caseback-glass');
   await page.screenshot({ path: 'test-results/v7750/watch-sinn103-back.png' });
 });
+
+test('the 7750 reset close-up: the hammers come down on the hearts\' clefts', async ({ page }) => {
+  await page.goto('/calibers/valjoux-7750?lang=en&ch=chrono&part=hammer');
+  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await expect(page.locator('.info h1')).toHaveText('Hammers');
+  const start = page.locator('.info .chrono-ctl .start-stop');
+  await start.click();
+  await expect.poll(() => angle(page, 'runner-heart'), { timeout: 20_000 }).toBeGreaterThan(0.25 * TAU);
+  await start.click();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: 'test-results/v7750/reset-closeup-before.png' });
+  await page.locator('.info .chrono-ctl .reset').click();
+  await expect.poll(() => angle(page, 'runner-heart'), { timeout: 5_000 }).toBe(0);
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: 'test-results/v7750/reset-closeup.png' });
+});

@@ -23,6 +23,8 @@ const vertices = (layers: ExteriorLayer[]) =>
     return Array.from({ length: p.count }, (_, i) => new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)));
   });
 const box = (layers: ExteriorLayer[]) => new THREE.Box3().setFromPoints(vertices(layers));
+// How far into the case a pusher's tube may run, pressed in: the case's reach less this.
+const PUSHER_TUBE_DEPTH = 1.5;
 
 // The generic case is checked around the default caliber; every watch around its own.
 const builders: Array<[string, ExteriorBuilder, string]> = [
@@ -128,11 +130,16 @@ describe('exterior contract', () => {
         for (const ps of pushers) {
           const at = FRAME.pushers.find((f) => f.action === ps.action)!;
           const dir = { x: Math.cos(at.angle), y: Math.sin(at.angle) };
-          // The case's reach along the pusher's direction, near its axis.
-          const reach = Math.max(...vertices(p.case).filter((v) => Math.abs(-v.x * dir.y + v.y * dir.x) < 0.5 && Math.abs(v.z - at.z) < 1).map((v) => v.x * dir.x + v.y * dir.y));
-          // Local +Y runs toward the case: the pusher's inner end, pressed in, still stands clear of the case's reach.
-          const inner = Math.max(...vertices(ps.layers).map((v) => v.y));
-          expect(ps.radius - inner - ps.travel, ps.action).toBeGreaterThan(reach - 1.5);
+          // The case's reach along the pusher's direction, near its axis in plan, and a flank that spans the axis's height.
+          const near = vertices(p.case).filter((v) => Math.abs(-v.x * dir.y + v.y * dir.x) < 0.5);
+          const reach = Math.max(...near.map((v) => v.x * dir.x + v.y * dir.y));
+          expect(Math.min(...near.map((v) => v.z))).toBeLessThan(at.z);
+          expect(Math.max(...near.map((v) => v.z))).toBeGreaterThan(at.z);
+          // Local +Y runs toward the case, so the inner end sits at radius − (its largest local y). At rest it reaches
+          // the flank, so the pusher never floats off the case; pressed in, it sinks no deeper than its tube runs.
+          const inner = ps.radius - Math.max(...vertices(ps.layers).map((v) => v.y));
+          expect(inner, `${ps.action} reaches the flank`).toBeLessThanOrEqual(reach + 0.5);
+          expect(inner - ps.travel, `${ps.action} stays in its tube`).toBeGreaterThan(reach - PUSHER_TUBE_DEPTH);
           expect(ps.travel, ps.action).toBeGreaterThan(0);
         }
       });

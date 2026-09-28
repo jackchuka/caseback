@@ -26,8 +26,8 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('date-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
   // The day of the week printed around a disc's band, one per tooth, like the date ring.
   z.object({ kind: z.literal('day-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
-  // A heart-shaped cam: pressed by a flat hammer it turns its arbor back to zero, the shortest way round. The point
-  // faces local +X at zero.
+  // A heart-shaped cam: pressed by a flat hammer it turns its arbor back to zero, the shortest way round. At zero its
+  // low point (the cleft) faces local +X, where the hammer lands; its high point faces −X.
   z.object({ kind: z.literal('heart'), radius: pos, thickness: pos }),
   // A switching cam: ratchet teeth that a push steps one at a time, and a lobed rim that the levers read.
   z.object({ kind: z.literal('cam'), teeth: int, radius: pos, thickness: pos }),

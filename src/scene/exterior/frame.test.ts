@@ -46,6 +46,11 @@ describe('movementFrame', () => {
     expect(f.extraHands.find((h) => h.id === 'seconds-hand')).toMatchObject({ x: -8.2, y: 0 });
     expect(f.pushers.map((p) => p.action)).toEqual(['start-stop', 'reset']);
   });
+  it('leaves a centre seconds hand out of the extra hands', () => {
+    const hand = c.parts.find((p) => p.id === 'hour-hand')!;
+    const f = movementFrame({ ...c, parts: [...c.parts, { ...hand, id: 'seconds-hand', arbor: 'fourth' }] });
+    expect(f.extraHands).toEqual([]);
+  });
   it('needs an hour hand to place the dial', () => {
     expect(() => movementFrame({ ...c, parts: c.parts.filter((p) => p.id !== 'hour-hand') })).toThrow(/hour-hand/);
   });

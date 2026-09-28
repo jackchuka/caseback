@@ -27,7 +27,8 @@ const toward = (v: number, target: number, rate: number) => v + Math.max(-rate, 
 
 // One frame of the chronograph. The pinion and the hour driver turn with the going train whatever the chronograph
 // does; their motion reaches the runner and the hour counter only while it runs. Once reset, the hammer drops first,
-// then the hearts turn the runner and both counters home, and the accumulated angles start from zero again.
+// then the hearts turn the runner and both counters home, and the accumulated angles start from zero again. A start
+// pressed while the hearts are still turning waits for them: the hands finish going home, then run from zero.
 export function trackChrono(
   t: ChronoTrack,
   state: { mode: ChronoMode; presses: number },
@@ -35,14 +36,16 @@ export function trackChrono(
   input: { pinion: number; driver: number },
   dt: number,
 ): ChronoTrack {
-  const running = state.mode === 'running';
+  const returning = t.zero > 0 && (t.runner !== 0 || t.hours !== 0);
+  const mode: ChronoMode = returning ? 'reset' : state.mode;
+  const running = mode === 'running';
   const dPinion = t.prevPinion === null ? 0 : input.pinion - t.prevPinion;
   const dDriver = t.prevDriver === null ? 0 : input.driver - t.prevDriver;
   let runner = running ? t.runner + ratios.runner * dPinion : t.runner;
   let hours = running ? t.hours + ratios.hours * dDriver : t.hours;
-  const hammer = toward(t.hammer, state.mode === 'reset' ? 1 : 0, dt / HAMMER_S);
+  const hammer = toward(t.hammer, mode === 'reset' ? 1 : 0, dt / HAMMER_S);
   let zero = 0;
-  if (state.mode === 'reset' && (runner !== 0 || hours !== 0)) {
+  if (mode === 'reset' && (runner !== 0 || hours !== 0)) {
     zero = hammer >= 1 ? t.zero + dt / HEARTS_S : t.zero;
     if (zero >= 1) {
       runner = 0;
