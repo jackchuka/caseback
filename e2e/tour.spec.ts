@@ -371,7 +371,7 @@ test('dive bezel watch opens into the same tour', async ({ page }) => {
 test('home lists calibers and watches and searches', async ({ page }) => {
   await page.goto('/?lang=en');
   await expect(page.locator('.home')).toBeVisible();
-  await expect(page.locator('.home .watch')).toHaveCount(3);
+  await expect(page.locator('.home .watch')).toHaveCount(4);
   await page.getByRole('searchbox').fill('sinn');
   await expect(page.locator('.home .watch')).toHaveCount(1);
   await page.locator('.home .watch a').first().click();
@@ -455,7 +455,7 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
   expect(worst).toBeLessThan(0.02);
 });
 
-for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja'], ['Hamilton Khaki Field Auto', '/watches/hamilton/khaki-field-auto-h70455553?lang=ja']]) {
+for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja'], ['Hamilton Khaki Field Auto', '/watches/hamilton/khaki-field-auto-h70455553?lang=ja'], ['Seiko Presage SRPB43', '/watches/seiko/presage-srpb43?lang=ja']]) {
   test(`${name}: the watch page opens on the dial, and dial chapters remove it @quick`, async ({ page }) => {
     await page.goto(url!);
     await ready(page);
