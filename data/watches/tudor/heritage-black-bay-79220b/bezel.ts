@@ -1,0 +1,79 @@
+import * as THREE from 'three';
+import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
+import { canvasTexture } from '../../../../src/scene/exterior/kit/canvas';
+import { cutFlutes } from '../../../../src/scene/exterior/kit/flutes';
+import { lathe } from '../../../../src/scene/exterior/kit/lathe';
+import { T } from './params';
+
+export type BezelMark = { minute: number; kind: 'triangle' | 'tick' | 'bar' | 'numeral'; text?: string; flipped: boolean };
+
+// The dive scale as printed on the 79220B insert: minute ticks for the first quarter hour, bars at the fives, tens as
+// numerals. Numerals on the lower half are turned to read upright, as in the photos.
+export function bezelMarks(): BezelMark[] {
+  return Array.from({ length: 60 }, (_, minute): BezelMark | null => {
+    if (minute === 0) return { minute, kind: 'triangle', flipped: false };
+    if (minute % 10 === 0) return { minute, kind: 'numeral', text: String(minute), flipped: minute >= 20 && minute <= 40 };
+    if (minute % 5 === 0) return { minute, kind: 'bar', flipped: false };
+    return minute < 15 ? { minute, kind: 'tick', flipped: false } : null;
+  }).filter((x): x is BezelMark => x !== null);
+}
+
+export const bezelTop = (m: MovementFrame) => m.frontZ - T.bezelHeight;
+
+export function tudorBezel(m: MovementFrame): ExteriorLayer[] {
+  const b = m.frontZ;
+  const top = bezelTop(m);
+  const seat = top + 0.15;
+  // (radius, z), front is −Z: inner lip, recessed insert seat, flat outer rim, coin-edged wall.
+  const body = lathe([
+    [T.bezelInner, b - 0.02], [T.bezelInner, top + 0.1], [T.bezelInner + 0.12, top],
+    [T.insertInner - 0.05, top], [T.insertInner - 0.05, seat], [T.insertOuter + 0.05, seat], [T.insertOuter + 0.05, top],
+    [T.bezelOuter - 0.12, top], [T.bezelOuter, top + 0.12], [T.bezelOuter, b - 0.02], [T.bezelInner, b - 0.02],
+  ], T.knurlCount * 4);
+  cutFlutes(body, { axis: 'z', radius: T.bezelOuter, count: T.knurlCount, depth: T.knurlDepth, from: top + 0.2, to: b - 0.1 });
+  const insert = new THREE.RingGeometry(T.insertInner, T.insertOuter, 360).rotateX(Math.PI).translate(0, 0, seat - 0.01);
+  const pipAt = -(T.insertInner + T.insertOuter) / 2 + 0.25;
+  const cup = new THREE.CylinderGeometry(T.pipRadius + 0.18, T.pipRadius + 0.18, 0.3, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.15);
+  const pip = new THREE.CylinderGeometry(T.pipRadius, T.pipRadius, 0.1, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.32);
+  return [
+    { geometry: body, material: 'polished' },
+    { geometry: insert, material: 'insert' },
+    { geometry: cup, material: 'polished' },
+    { geometry: pip, material: 'lume' },
+  ];
+}
+
+// The insert ring is turned to face the front (rotateX(π)), which already flips it vertically; no pre-mirror.
+export function paintInsert() {
+  return canvasTexture(2048, 2048, (g) => {
+    const s = 2048, R = s / 2;
+    const inner = (T.insertInner / T.insertOuter) * R;
+    g.fillStyle = T.insertBlue;
+    g.fillRect(0, 0, s, s);
+    g.translate(R, R);
+    g.fillStyle = '#e9e7e1';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    const band = R - inner;
+    for (const mark of bezelMarks()) {
+      g.save();
+      g.rotate((mark.minute / 60) * Math.PI * 2);
+      const outer = -R * 0.985;
+      if (mark.kind === 'triangle') {
+        g.beginPath();
+        g.moveTo(0, -inner - band * 0.12);
+        g.lineTo(band * 0.34, outer);
+        g.lineTo(-band * 0.34, outer);
+        g.fill();
+      } else if (mark.kind === 'tick') g.fillRect(-R * 0.004, outer, R * 0.008, band * 0.3);
+      else if (mark.kind === 'bar') g.fillRect(-R * 0.009, outer, R * 0.018, band * 0.55);
+      else {
+        g.font = `500 ${band * 0.52}px Inter, sans-serif`;
+        g.translate(0, -(inner + band * 0.5));
+        if (mark.flipped) g.rotate(Math.PI);
+        g.fillText(mark.text!, 0, 0);
+      }
+      g.restore();
+    }
+  }, 8);
+}
