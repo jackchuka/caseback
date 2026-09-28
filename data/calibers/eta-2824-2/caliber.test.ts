@@ -142,3 +142,37 @@ describe('ETA 2824-2 automatic', () => {
     expect(reserveHours(c, 1, 0, 10)).toBeCloseTo(17);
   });
 });
+
+describe('ETA 2824-2 depth', () => {
+  const part = (id: string) => c.parts.find((p) => p.id === id)!;
+  const thick = (id: string) => {
+    const s = part(id).shape as { thickness?: number; length?: number };
+    return s.thickness ?? s.length ?? 0;
+  };
+  const top = (id: string) => part(id).pos.z + thick(id) / 2;
+  const bottom = (id: string) => part(id).pos.z - thick(id) / 2;
+  const plateFront = bottom('plate');
+
+  it('measures 4.60 mm from the plate dial face to the rotor back, as ETA publishes (rotor included)', () => {
+    expect(top('rotor') - plateFront).toBeGreaterThan(4.3);
+    expect(top('rotor') - plateFront).toBeLessThan(4.9);
+  });
+  it('keeps the dial side where it was', () => {
+    expect(part('plate').pos.z).toBe(-0.6);
+    for (const p of c.parts.filter((q) => q.side === 'dial')) expect(p.pos.z, p.id).toBeLessThanOrEqual(-1.2);
+  });
+  it('stacks train, bridges, automatic works and rotor in order', () => {
+    const train = ['center-wheel', 'third-wheel', 'fourth-wheel', 'escape-wheel', 'pallet-fork', 'balance-wheel', 'hairspring'];
+    const bridges = ['train-bridge', 'barrel-bridge', 'balance-cock'];
+    const auto = ['reverser-a', 'reverser-b', 'reduction-wheel'];
+    for (const t of train) for (const b of bridges) expect(top(t), `${t} under ${b}`).toBeLessThan(bottom(b));
+    for (const a of auto) for (const b of bridges) expect(bottom(a), `${a} over ${b}`).toBeGreaterThan(top(b) - 0.01);
+    for (const a of auto) expect(top(a), `${a} under rotor`).toBeLessThan(bottom('rotor'));
+    for (const t of ['barrel', ...train]) expect(bottom(t), `${t} above plate`).toBeGreaterThanOrEqual(top('plate') - 0.01);
+  });
+  it('keeps the barrel drum under its bridge', () => {
+    const s = part('barrel').shape as { thickness: number; drumHeight: number };
+    const drumTop = part('barrel').pos.z + s.thickness / 2 + s.drumHeight;
+    expect(drumTop).toBeLessThan(bottom('barrel-bridge'));
+  });
+});

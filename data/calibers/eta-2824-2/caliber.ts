@@ -35,6 +35,34 @@ const reduction = circleIntersection(revB, centerDistance(mAuto, A.revB, A.redWh
 
 const K = { sliding: 12, winding: 16, setting: 14 };
 const STEM_Z = -1.5;
+// Back-side heights. ETA gives 4.60 mm from the plate's dial face to the rotor top; the earlier layout spread the
+// same stack over 5.8 mm, so every back-side height is the old one compressed about the plate's back face (z −0.05)
+// by 0.722. Order, arbor pairs and meshing bands are unchanged; individual values are estimates.
+const PLATE_BACK = -0.05;
+const SQUEEZE = 0.722;
+const back = (old: number) => Math.round((PLATE_BACK + (old - PLATE_BACK) * SQUEEZE) * 1000) / 1000;
+const H = {
+  barrel: back(0.6),
+  centerPinion: back(0.75),
+  centerWheel: back(1.25),
+  thirdPinion: back(1.25),
+  thirdWheel: back(1.85),
+  fourthPinion: back(1.85),
+  fourthWheel: back(2.35),
+  escapePinion: back(2.35),
+  escapeWheel: back(1.9),
+  palletFork: back(1.9),
+  balance: back(2.0),
+  hairspring: back(2.55),
+  balanceCock: back(3.1),
+  trainBridge: back(3.2),
+  barrelBridge: back(3.4),
+  ratchet: back(3.95),
+  reductionPinion: back(3.95),
+  automatic: back(4.1),
+  // Compression alone would close the rotor's 0.045 mm gap over the reversers (their thickness doesn't shrink).
+  rotor: back(4.45) + 0.07,
+};
 const stemIn = 4.4;
 const stemOut = 12.8 + 3.3;
 const KEYLESS = 'Keyless layout is illustrative; the real 2824-2 stem, pinions and setting wheel are not modelled to scale.';
@@ -52,60 +80,60 @@ const parts: Part[] = [
     shape: { kind: 'plate', radius: 12.8, thickness: 1.1 }, provenance: sourced('eta-17jewels'),
   },
   {
-    id: 'barrel', arbor: 'barrel', mechanism: 'power', side: 'back', pos: at(barrel, 0.6), explode: { dz: 3.2 }, material: 'gilt',
+    id: 'barrel', arbor: 'barrel', mechanism: 'power', side: 'back', pos: at(barrel, H.barrel), explode: { dz: 3.2 }, material: 'gilt',
     shape: { kind: 'barrel', teeth: Z.barrel, module: M.barrel, thickness: 0.35, drumHeight: 1.3 }, provenance: estimated(LAYOUT),
   },
   {
-    id: 'ratchet', mechanism: 'power', side: 'back', pos: at(barrel, 3.95), explode: { dz: 12.5 }, material: 'steel',
+    id: 'ratchet', mechanism: 'power', side: 'back', pos: at(barrel, H.ratchet), explode: { dz: 12.5 }, material: 'steel',
     shape: { kind: 'ratchet', teeth: A.ratchet, module: mRatchet, thickness: 0.28 }, provenance: estimated(LAYOUT),
   },
   {
-    id: 'center-pinion', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, 0.75), explode: { dz: 4.4 }, material: 'steel',
+    id: 'center-pinion', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, H.centerPinion), explode: { dz: 4.4 }, material: 'steel',
     shape: { kind: 'pinion', leaves: Z.centerPinion, module: M.barrel, length: 0.9 }, provenance: estimated(LAYOUT),
   },
   {
-    id: 'center-wheel', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, 1.25), explode: { dz: 4.4 }, material: 'gilt',
+    id: 'center-wheel', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, H.centerWheel), explode: { dz: 4.4 }, material: 'gilt',
     shape: { kind: 'wheel', teeth: Z.center, module: M.center, thickness: 0.28, spokes: 4 }, provenance: sourced('firgelli-train'),
   },
   {
-    id: 'third-pinion', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, 1.25), explode: { dz: 5.2 }, material: 'steel',
+    id: 'third-pinion', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, H.thirdPinion), explode: { dz: 5.2 }, material: 'steel',
     shape: { kind: 'pinion', leaves: Z.thirdPinion, module: M.center, length: 0.9 }, provenance: sourced('firgelli-train'),
   },
   {
-    id: 'third-wheel', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, 1.85), explode: { dz: 5.2 }, material: 'gilt',
+    id: 'third-wheel', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, H.thirdWheel), explode: { dz: 5.2 }, material: 'gilt',
     shape: { kind: 'wheel', teeth: Z.third, module: M.third, thickness: 0.24, spokes: 5 }, provenance: sourced('firgelli-train'),
   },
   {
-    id: 'fourth-pinion', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, 1.85), explode: { dz: 6.0 }, material: 'steel',
+    id: 'fourth-pinion', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, H.fourthPinion), explode: { dz: 6.0 }, material: 'steel',
     shape: { kind: 'pinion', leaves: Z.fourthPinion, module: M.third, length: 0.9 }, provenance: sourced('firgelli-train'),
   },
   {
-    id: 'fourth-wheel', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, 2.35), explode: { dz: 6.0 }, material: 'gilt',
+    id: 'fourth-wheel', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, H.fourthWheel), explode: { dz: 6.0 }, material: 'gilt',
     shape: { kind: 'wheel', teeth: Z.fourth, module: M.fourth, thickness: 0.22, spokes: 5 },
     provenance: estimated('84 teeth derived from 28,800 vph with a 20-tooth escape wheel and a 7-leaf pinion; FIRGELLI lists 70.'),
   },
   {
-    id: 'escape-pinion', arbor: 'escape', mechanism: 'escapement', side: 'back', pos: at(escape, 2.35), explode: { dz: 6.8 }, material: 'steel',
+    id: 'escape-pinion', arbor: 'escape', mechanism: 'escapement', side: 'back', pos: at(escape, H.escapePinion), explode: { dz: 6.8 }, material: 'steel',
     shape: { kind: 'pinion', leaves: Z.escapePinion, module: M.fourth, length: 0.8 }, provenance: sourced('firgelli-train'),
   },
   {
-    id: 'escape-wheel', arbor: 'escape', mechanism: 'escapement', side: 'back', pos: at(escape, 1.9), explode: { dz: 6.8 }, material: 'steel',
+    id: 'escape-wheel', arbor: 'escape', mechanism: 'escapement', side: 'back', pos: at(escape, H.escapeWheel), explode: { dz: 6.8 }, material: 'steel',
     shape: { kind: 'escape-wheel', teeth: Z.escape, outerRadius: 1.45, thickness: 0.16 }, provenance: sourced('eta-17jewels'),
   },
   {
-    id: 'pallet-fork', arbor: 'fork', rest: forkRest, mechanism: 'escapement', side: 'back', pos: at(fork, 1.9), explode: { dz: 7.4 }, material: 'steel',
+    id: 'pallet-fork', arbor: 'fork', rest: forkRest, mechanism: 'escapement', side: 'back', pos: at(fork, H.palletFork), explode: { dz: 7.4 }, material: 'steel',
     shape: { kind: 'pallet-fork', span: 2.6, length: 3.0, thickness: 0.14 }, provenance: estimated(LAYOUT),
   },
   {
-    id: 'balance-wheel', arbor: 'balance', rest: balanceRest, mechanism: 'regulator', side: 'back', pos: at(balance, 2.0), explode: { dz: 9.0 }, material: 'balance',
+    id: 'balance-wheel', arbor: 'balance', rest: balanceRest, mechanism: 'regulator', side: 'back', pos: at(balance, H.balance), explode: { dz: 9.0 }, material: 'balance',
     shape: { kind: 'balance', radius: 4.1, rimThickness: 0.22, arms: 2 }, provenance: estimated(LAYOUT),
   },
   {
-    id: 'hairspring', arbor: 'balance', mechanism: 'regulator', side: 'back', pos: at(balance, 2.55), explode: { dz: 9.0 }, material: 'steel',
+    id: 'hairspring', arbor: 'balance', mechanism: 'regulator', side: 'back', pos: at(balance, H.hairspring), explode: { dz: 9.0 }, material: 'steel',
     shape: { kind: 'hairspring', turns: 12, innerRadius: 0.55, pitch: 0.2 }, provenance: estimated(LAYOUT),
   },
   {
-    id: 'train-bridge', mechanism: 'frame', side: 'back', pos: at(center, 3.2), explode: { dz: 11 }, material: 'rhodium',
+    id: 'train-bridge', mechanism: 'frame', side: 'back', pos: at(center, H.trainBridge), explode: { dz: 11 }, material: 'rhodium',
     shape: {
       kind: 'bridge', thickness: 0.55,
       lobes: [
@@ -118,7 +146,7 @@ const parts: Part[] = [
     provenance: estimated(LAYOUT),
   },
   {
-    id: 'barrel-bridge', mechanism: 'frame', side: 'back', pos: at(center, 3.4), explode: { dz: 9.5 }, material: 'rhodium',
+    id: 'barrel-bridge', mechanism: 'frame', side: 'back', pos: at(center, H.barrelBridge), explode: { dz: 9.5 }, material: 'rhodium',
     shape: {
       kind: 'bridge', thickness: 0.55,
       lobes: [{ ...barrel, r: 4.6 }, { ...offset(barrel, -3.2, 2.6), r: 0.9 }, { ...offset(barrel, 2.7, -3.3), r: 0.9 }],
@@ -128,7 +156,7 @@ const parts: Part[] = [
     provenance: estimated(LAYOUT),
   },
   {
-    id: 'balance-cock', mechanism: 'frame', side: 'back', pos: at(center, 3.1), explode: { dz: 13 }, material: 'rhodium',
+    id: 'balance-cock', mechanism: 'frame', side: 'back', pos: at(center, H.balanceCock), explode: { dz: 13 }, material: 'rhodium',
     shape: {
       kind: 'bridge', thickness: 0.55,
       lobes: [{ ...balance, r: 1.0 }, { x: (balance.x + cockBase.x) / 2, y: (balance.y + cockBase.y) / 2, r: 0.8 }, { ...cockBase, r: 1.3 }],
@@ -146,12 +174,12 @@ const parts: Part[] = [
   { id: 'date-driver', arbor: 'date-driver', rest: dateDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dateDriver, -2.05), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.16, fingerLength: 3.4 }, provenance: estimated(MOTION) },
   // rest π/2 turns today's date from 12 o'clock to the 3 o'clock date window.
   { id: 'date-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(center, -2.35), explode: { dz: -1.6 }, material: 'plate', shape: { kind: 'date-ring', teeth: 31, innerRadius: 9.3, outerRadius: 12.3, thickness: 0.16 }, provenance: sourced('eta-17jewels') },
-  { id: 'rotor', arbor: 'rotor', mechanism: 'automatic', side: 'back', pos: at(center, 4.45), explode: { dz: 18 }, material: 'gilt', shape: { kind: 'rotor', radius: 12.5, hub: 1.2, thickness: 0.45 }, provenance: estimated(AUTO) },
-  { id: 'rotor-pinion', arbor: 'rotor', mechanism: 'automatic', side: 'back', pos: at(center, 4.1), explode: { dz: 18 }, material: 'steel', shape: { kind: 'pinion', leaves: A.rotorPinion, module: mAuto, length: 0.5 }, provenance: estimated(AUTO) },
-  { id: 'reverser-a', focus: 'reversers', mechanism: 'automatic', side: 'back', pos: at(revA, 4.1), explode: { dz: 15 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.revA, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
-  { id: 'reverser-b', focus: 'reversers', mechanism: 'automatic', side: 'back', pos: at(revB, 4.1), explode: { dz: 15 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.revB, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
-  { id: 'reduction-wheel', arbor: 'reduction', mechanism: 'automatic', side: 'back', pos: at(reduction, 4.1), explode: { dz: 16 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.redWheel, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
-  { id: 'reduction-pinion', arbor: 'reduction', mechanism: 'automatic', side: 'back', pos: at(reduction, 3.95), explode: { dz: 16 }, material: 'steel', shape: { kind: 'pinion', leaves: A.redPinion, module: mRatchet, length: 0.4 }, provenance: estimated(AUTO) },
+  { id: 'rotor', arbor: 'rotor', mechanism: 'automatic', side: 'back', pos: at(center, H.rotor), explode: { dz: 18 }, material: 'gilt', shape: { kind: 'rotor', radius: 12.5, hub: 1.2, thickness: 0.45 }, provenance: estimated(AUTO) },
+  { id: 'rotor-pinion', arbor: 'rotor', mechanism: 'automatic', side: 'back', pos: at(center, H.automatic), explode: { dz: 18 }, material: 'steel', shape: { kind: 'pinion', leaves: A.rotorPinion, module: mAuto, length: 0.5 }, provenance: estimated(AUTO) },
+  { id: 'reverser-a', focus: 'reversers', mechanism: 'automatic', side: 'back', pos: at(revA, H.automatic), explode: { dz: 15 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.revA, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
+  { id: 'reverser-b', focus: 'reversers', mechanism: 'automatic', side: 'back', pos: at(revB, H.automatic), explode: { dz: 15 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.revB, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
+  { id: 'reduction-wheel', arbor: 'reduction', mechanism: 'automatic', side: 'back', pos: at(reduction, H.automatic), explode: { dz: 16 }, material: 'gilt', shape: { kind: 'wheel', teeth: A.redWheel, module: mAuto, thickness: 0.16, spokes: 0 }, provenance: estimated(AUTO) },
+  { id: 'reduction-pinion', arbor: 'reduction', mechanism: 'automatic', side: 'back', pos: at(reduction, H.reductionPinion), explode: { dz: 16 }, material: 'steel', shape: { kind: 'pinion', leaves: A.redPinion, module: mRatchet, length: 0.4 }, provenance: estimated(AUTO) },
   { id: 'stem', focus: 'stem', axis: 'x', mechanism: 'keyless', side: 'dial', pos: { x: (stemIn + stemOut) / 2, y: 0, z: STEM_Z }, explode: { dz: -2 }, material: 'steel', shape: { kind: 'stem', radius: 0.26, length: stemOut - stemIn }, provenance: estimated(KEYLESS) },
   { id: 'winding-pinion', focus: 'stem', axis: 'x', mechanism: 'keyless', side: 'dial', pos: { x: 7.1, y: 0, z: STEM_Z }, explode: { dz: -2 }, material: 'steel', shape: { kind: 'wheel', teeth: K.winding, module: 0.1, thickness: 0.35, spokes: 0 }, provenance: estimated(KEYLESS) },
   { id: 'sliding-pinion', axis: 'x', mechanism: 'keyless', side: 'dial', pos: { x: 6.25, y: 0, z: STEM_Z }, explode: { dz: -2 }, material: 'steel', shape: { kind: 'wheel', teeth: K.sliding, module: 0.1, thickness: 0.6, spokes: 0 }, provenance: estimated(KEYLESS) },
