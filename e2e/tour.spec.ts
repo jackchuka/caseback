@@ -259,7 +259,9 @@ test('clicking reversers through the rotor stays in the tour', async ({ page }) 
 test('hidden rotor does not catch clicks in the first chapter', async ({ page }) => {
   await openTour(page);
   await settled(page);
-  const [x, y] = await page.evaluate(() => window.__caseback!.project('barrel'));
+  // The centre wheel lies under the hidden rotor's full disc but, unlike the barrel, has no visible ratchet on top whose
+  // own click would legitimately jump to the self-winding chapter.
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('center'));
   await page.mouse.click(x, y);
   // Nothing should happen: give the click a couple of frames to (not) take effect before checking.
   await tick(page);
