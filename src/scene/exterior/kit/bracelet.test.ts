@@ -39,6 +39,23 @@ describe('bracelet', () => {
     expect(all.max.z).toBeGreaterThan(6);
     expect(Math.min(...layers.filter((l) => box([l]).min.y > 0).map((l) => box([l]).min.y))).toBeCloseTo(24, 1);
   });
+  it('chamfers the top face of every built piece', () => {
+    // The first link's near end ring lies at start.y, before the wrist bend begins, so it is the plain profile.
+    for (const l of layers.slice(0, 3)) {
+      const p = l.geometry.getAttribute('position');
+      const ring: Array<[number, number]> = [];
+      for (let i = 0; i < p.count; i++) if (Math.abs(Math.abs(p.getY(i)) - 24) < 1e-6) ring.push([p.getX(i), p.getZ(i)]);
+      const zs = ring.map(([, z]) => z);
+      const zTop = Math.min(...zs), zMid = (zTop + Math.max(...zs)) / 2;
+      const halfWidthAt = (pick: (z: number) => boolean) => {
+        const xs = ring.filter(([, z]) => pick(z)).map(([x]) => x);
+        return (Math.max(...xs) - Math.min(...xs)) / 2;
+      };
+      const top = halfWidthAt((z) => z < zTop + spec.chamfer / 2);
+      const mid = halfWidthAt((z) => Math.abs(z - zMid) < spec.thickness / 2 - 0.01);
+      expect(top).toBeLessThanOrEqual(mid - spec.chamfer + 1e-6);
+    }
+  });
   it('faces outward on both sides, including the mirrored half', () => {
     for (const [k, l] of layers.entries()) {
       const g = l.geometry.index ? l.geometry.toNonIndexed() : l.geometry;
