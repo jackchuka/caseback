@@ -13,7 +13,7 @@ import { Tween } from './tween';
 
 declare global {
   interface Window {
-    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3; probe(id: string): [number, number]; quat(): number[]; enabled(): boolean; three(): { scene: THREE.Scene; gl: THREE.WebGLRenderer } };
+    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3; probe(id: string): [number, number]; quat(): number[]; enabled(): boolean; three(): { scene: THREE.Scene; gl: THREE.WebGLRenderer }; pose(position: V3, target: V3): void };
   }
 }
 
@@ -50,6 +50,14 @@ export function CameraRig({ caliber, watchFront = false }: { caliber: Caliber; w
       quat: () => camera.quaternion.toArray().map((v) => +v.toFixed(4)),
       enabled: () => controls.enabled,
       three: () => ({ scene, gl }),
+      pose: (position, target) => {
+        tween.current = null;
+        controls.autoRotate = false;
+        camera.position.set(...position);
+        controls.target.set(...target);
+        camera.lookAt(controls.target);
+        controls.update();
+      },
       probe: (id) => {
         const e = registry.get(id);
         if (!e) return [NaN, NaN];

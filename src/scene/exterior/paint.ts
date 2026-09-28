@@ -40,6 +40,11 @@ export function paintDial(e: WatchExterior): THREE.CanvasTexture {
   g.textBaseline = 'middle';
   spec.numerals.forEach((n, i) => {
     const a = (i / 12) * Math.PI * 2;
+    if (spec.outerMinutes) {
+      g.font = `500 ${R * 0.045}px Inter, sans-serif`;
+      g.fillText(String(i === 0 ? 60 : i * 5), Math.sin(a) * R * 0.87, -Math.cos(a) * R * 0.87);
+    }
+    if (n === '') return;
     g.font = `600 ${R * 0.14}px Inter, sans-serif`;
     g.fillText(n, Math.sin(a) * R * 0.72, -Math.cos(a) * R * 0.72);
     if (spec.ring24) {
@@ -81,6 +86,34 @@ export function paintInsert(e: WatchExterior): THREE.CanvasTexture {
       g.fillRect(-R * 0.006, -R * 0.99, R * 0.012, m % 5 === 0 ? R * 0.06 : R * 0.03);
     }
     g.restore();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// Leather with contrast stitching along both edges; mapped onto the strap's faces (UV x across, y along).
+export function paintStrap(e: WatchExterior): THREE.CanvasTexture {
+  const w = 256;
+  const h = 1024;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d')!;
+  g.fillStyle = e.strap.color;
+  g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 4000; i++) {
+    g.fillStyle = `rgba(0,0,0,${Math.random() * 0.08})`;
+    g.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+  }
+  g.strokeStyle = '#efe6d2';
+  g.lineWidth = 5;
+  g.setLineDash([22, 14]);
+  for (const x of [w * 0.1, w * 0.9]) {
+    g.beginPath();
+    g.moveTo(x, 0);
+    g.lineTo(x, h);
+    g.stroke();
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;

@@ -8,15 +8,15 @@ import type { Watch } from '../model/watch';
 import { appStore } from '../state/app';
 import { useMaterials } from './materials';
 import { crownEuler, crownState } from './crown';
-import { caseRadii, casingRing, stemExtension } from './caseGeometry';
+import { caseProfile, caseRadii, casingRing, stemExtension } from './caseGeometry';
 import { openingPose } from './opening';
 import { buildShape, type Layer, type LayerMaterial, type MovementMaterial } from '../geometry/parts';
 import { bezel as bezelLayers } from './exterior/bezel';
 import { crown as crownLayers } from './exterior/crown';
 import { crystal as crystalLayers } from './exterior/crystal';
 import { dialLayers } from './exterior/dial';
-import { lugs as lugLayers } from './exterior/lugs';
-import { paintDial, paintInsert } from './exterior/paint';
+import { lugFillets, lugs as lugLayers } from './exterior/lugs';
+import { paintDial, paintInsert, paintStrap } from './exterior/paint';
 import { strap as strapLayers } from './exterior/strap';
 import { exteriorVisibility } from './exterior/visibility';
 import { registry } from './registry';
@@ -42,7 +42,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
     const finishRoughness = { polished: 0.22, brushed: 0.42, mixed: 0.34 }[ext.case.finish];
     const mats: Record<Exclude<LayerMaterial, MovementMaterial>, THREE.MeshPhysicalMaterial> & { lume: THREE.MeshPhysicalMaterial } = {
       // Stainless cases read as black in the dark studio at the movement's reflection strength; product photos light them harder.
-      case: new THREE.MeshPhysicalMaterial({ color: CASE_COLORS[ext.case.material][0], metalness: 1, roughness: finishRoughness, clearcoat: 0.15, clearcoatRoughness: 0.3, envMapIntensity: 2.2 }),
+      case: new THREE.MeshPhysicalMaterial({ color: ext.case.material === 'steel' ? 0xe2e4e8 : CASE_COLORS[ext.case.material][0], metalness: 1, roughness: finishRoughness, clearcoat: 0.15, clearcoatRoughness: 0.3, envMapIntensity: 1.4 }),
       crystal: new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.8, ior: 1.77, transparent: true }),
       // Opaque on purpose: three.js renders only opaque objects into the transmission buffer, so a transparent dial
       // would vanish behind the (transmissive) crystal. It is removed by lifting and hiding instead of fading.
@@ -51,7 +51,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       strap:
         ext.strap.kind === 'bracelet'
           ? new THREE.MeshPhysicalMaterial({ color: ext.strap.color, metalness: 1, roughness: 0.3, envMapIntensity: 2.2 })
-          : new THREE.MeshPhysicalMaterial({ color: ext.strap.color, metalness: 0, roughness: 0.75, sheen: 0.4 }),
+          : new THREE.MeshPhysicalMaterial({ map: paintStrap(ext), metalness: 0, roughness: 0.7, sheen: 0.4 }),
       tube: new THREE.MeshPhysicalMaterial({ color: ext.crown.tubeColor ?? '#888888', metalness: 0.6, roughness: 0.3 }),
       // Dial lume fades with the dial, so it must not share the hands' material.
       lume: new THREE.MeshPhysicalMaterial({ color: ext.dial.lume ?? '#f2eee2', roughness: 0.5, metalness: 0 }),
@@ -62,7 +62,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
     return {
       mats,
       pick,
-      lugs: lugLayers(ext, r),
+      lugs: [...lugLayers(ext, r), ...lugFillets(ext, r)],
       bezel: bezelLayers(ext, r),
       crown: crownLayers(ext, r),
       crystal: crystalLayers(ext, r),
@@ -78,9 +78,10 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
   }, [caliber]);
   const rotorMat = useMemo(() => materials.gilt.clone(), [materials]);
   const ring = useMemo(() => {
-    const prof = [[inner, bottom], [outer - 1.1, bottom], [outer - 0.2, bottom + 1.2], [outer, bottom + 4.3], [outer - 0.5, top - 0.4], [outer - 1.0, top], [inner, top]].map(([x, y]) => new THREE.Vector2(x, y));
+    const pts = ext ? caseProfile({ inner, outer, height, bottom }, ext) : [[inner, bottom], [outer - 1.1, bottom], [outer - 0.2, bottom + 1.2], [outer, bottom + 4.3], [outer - 0.5, top - 0.4], [outer - 1.0, top], [inner, top]];
+    const prof = pts.map(([x, y]) => new THREE.Vector2(x, y));
     return new THREE.LatheGeometry(prof, 160).rotateX(Math.PI / 2);
-  }, [inner, outer, bottom, top]);
+  }, [inner, outer, bottom, top, height, ext]);
   const rotorGeo = useMemo(() => {
     const s = new THREE.Shape();
     s.absarc(0, 0, r - 0.3, 0, Math.PI, false);

@@ -142,7 +142,10 @@ export function dateNumbers(count = 31) {
     for (let d = 1; d <= count; d++) {
       g.save();
       g.rotate(((d - 1) / count) * Math.PI * 2);
-      g.fillText(String(d), 0, -(s / 2) * 0.87);
+      // Each date is printed turned a quarter turn so it reads upright once the ring brings it to 3 o'clock.
+      g.translate(0, -(s / 2) * 0.87);
+      g.rotate(-Math.PI / 2);
+      g.fillText(String(d), 0, 0);
       g.restore();
     }
   }, true);

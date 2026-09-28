@@ -4,6 +4,8 @@ import type { Layer } from '../../geometry/parts';
 import type { CaseRadii } from '../caseGeometry';
 
 export const DIAL_Z = -2.6; // between the date ring (−2.35) and the hour hand (−2.95)
+// The window sits over the middle of the date ring's printed band ((9.3 + 12.3) / 2 mm) at 3 o'clock (+X).
+export const DATE_WINDOW = { x: 10.8, width: 2.4, height: 1.8 };
 
 export function dialRadius(r: CaseRadii) {
   return r.inner - 0.15;
@@ -12,16 +14,36 @@ export function dialRadius(r: CaseRadii) {
 export function dialTextureSpec(e: WatchExterior) {
   const arabic = e.dial.indices === 'arabic-24';
   return {
-    numerals: arabic ? ['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'] : [],
+    // A date window at 3 o'clock replaces the printed 3, as on the real dial.
+    numerals: arabic ? ['12', '1', '2', e.dial.dateWindow ? '' : '3', '4', '5', '6', '7', '8', '9', '10', '11'] : [],
     ring24: arabic,
+    // Field dials carry 5-minute numerals on the outer railroad track.
+    outerMinutes: arabic,
     minuteTrack: true,
   };
 }
 
 export function dialLayers(e: WatchExterior, r: CaseRadii): Layer[] {
   const rad = dialRadius(r);
+  const outline = new THREE.Shape();
+  outline.absarc(0, 0, rad, 0, Math.PI * 2, false);
+  if (e.dial.dateWindow) {
+    const { x, width: w, height: h } = DATE_WINDOW;
+    const hole = new THREE.Path();
+    hole.moveTo(x - w / 2, -h / 2);
+    hole.lineTo(x - w / 2, h / 2);
+    hole.lineTo(x + w / 2, h / 2);
+    hole.lineTo(x + w / 2, -h / 2);
+    hole.closePath();
+    outline.holes.push(hole);
+  }
+  const disc = new THREE.ShapeGeometry(outline, 128);
+  // ShapeGeometry UVs are raw XY; remap to 0..1 across the disc so the painted dial lines up.
+  const pos = disc.getAttribute('position');
+  const uv = disc.getAttribute('uv');
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / (2 * rad) + 0.5, pos.getY(i) / (2 * rad) + 0.5);
   // Faces −Z (towards the front); the printed texture is painted by Exterior.
-  const disc = new THREE.CircleGeometry(rad, 128).rotateX(Math.PI).translate(0, 0, DIAL_Z);
+  disc.rotateX(Math.PI).translate(0, 0, DIAL_Z);
   const layers: Layer[] = [{ geometry: disc, material: 'dial' }];
   if (e.dial.indices === 'diver-dots') {
     const ri = rad * 0.8;

@@ -3,7 +3,8 @@ export function caseRadii(movementDiameterMm: number, ext?: WatchExterior) {
   const r = movementDiameterMm / 2;
   if (!ext) return { inner: r + 0.35, outer: r + 3.5, height: 7.8, bottom: -2.8 };
   const outer = ext.case.diameterMm / 2;
-  return { inner: Math.max(r + 0.35, outer - 3.2), outer, height: ext.case.thicknessMm * 0.62, bottom: -2.8 };
+  // The opening follows the bezel: a slim bezel leaves a wide dial, as on the real watches.
+  return { inner: Math.max(r + 0.35, outer - ext.bezel.widthMm - 1.0), outer, height: ext.case.thicknessMm * 0.62, bottom: -2.8 };
 }
 
 // Wide cases hold the movement in a casing ring; without it you would see through the gap to the case wall.
@@ -22,3 +23,19 @@ export function bezelProfile(outer: number, bottom: number): Array<[number, numb
 }
 
 export type CaseRadii = ReturnType<typeof caseRadii>;
+
+// Watch case middle in (radius, z) for a lathe: a flat front bezel with a small polished chamfer, a straight flank
+// and a chamfer onto the caseback. Real cases are slab-sided; a rounded profile read as a toy.
+export function caseProfile(r: CaseRadii, ext: WatchExterior): Array<[number, number]> {
+  const top = r.bottom + r.height;
+  const bezelIn = r.outer - Math.max(ext.bezel.widthMm, 1.2) - 0.3;
+  return [
+    [r.inner, r.bottom + 0.3],
+    [bezelIn, r.bottom - 0.2],
+    [r.outer - 0.45, r.bottom - 0.2],
+    [r.outer, r.bottom + 0.35],
+    [r.outer, top - 0.55],
+    [r.outer - 0.6, top],
+    [r.inner, top],
+  ];
+}
