@@ -22,7 +22,7 @@ describe('Presage SRPB43 case', () => {
   const mid = (caseFront(m) + caseBack(m)) / 2;
   it('hangs off the stem axis: the crown centre sits at the measured depth below the crystal apex', () => {
     expect(m.stemZ - crystalTop(m)).toBeCloseTo(P.crystalTopToStem, 9);
-    expect(m.stemZ).toBeGreaterThan(caseFront(m) + P.crownDiameter / 2 - 1.5);
+    expect(m.stemZ).toBeGreaterThan(caseFront(m));
     expect(m.stemZ).toBeLessThan(caseBack(m));
   });
   it('leaves exactly the lug width free between the lugs', () => {

@@ -22,17 +22,13 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
   const F = caseFront(m);
   const back = caseBack(m);
   const xo = lw + P.lugWidth;
-  const phi = Math.atan2(tip, xo) - Math.acos(R / Math.hypot(xo, tip));
-  const tx = R * Math.cos(phi), ty = R * Math.sin(phi);
-  const lug = roundedConvex([[lw, 0], [tx, ty], [xo, tip], [lw, tip]], P.lugTipRound);
-  const ol = Math.hypot(xo - tx, tip - ty), onx = (tip - ty) / ol, ony = (tx - xo) / ol, oc = onx * tx + ony * ty;
+  // Each lug is a wedge from the drum to its tip whose outer edge leaves the drum at a (slightly rounded) corner.
+  const ry = P.lugRoot, rx = Math.sqrt(R * R - ry * ry);
+  const lug = roundedConvex([[lw, 0], [rx, ry], [xo, tip], [lw, tip]], P.lugTipRound);
   const plan = (x: number, y: number) => {
     const disc = Math.hypot(x, y) - R;
-    if (disc < -2) return disc;
-    const ax = Math.abs(x), ay = Math.abs(y);
-    const bound = Math.max(lw - ax, onx * ax + ony * ay - oc, ay - tip);
-    if (bound >= disc + P.lugFillet) return disc;
-    return ax < lw + 2 * P.lugFillet ? smin(disc, lug(ax, ay), P.lugFillet) : Math.min(disc, lug(ax, ay));
+    if (disc < -2 || Math.abs(y) < ry - 2 * P.lugFillet) return disc;
+    return smin(disc, lug(Math.abs(x), Math.abs(y)), P.lugFillet);
   };
   // 0 at the drum's edge, 1 at the lug tip, measured along the lug.
   const run = (x: number, y: number) => {

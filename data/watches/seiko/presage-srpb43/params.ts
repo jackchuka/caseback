@@ -5,14 +5,15 @@
 export const P = {
   caseRadius: 20.25, // spec: 40.5 mm (Seiko USA, aBlogtoWatch)
   totalThickness: 11.8, // spec: crystal apex to caseback (aBlogtoWatch, Long Island Watch)
-  lugToLug: 47.5, // spec: aBlogtoWatch
+  lugToLug: 45.75, // photo:front: 715 px tip to tip on Seiko's flat shot at 0.064 mm/px; the published 47.5 is taken round the lugs' downturn
   lugGap: 20, // spec: lug width
   crystalTopToStem: 6.5, // photo:side: crown centre 165 px below the crystal's silhouette top at 0.0395 mm/px
   caseFrontBelowTop: 4.92, // photo:side: the case middle's front face (under the bezel) 40 px above the crown centre
   caseHeight: 4.35, // photo:side: case middle, front face to caseback seat (110 px)
-  lugWidth: 2.7, // photo:three-quarter: lug top at the tip, gap edge to outer edge
-  lugTipRound: 0.5, // photo:front
-  lugFillet: 0.5, // est
+  lugWidth: 1.5, // photo:front: the straight outer edge (14.47 at 14.5, 11.59 at 22.5 from the centre) reaches the tip 1.5 mm outside the gap
+  lugRoot: 14.1, // photo:front: where the lug's outer edge leaves the drum, at a corner rather than on a tangent
+  lugTipRound: 0.4, // photo:front
+  lugFillet: 0.5, // photo:front: the corner where the lug leaves the drum is nearly sharp
   lugDrop: 4.5, // photo:side: the lug top falls 115 px from the case front to the tip, the Presage's downturned lug
   lugCurve: 1.2, // photo:side: fitted to the top edge at 46 %, 70 % and 94 % of the lug's run
   lugBelow: 2.4, // photo:side: the lug's underside runs 60 px on below the case middle, level with the caseback at the tip
@@ -44,11 +45,11 @@ export const P = {
   handRidge: 0.2, // est: height of the dauphine's centre ridge above its edges
   lozenge: { at: 0.16, along: 1.0, across: 0.55 }, // photo:three-quarter: the seconds hand's blue lozenge counterweight
 
-  crownDiameter: 5.6, // photo:side: over the scallops
+  crownDiameter: 6.6, // photo:front: 104 px across the scallops on the flat shot
   crownLength: 3.0, // photo:three-quarter
   crownFlutes: 18, // photo:side: coarse scallops
   tubeDiameter: 2.6, // est
-  tubeLength: 0.8, // photo:three-quarter
+  tubeLength: 0.45, // photo:front: the crown ends 23.6 mm from the centre
 
   casebackThickness: 2.53, // spec − photo: the rest of the 11.8 mm behind the case middle (photo: 60 px)
   glassThickness: 0.45, // est
