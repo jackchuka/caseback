@@ -241,16 +241,19 @@ function bridgeOutline(lobes: Bridge['lobes']): THREE.Shape {
   return s;
 }
 
-// The outline of the lobes' smooth union: marching squares over the blended distance field, the one longest loop kept.
+// The outline of the lobes' smooth union: marching squares over the blended distance field. The union must trace one
+// closed loop; anything else (disjoint lobes, a contour cut by the grid) is a data error and throws.
 export function blendedOutline(lobes: Bridge['lobes'], k: number, step = 0.05): THREE.Shape {
   const smin = (a: number, b: number) => {
     const h = Math.max(k - Math.abs(a - b), 0) / k;
     return Math.min(a, b) - (h * h * k) / 4;
   };
   const f = (x: number, y: number) => lobes.reduce((d, l) => smin(d, Math.hypot(x - l.x, y - l.y) - l.r), Infinity);
-  const x0 = Math.min(...lobes.map((l) => l.x - l.r)) - 2 * step, y0 = Math.min(...lobes.map((l) => l.y - l.r)) - 2 * step;
-  const nx = Math.ceil((Math.max(...lobes.map((l) => l.x + l.r)) + 2 * step - x0) / step);
-  const ny = Math.ceil((Math.max(...lobes.map((l) => l.y + l.r)) + 2 * step - y0) / step);
+  // The smooth-min pushes the surface out by up to k/4 beyond the lobes' own discs.
+  const pad = k / 4 + 2 * step;
+  const x0 = Math.min(...lobes.map((l) => l.x - l.r)) - pad, y0 = Math.min(...lobes.map((l) => l.y - l.r)) - pad;
+  const nx = Math.ceil((Math.max(...lobes.map((l) => l.x + l.r)) + pad - x0) / step);
+  const ny = Math.ceil((Math.max(...lobes.map((l) => l.y + l.r)) + pad - y0) / step);
   const v = new Float64Array((nx + 1) * (ny + 1));
   for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) v[j * (nx + 1) + i] = f(x0 + i * step, y0 + j * step);
   const at = (i: number, j: number) => v[j * (nx + 1) + i]!;
@@ -285,7 +288,7 @@ export function blendedOutline(lobes: Bridge['lobes'], k: number, step = 0.05): 
       const centre = f(x0 + (i + 0.5) * step, y0 + (j + 0.5) * step) < 0;
       for (let c = 0; c < 4; c++) if (inside[c] !== centre) link(edges[(c + 3) % 4]!, edges[c]!);
     }
-  let best: string[] = [];
+  const loops: string[][] = [];
   const seen = new Set<string>();
   for (const start of links.keys()) {
     if (seen.has(start)) continue;
@@ -298,9 +301,11 @@ export function blendedOutline(lobes: Bridge['lobes'], k: number, step = 0.05): 
       loop.push(nxt);
       cur = nxt;
     }
-    if (loop.length > best.length) best = loop;
+    if (loop.length < 3 || !links.get(loop.at(-1)!)!.includes(start)) throw new Error('blendedOutline: the traced outline is not closed');
+    loops.push(loop);
   }
-  return new THREE.Shape(best.map((key) => new THREE.Vector2(...point.get(key)!)));
+  if (loops.length !== 1) throw new Error(`blendedOutline: the lobes trace ${loops.length} outlines, not one`);
+  return new THREE.Shape(loops[0]!.map((key) => new THREE.Vector2(...point.get(key)!)));
 }
 
 function bridge(shape: Bridge, material: MaterialKey): Layer[] {

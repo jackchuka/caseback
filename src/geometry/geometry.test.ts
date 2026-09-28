@@ -123,3 +123,19 @@ describe('blended bridge outline', () => {
     expect(Math.min(...pts.map((p) => Math.min(...lobes.map((l) => Math.hypot(p.x - l.x, p.y - l.y) - l.r))))).toBeGreaterThan(-0.05);
   });
 });
+
+import { calibers } from '../../data/calibers';
+describe('blended bridges', () => {
+  it('trace one closed outline for every blend bridge in every caliber', () => {
+    for (const c of Object.values(calibers))
+      for (const p of c.parts) {
+        if (p.shape.kind !== 'bridge' || p.shape.blend === undefined) continue;
+        const pts = blendedOutline(p.shape.lobes, p.shape.blend).getPoints();
+        // Consecutive points, first and last included, are one grid cell apart at most: no chord cuts across.
+        for (let i = 0; i < pts.length; i++) expect(pts[i]!.distanceTo(pts[(i + 1) % pts.length]!), `${c.id} ${p.id}`).toBeLessThan(0.08);
+      }
+  });
+  it('refuses lobes that do not join into one outline', () => {
+    expect(() => blendedOutline([{ x: 0, y: 0, r: 1 }, { x: 10, y: 0, r: 1 }], 1)).toThrow(/2 outlines/);
+  });
+});
