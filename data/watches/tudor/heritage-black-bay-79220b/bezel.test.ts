@@ -22,7 +22,8 @@ describe('Tudor 79220B bezel', () => {
     expect(count('tick')).toBe(12);
     expect(count('bar')).toBe(6);
     expect(marks.filter((x) => x.kind === 'numeral').map((x) => x.text)).toEqual(['10', '20', '30', '40', '50']);
-    expect(marks.filter((x) => x.flipped).map((x) => x.text)).toEqual(['20', '30', '40']);
+    // bobs-126699.jpg: 30 reads "0Ɛ" below a readable SWISS MADE; 20 and 40 likewise stand with their tops to the rim.
+    expect(marks.filter((x) => x.kind === 'numeral' && x.flipped)).toEqual([]);
   });
   const layers = tudorBezel(m);
   it('is as wide as the case and sits on its front', () => {

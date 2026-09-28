@@ -9,11 +9,12 @@ import { T } from './params';
 export type BezelMark = { minute: number; kind: 'triangle' | 'tick' | 'bar' | 'numeral'; text?: string; flipped: boolean };
 
 // The dive scale as printed on the 79220B insert: minute ticks for the first quarter hour, bars at the fives, tens as
-// numerals. Numerals on the lower half are turned to read upright, as in the photos.
+// numerals. Every numeral stands with its top toward the rim, so 20, 30 and 40 read upside down from the front, as in
+// the photos.
 export function bezelMarks(): BezelMark[] {
   return Array.from({ length: 60 }, (_, minute): BezelMark | null => {
     if (minute === 0) return { minute, kind: 'triangle', flipped: false };
-    if (minute % 10 === 0) return { minute, kind: 'numeral', text: String(minute), flipped: minute >= 20 && minute <= 40 };
+    if (minute % 10 === 0) return { minute, kind: 'numeral', text: String(minute), flipped: false };
     if (minute % 5 === 0) return { minute, kind: 'bar', flipped: false };
     return minute < 15 ? { minute, kind: 'tick', flipped: false } : null;
   }).filter((x): x is BezelMark => x !== null);
@@ -71,18 +72,21 @@ export function paintInsert() {
       g.save();
       g.rotate((mark.minute / 60) * Math.PI * 2);
       const outer = -R * 0.985;
+      // Sizes from bobs-126699.jpg: ticks 0.37 mm wide in the middle of the band, bars 0.86 mm wide across nearly all of it.
       if (mark.kind === 'triangle') {
         g.beginPath();
         g.moveTo(0, -inner - band * 0.3);
         g.lineTo(band * 0.48, outer);
         g.lineTo(-band * 0.48, outer);
         g.fill();
-      } else if (mark.kind === 'tick') g.fillRect(-R * 0.004, outer, R * 0.008, band * 0.3);
-      else if (mark.kind === 'bar') g.fillRect(-R * 0.009, outer, R * 0.018, band * 0.75);
+      } else if (mark.kind === 'tick') g.fillRect(-R * 0.0093, outer + band * 0.27, R * 0.0186, band * 0.38);
+      else if (mark.kind === 'bar') g.fillRect(-R * 0.0215, outer + band * 0.05, R * 0.043, band * 0.87);
       else {
-        g.font = `500 ${band * 0.52}px Inter, sans-serif`;
+        // Tall, narrow digits about 0.7 of the band high (2.7 mm on bobs-126699.jpg).
+        g.font = `300 ${band * 1.1}px Inter, sans-serif`;
         g.translate(0, -(inner + band * 0.5));
         if (mark.flipped) g.rotate(Math.PI);
+        g.scale(0.85, 1);
         g.fillText(mark.text!, 0, 0);
       }
       g.restore();
