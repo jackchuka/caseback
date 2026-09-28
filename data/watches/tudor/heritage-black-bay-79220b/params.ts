@@ -30,15 +30,16 @@ export const T = {
   bezelInner: 15.3, // photo:front: inner edge of the polished lip
   insertOuter: 19.95, // photo:front
   insertInner: 16.15, // photo:front
-  bezelHeight: 1.7, // est: photo:crown-low
+  insertDrop: 1.0, // photo:three-quarter: ~15° cone (insert band 27 px on the near side, 15 px on the far side)
+  bezelHeight: 2.1, // photo:crown-low: at the inner edge; the coin-edge wall is lower by the insert's drop
   knurlCount: 230, // photo:front: 0.56 mm pitch on bobs-126699.jpg's 6 o'clock edge
   knurlDepth: 0.12, // est
   pipRadius: 0.67, // photo:front: lume pip on the 12 o'clock triangle
   pipAt: 18.6, // photo:front: pip centre from the watch centre, in the triangle's wide end
 
   crystalRadius: 15.25, // photo:front: just inside the bezel lip
-  crystalWall: 0.6, // est: box wall above the bezel top, photo:crown-low
-  crystalDome: 1.4, // est: photo:crown-low
+  crystalWall: 0.4, // est: box wall above the bezel top, trimmed to keep the thickness with the taller bezel
+  crystalDome: 1.2, // est: dome above the wall
 
   dialRadius: 15.2, // photo:front: dial edge inside the rehaut
   indexRing: 0.81, // photo:front: outer edge of every index's lume / dial radius

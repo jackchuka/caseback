@@ -25,17 +25,25 @@ export function tudorBezel(m: MovementFrame): ExteriorLayer[] {
   const b = caseFront(m);
   const top = bezelTop(m);
   const seat = top + 0.15;
-  // (radius, z), front is −Z: inner lip, recessed insert seat, flat outer rim, coin-edged wall.
+  // The insert is a shallow cone: its inner edge by the crystal stands proud, dropping toward the coin edge.
+  const slope = T.insertDrop / (T.insertOuter - T.insertInner);
+  const drop = (r: number) => Math.max(0, r - T.insertInner) * slope;
+  const rim = T.bezelOuter - 0.12, io = T.insertOuter + 0.05;
+  // (radius, z), front is −Z: inner lip, recessed insert seat, sloping outer rim, coin-edged wall.
   const body = lathe([
     [T.bezelInner, b - 0.02], [T.bezelInner, top + 0.1], [T.bezelInner + 0.12, top],
-    [T.insertInner - 0.05, top], [T.insertInner - 0.05, seat], [T.insertOuter + 0.05, seat], [T.insertOuter + 0.05, top],
-    [T.bezelOuter - 0.12, top], [T.bezelOuter, top + 0.12], [T.bezelOuter, b - 0.02], [T.bezelInner, b - 0.02],
+    [T.insertInner - 0.05, top], [T.insertInner - 0.05, seat], [io, seat + drop(io)], [io, top + drop(io)],
+    [rim, top + drop(rim)], [T.bezelOuter, top + drop(rim) + 0.12], [T.bezelOuter, b - 0.02], [T.bezelInner, b - 0.02],
   ], T.knurlCount * 4);
-  cutFlutes(body, { axis: 'z', radius: T.bezelOuter, count: T.knurlCount, depth: T.knurlDepth, from: top + 0.2, to: b - 0.1 });
-  const insert = new THREE.RingGeometry(T.insertInner, T.insertOuter, 360).rotateX(Math.PI).translate(0, 0, seat - 0.01);
-  const pipAt = -T.pipAt;
-  const cup = new THREE.CylinderGeometry(T.pipRadius + 0.18, T.pipRadius + 0.18, 0.3, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.15);
-  const pip = new THREE.CylinderGeometry(T.pipRadius, T.pipRadius, 0.1, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.32);
+  cutFlutes(body, { axis: 'z', radius: T.bezelOuter, count: T.knurlCount, depth: T.knurlDepth, from: top + drop(rim) + 0.2, to: b - 0.1 });
+  // RingGeometry's UVs come from x and y, so lifting each vertex onto the cone keeps the painted scale in register.
+  const insert = new THREE.RingGeometry(T.insertInner, T.insertOuter, 360, 4).rotateX(Math.PI);
+  const ip = insert.getAttribute('position');
+  for (let i = 0; i < ip.count; i++) ip.setZ(i, seat - 0.01 + drop(Math.hypot(ip.getX(i), ip.getY(i))));
+  insert.computeVertexNormals();
+  const pipAt = -T.pipAt, pipSeat = seat + drop(T.pipAt);
+  const cup = new THREE.CylinderGeometry(T.pipRadius + 0.18, T.pipRadius + 0.18, 0.3, 40).rotateX(Math.PI / 2).translate(0, pipAt, pipSeat - 0.15);
+  const pip = new THREE.CylinderGeometry(T.pipRadius, T.pipRadius, 0.1, 40).rotateX(Math.PI / 2).translate(0, pipAt, pipSeat - 0.32);
   // The flange (rehaut) closes the wall between the dial's edge and the case front, which stands proud of the dial.
   const flange = new THREE.LatheGeometry([new THREE.Vector2(T.dialRadius, m.dialZ - 0.01), new THREE.Vector2(T.bezelInner, b)], 180).rotateX(Math.PI / 2);
   return [
