@@ -10,6 +10,20 @@ async function ready(page: Page) {
   await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
 }
 
+// True once the camera/flip tween created for the current mode/step/side has finished (CameraRig re-enables
+// OrbitControls when its tween completes), i.e. any in-flight camera flight or dial flip has settled.
+async function settled(page: Page) {
+  await page.waitForFunction(() => window.__caseback!.enabled(), null, { timeout: 10_000 });
+}
+
+// Waits for a couple of render frames, for state changes that apply on the next frame of the r3f loop
+// (e.g. a store update read back by useFrame) rather than instantly.
+async function tick(page: Page, frames = 2) {
+  await page.evaluate(async (n) => {
+    for (let i = 0; i < n; i++) await new Promise((r) => requestAnimationFrame(r));
+  }, frames);
+}
+
 async function openTour(page: Page) {
   await page.goto('/calibers/eta-2824-2?lang=ja');
   await ready(page);
@@ -34,7 +48,7 @@ test('rapid next clicks land on the last step', async ({ page }) => {
   await next.click();
   await next.click();
   await next.click();
-  await page.waitForTimeout(2500);
+  await settled(page);
   expect((await state(page)).stepIndex).toBe(3);
   await expect(page.locator('.info h1')).toHaveText('三番車');
   const [x, , z] = await target(page);
@@ -47,9 +61,9 @@ test('explore freely recenters the camera and returns to the same step', async (
   await openTour(page);
   await page.locator('button.next').click();
   await page.locator('button.next').click();
-  await page.waitForTimeout(2200);
+  await settled(page);
   await page.locator('button.to-free').click();
-  await page.waitForTimeout(2000);
+  await settled(page);
   const [x, y, z] = await target(page);
   expect(Math.hypot(x, y, z)).toBeLessThan(0.01);
   await expect(page.locator('.dock')).not.toHaveClass(/hidden/);
@@ -128,6 +142,7 @@ test('toggling tour and free mode many times keeps the webgl context', async ({ 
     await page.locator('button.to-free').click();
     await page.locator('.dock button.to-tour').click();
   }
+  // Context loss is reported asynchronously by the browser; give any delayed message time to arrive.
   await page.waitForTimeout(1000);
   expect(lost).toEqual([]);
 });
@@ -135,11 +150,10 @@ test('toggling tour and free mode many times keeps the webgl context', async ({ 
 test('clicking the focused gear during an x-ray step stays in the tour', async ({ page }) => {
   await openTour(page);
   for (let i = 0; i < 3; i++) await page.locator('button.next').click();
-  await page.waitForTimeout(2500);
+  await settled(page);
   const [x, y] = await page.evaluate(() => window.__caseback!.project('third'));
   await page.mouse.click(x, y);
-  await page.waitForTimeout(300);
-  expect(await state(page)).toMatchObject({ mode: 'tour', stepIndex: 3 });
+  await expect.poll(() => state(page)).toMatchObject({ mode: 'tour', stepIndex: 3 });
 });
 
 test('tablet layout keeps the tour controls on screen', async ({ page }) => {
@@ -184,7 +198,8 @@ test('dial chapters flip the movement and fast-forward', async ({ page }) => {
 test('flips back to the bridge side', async ({ page }) => {
   await openTour(page);
   await page.getByRole('button', { name: '針を動かす' }).click();
-  await page.waitForTimeout(600);
+  // Interrupt the flip mid-flight (before it reaches the dial) to check reversing an in-progress flip works.
+  await expect.poll(() => page.evaluate(() => window.__caseback!.flip())).toBeGreaterThan(0.1);
   await page.getByRole('button', { name: '時を刻む' }).click();
   await expect.poll(() => page.evaluate(() => window.__caseback!.flip()), { timeout: 10_000 }).toBeCloseTo(0, 3);
 });
@@ -205,6 +220,7 @@ test('self-winding raises the power reserve', async ({ page }) => {
   await page.getByRole('button', { name: '自動で巻く' }).click();
   await expect(page.locator('.info h1')).toHaveText('ローター');
   const r0 = await page.evaluate(() => window.__caseback!.state().reserveH);
+  // The reserve is a real-time simulation (winds up as the rotor swings); this genuinely needs wall-clock time to pass.
   await page.waitForTimeout(4000);
   const r1 = await page.evaluate(() => window.__caseback!.state().reserveH);
   expect(r1).toBeGreaterThan(r0);
@@ -215,20 +231,20 @@ test('clicking reversers through the rotor stays in the tour', async ({ page }) 
   await openTour(page);
   await page.getByRole('button', { name: '自動で巻く' }).click();
   await page.locator('button.next').click();
-  await page.waitForTimeout(2500);
+  await settled(page);
   const [x, y] = await page.evaluate(() => window.__caseback!.project('reversers'));
   await page.mouse.click(x, y);
-  await page.waitForTimeout(300);
-  expect(await state(page)).toMatchObject({ mode: 'tour' });
+  await expect.poll(() => state(page)).toMatchObject({ mode: 'tour' });
   await expect(page.locator('.info h1')).toHaveText('切替車');
 });
 
 test('hidden rotor does not catch clicks in the first chapter', async ({ page }) => {
   await openTour(page);
-  await page.waitForTimeout(2000);
+  await settled(page);
   const [x, y] = await page.evaluate(() => window.__caseback!.project('barrel'));
   await page.mouse.click(x, y);
-  await page.waitForTimeout(300);
+  // Nothing should happen: give the click a couple of frames to (not) take effect before checking.
+  await tick(page);
   const s = await page.evaluate(() => {
     const st = window.__caseback!.state();
     return { selected: st.selected, stepIndex: st.stepIndex };
@@ -240,11 +256,12 @@ test('hidden rotor does not catch clicks in the first chapter', async ({ page })
 test('the rotor stays still while paused', async ({ page }) => {
   await openTour(page);
   await page.getByRole('button', { name: '自動で巻く' }).click();
-  await page.waitForTimeout(2000);
+  await settled(page);
   await page.locator('.tourbar').getByRole('button', { name: '一時停止' }).click();
   // The reserve is published every 250 ms; let the last pre-pause value land first.
   await page.waitForTimeout(500);
   const a0 = await page.evaluate(() => window.__caseback!.state().reserveH);
+  // Proving it stays still needs real elapsed time to pass without a change.
   await page.waitForTimeout(3000);
   expect(await page.evaluate(() => window.__caseback!.state().reserveH)).toBeCloseTo(a0, 3);
 });
@@ -258,6 +275,7 @@ async function hold(page: Page, ms: number) {
   const b = await page.locator('.crown-ctl .turn').boundingBox();
   await page.mouse.move(b!.x + b!.width / 2, b!.y + b!.height / 2);
   await page.mouse.down();
+  // Holding for a simulated duration is the thing under test, not a wait for some other condition.
   await page.waitForTimeout(ms);
   await page.mouse.up();
 }
@@ -268,7 +286,8 @@ test('position 2 sets the hands and stops the train', async ({ page }) => {
   const esc0 = await page.evaluate(() => window.__caseback!.angle('escape-wheel'));
   const min0 = await page.evaluate(() => window.__caseback!.angle('minute-hand'));
   await hold(page, 1000);
-  await page.waitForTimeout(300);
+  // stopTurning applies on the next r3f frame, not instantly.
+  await tick(page);
   expect(await page.evaluate(() => window.__caseback!.angle('escape-wheel'))).toBeCloseTo(esc0, 6);
   expect(Math.abs((await page.evaluate(() => window.__caseback!.angle('minute-hand'))) - min0)).toBeGreaterThan(0.5);
 });
@@ -278,7 +297,7 @@ test('position 1 advances the date', async ({ page }) => {
   await page.getByRole('radio', { name: '1 · 日付' }).click();
   const r0 = await page.evaluate(() => window.__caseback!.angle('date-ring'));
   await hold(page, 1500);
-  await page.waitForTimeout(500);
+  await tick(page);
   expect(Math.abs((await page.evaluate(() => window.__caseback!.angle('date-ring'))) - r0)).toBeGreaterThan(0.15);
 });
 
@@ -286,6 +305,7 @@ test('position 0 winds the mainspring up to the limit', async ({ page }) => {
   await toCrown(page);
   const r0 = await page.evaluate(() => window.__caseback!.state().reserveH);
   await hold(page, 3000);
+  // The reserve is published every 250 ms; wait for the post-hold value to land.
   await page.waitForTimeout(400);
   const r1 = await page.evaluate(() => window.__caseback!.state().reserveH);
   expect(r1).toBeGreaterThan(r0);
@@ -312,7 +332,8 @@ test('leaving the crown chapter restarts the balance', async ({ page }) => {
 test('watch page shows its name and a display caseback shows the movement', async ({ page }) => {
   await page.goto('/watches/hamilton/khaki-field-auto-h70455553?lang=en');
   await expect(page.locator('.intro .eyebrow')).toContainText('Hamilton Khaki Field Auto');
-  await page.waitForTimeout(2500);
+  await ready(page);
+  await tick(page);
   await page.screenshot({ path: 'test-results/watch-hamilton-intro.png' });
   const [x, y] = await page.evaluate(() => window.__caseback!.project('balance'));
   expect(x).toBeGreaterThan(0);
@@ -353,11 +374,10 @@ test('display caseback lets you see the movement, a solid one does not', async (
   const firstHits = async (url: string) => {
     await page.goto(url);
     await ready(page);
-    await page.waitForTimeout(1000);
-    // Watch pages open on the dial; the caseback faces the camera once the watch has turned over (1.2 s),
+    // Watch pages open on the dial; the caseback faces the camera once the watch has turned over,
     // before it starts to unscrew.
     await page.locator('.intro button').click();
-    await page.waitForTimeout(1500);
+    await settled(page);
     const [x, y] = await page.evaluate(() => window.__caseback!.project('balance'));
     return page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
   };
@@ -370,7 +390,7 @@ test('display caseback lets you see the movement, a solid one does not', async (
 test('resizing the window does not move the camera', async ({ page }) => {
   await page.goto('/calibers/eta-2824-2?lang=ja');
   await ready(page);
-  await page.waitForTimeout(3000);
+  await tick(page);
   const before = await page.evaluate(() => window.__caseback!.camera());
   await page.setViewportSize({ width: 1400, height: 880 });
   await page.waitForTimeout(100);
@@ -382,7 +402,7 @@ test('resizing the window does not move the camera', async ({ page }) => {
 
 test('the camera keeps looking at its target during chapter flights', async ({ page }) => {
   await openTour(page);
-  await page.waitForTimeout(2000);
+  await settled(page);
   const worst = await page.evaluate(async () => {
     const h = window.__caseback!;
     const errs: number[] = [];
@@ -412,7 +432,7 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
 test('watch pages open on the dial, and dial chapters remove it', async ({ page }) => {
   await page.goto('/watches/sinn/556?lang=ja');
   await ready(page);
-  await page.waitForTimeout(1500);
+  await tick(page);
   // Off-centre: at the centre the hour wheel's pipe passes through the dial, as in a real watch.
   const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
   const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
@@ -422,7 +442,7 @@ test('watch pages open on the dial, and dial chapters remove it', async ({ page 
   await page.getByRole('button', { name: '裏蓋を開ける' }).click();
   await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
   await page.getByRole('button', { name: '針を動かす' }).click();
-  await page.waitForTimeout(2500);
+  await settled(page);
   const [hx, hy] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
   const dialSide = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [hx, hy]);
   expect(dialSide).not.toContain('dial');
@@ -431,7 +451,7 @@ test('watch pages open on the dial, and dial chapters remove it', async ({ page 
 test('the rebuilt Tudor opens on the dial', async ({ page }) => {
   await page.goto('/watches/tudor/heritage-black-bay-79220b?lang=ja');
   await ready(page);
-  await page.waitForTimeout(1500);
+  await tick(page);
   // Off-centre: at the centre the hour wheel's pipe passes through the dial, as in a real watch.
   const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
   const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
@@ -441,7 +461,7 @@ test('the rebuilt Tudor opens on the dial', async ({ page }) => {
   await page.getByRole('button', { name: '裏蓋を開ける' }).click();
   await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
   await page.getByRole('button', { name: '針を動かす' }).click();
-  await page.waitForTimeout(2500);
+  await settled(page);
   const [hx, hy] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
   const dialSide = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [hx, hy]);
   expect(dialSide).not.toContain('dial');
