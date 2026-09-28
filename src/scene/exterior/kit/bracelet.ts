@@ -82,7 +82,7 @@ export function bracelet(s: BraceletSpec, start: { y: number; z: number }, mater
 // An H-link bracelet: in every pitch the outer rails run the full length and a crossbar joins them, flush, at the far
 // end; the near end leaves an opening that a separate centre link fills. `bar` is the crossbar's length along the
 // bracelet; `centerRaise` lifts the centre link above the H (0: flush).
-export type HLinkSpec = Omit<BraceletSpec, 'centerRatio'> & { centerRatio: number; bar: number };
+export type HLinkSpec = BraceletSpec & { bar: number };
 
 export function hLinkBracelet(s: HLinkSpec, start: { y: number; z: number }, material: { center: string; outer: string }): ExteriorLayer[] {
   const layers: ExteriorLayer[] = [];

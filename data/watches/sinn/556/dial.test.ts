@@ -11,13 +11,25 @@ const bbox = (g: THREE.BufferGeometry) => { g.computeBoundingBox(); return g.bou
 describe('Sinn 556 dial', () => {
   const layers = sinnDial(m);
   const disc = layers.find((l) => l.material === 'dial')!;
-  const bars = layers.filter((l) => l.material === 'dial-lume');
+  const bars = layers.filter((l) => l.material === 'dial-lume' && l.name !== 'date-frame');
   const hits = (x: number, y: number) => new THREE.Raycaster(new THREE.Vector3(x, y, -10), new THREE.Vector3(0, 0, 1))
     .intersectObject(new THREE.Mesh(disc.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }))).length;
   it('opens the movement\'s date window at 3 o\'clock and nowhere else', () => {
     expect(hits(m.dateWindow!.x, 0)).toBe(0);
     expect(hits(-m.dateWindow!.x, 0)).toBe(1);
     expect(hits(0, m.dateWindow!.x)).toBe(1);
+  });
+  it('prints a white frame just in front of the disc around the window, leaving the window open', () => {
+    const f = layers.find((l) => l.name === 'date-frame')!;
+    const b = bbox(f.geometry);
+    const w = m.dateWindow!;
+    expect(b.min.x).toBeLessThan(w.x - w.width / 2);
+    expect(b.max.x).toBeGreaterThan(w.x + w.width / 2);
+    expect(b.max.y).toBeGreaterThan(w.height / 2);
+    expect(b.max.z).toBeLessThan(m.dialZ);
+    expect(b.max.z).toBeGreaterThan(m.dialZ - 0.02);
+    const hit = new THREE.Raycaster(new THREE.Vector3(w.x, 0, -10), new THREE.Vector3(0, 0, 1)).intersectObject(new THREE.Mesh(f.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })));
+    expect(hit).toHaveLength(0);
   });
   it('stands twelve lume bars on the dial, all ending on the same circle', () => {
     expect(bars).toHaveLength(12);
