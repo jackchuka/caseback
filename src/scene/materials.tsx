@@ -14,8 +14,10 @@ export function createMaterials(): MaterialSet {
   return {
     gilt: new THREE.MeshPhysicalMaterial({ color: 0xe8c07a, metalness: 1, roughness: 0.22, bumpMap: sun, bumpScale: 0.25, clearcoat: 0.3, clearcoatRoughness: 0.2 }),
     steel: new THREE.MeshPhysicalMaterial({ color: 0xeef0f3, metalness: 1, roughness: 0.12 }),
-    rhodium: new THREE.MeshPhysicalMaterial({ color: 0xc4c8ce, metalness: 1, roughness: 0.22, roughnessMap: cotes, bumpMap: cotes, bumpScale: 0.35 }),
-    plate: new THREE.MeshPhysicalMaterial({ color: 0xa9adb3, metalness: 1, roughness: 0.42, roughnessMap: pearl, bumpMap: pearl, bumpScale: 0.3 }),
+    // The finish textures are bump only: used as roughness maps they drove the effective roughness to ~0.1, so the
+    // plates mirrored the black studio and read as black.
+    rhodium: new THREE.MeshPhysicalMaterial({ color: 0xc4c8ce, metalness: 1, roughness: 0.32, bumpMap: cotes, bumpScale: 0.35 }),
+    plate: new THREE.MeshPhysicalMaterial({ color: 0xa9adb3, metalness: 1, roughness: 0.5, bumpMap: pearl, bumpScale: 0.3 }),
     balance: new THREE.MeshPhysicalMaterial({ color: 0xf0d59a, metalness: 1, roughness: 0.16 }),
     ruby: new THREE.MeshPhysicalMaterial({
       color: 0xc8103c, metalness: 0, roughness: 0.03, transmission: 0.85, thickness: 0.4, ior: 1.76,

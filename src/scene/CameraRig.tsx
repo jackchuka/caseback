@@ -13,7 +13,7 @@ import { Tween } from './tween';
 
 declare global {
   interface Window {
-    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3; probe(id: string): [number, number]; quat(): number[]; enabled(): boolean };
+    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3; probe(id: string): [number, number]; quat(): number[]; enabled(): boolean; three(): { scene: THREE.Scene; gl: THREE.WebGLRenderer } };
   }
 }
 
@@ -22,6 +22,7 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
   const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
   const size = useThree((s) => s.size);
   const scene = useThree((s) => s.scene);
+  const gl = useThree((s) => s.gl);
   const mode = useApp((s) => s.mode);
   const stepIndex = useApp((s) => s.stepIndex);
   const freeSide = useApp((s) => s.freeSide);
@@ -48,6 +49,7 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
       camera: () => camera.position.toArray() as V3,
       quat: () => camera.quaternion.toArray().map((v) => +v.toFixed(4)),
       enabled: () => controls.enabled,
+      three: () => ({ scene, gl }),
       probe: (id) => {
         const e = registry.get(id);
         if (!e) return [NaN, NaN];
@@ -65,7 +67,7 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
         return e ? (e.part.axis === 'x' ? e.group.rotation.x : e.group.rotation.z) : NaN;
       },
     };
-  }, [caliber, camera, controls, mode, stepIndex, freeSide, size, scene]);
+  }, [caliber, camera, controls, mode, stepIndex, freeSide, size, scene, gl]);
 
   useFrame((_, dt) => {
     if (controls && tween.current) {

@@ -32,6 +32,8 @@ export function Studio() {
         <Lightformer form="rect" intensity={1.2 * look.strip} scale={[5, 16, 1]} position={[-12, 3, 4]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={0.8 * look.strip} color={look.rimColor} scale={[5, 16, 1]} position={[12, 3, -4]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={0.6} scale={[20, 2, 1]} position={[0, -2, -12]} target={[0, 0, 0]} />
+        {/* A dim surrounding ring so fully metallic parts never mirror pure black between the softboxes. */}
+        <Lightformer form="ring" intensity={look.fill} scale={40} position={[0, 0, 0]} rotation-x={Math.PI / 2} />
       </Environment>
       <directionalLight
         castShadow
