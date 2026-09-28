@@ -1,0 +1,65 @@
+import { describe, expect, it } from 'vitest';
+import * as THREE from 'three';
+import { watches } from '../../../data/watches';
+import { caseRadii } from '../caseGeometry';
+import { caseBody, caseShape, springBar } from './caseBody';
+import { closedAndOutward } from './meshCheck';
+
+describe('one-piece case middle', () => {
+  for (const w of Object.values(watches)) {
+    const e = w.exterior;
+    const r = caseRadii(25.6, e);
+    const s = caseShape(e, r);
+    const lw = e.case.lugWidthMm / 2;
+    const W = e.case.lugs.widthMm;
+    const tip = e.case.lugToLugMm / 2;
+    const layers = caseBody(e, r, 0.3);
+    const box = new THREE.Box3();
+    for (const l of layers) { l.geometry.computeBoundingBox(); box.union(l.geometry.boundingBox!); }
+
+    it(`${w.id}: matches the real diameter and lug-to-lug`, () => {
+      expect(box.max.y - box.min.y).toBeCloseTo(e.case.lugToLugMm, 0);
+      expect(box.max.x - box.min.x).toBeCloseTo(e.case.diameterMm, 0);
+    });
+
+    it(`${w.id}: leaves exactly the lug width free for the strap`, () => {
+      // Away from the spring-bar hole.
+      const y = tip - 4;
+      const z = s.midZ(lw + W / 2, y);
+      expect(s.sdf(lw - 0.25, y, z)).toBeGreaterThan(0);
+      expect(s.sdf(lw + 0.25, y, z)).toBeLessThan(0);
+    });
+
+    it(`${w.id}: blends each lug into the round case with a concave fillet, not a sharp corner`, () => {
+      const x = lw + W + 0.4;
+      const y = Math.sqrt(r.outer ** 2 - x ** 2) + 0.4;
+      expect(s.sdf(x, y, s.midZ(x, y))).toBeLessThan(0);
+    });
+
+    it(`${w.id}: keeps the case front flat and sweeps the lug tips toward the wrist`, () => {
+      expect(s.front(0, r.outer - 1)).toBeCloseTo(r.bottom, 5);
+      expect(s.front(lw + W / 2, tip) - r.bottom).toBeGreaterThan(0.35 * r.height);
+    });
+
+    it(`${w.id}: is one closed, outward-facing surface`, () => {
+      expect(layers).toHaveLength(1);
+      const { open, volume } = closedAndOutward(layers[0]!.geometry);
+      expect(open).toBe(0);
+      expect(volume).toBeGreaterThan(0);
+    });
+
+    it(`${w.id}: polishes the bevel and finishes top and flank as specified`, () => {
+      const z = r.bottom + e.case.chamferMm / 2;
+      // Middle of the bevel at 9 o'clock, the top face just inside it, and the flank below.
+      expect(s.polish(-(r.outer - e.case.chamferMm / 2), 0, z)).toBeGreaterThan(0.9);
+      expect(s.polish(-(r.outer - e.case.chamferMm - 0.6), 0, r.bottom)).toBeCloseTo(e.case.finish.top === 'polished' ? 1 : 0, 1);
+      expect(s.polish(-r.outer, 0, r.bottom + r.height / 2)).toBeCloseTo(e.case.finish.flank === 'polished' ? 1 : 0, 1);
+    });
+
+    it(`${w.id}: ${e.case.lugs.drilled ? 'drills' : 'does not drill'} through the lugs`, () => {
+      const b = springBar(e, r);
+      const through = s.sdf(lw + W * 0.5, b.y, b.z) > 0;
+      expect(through).toBe(e.case.lugs.drilled);
+    });
+  }
+});

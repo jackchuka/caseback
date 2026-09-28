@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { SourceSchema } from './schema';
 
 const pos = z.number().positive();
+const Finish = z.enum(['brushed', 'polished']);
 
 export const WatchExteriorSchema = z.object({
   case: z.object({
@@ -10,10 +11,14 @@ export const WatchExteriorSchema = z.object({
     lugToLugMm: pos,
     lugWidthMm: pos,
     material: z.enum(['steel', 'gold', 'titanium']),
-    finish: z.enum(['brushed', 'polished', 'mixed']),
+    finish: z.object({ top: Finish, flank: Finish }),
     flank: z.enum(['straight', 'sloped']),
+    // Polished bevel between the brushed top and the flank, measured across the top face.
+    chamferMm: z.number().min(0),
+    // Lugs in top view: width at the case, tip width as a fraction of that, and through-drilled spring-bar holes.
+    lugs: z.object({ widthMm: pos, taper: z.number().gt(0).max(1), drilled: z.boolean() }),
   }),
-  bezel: z.object({ kind: z.enum(['plain', 'dive']), widthMm: pos, color: z.string().optional(), insertColor: z.string().optional() }),
+  bezel: z.object({ kind: z.enum(['plain', 'dive']), widthMm: pos, profile: z.enum(['sloped', 'rounded']).optional(), finish: Finish, color: z.string().optional(), insertColor: z.string().optional() }),
   crown: z.object({ diameterMm: pos, lengthMm: pos, tube: z.boolean(), tubeColor: z.string().optional(), guards: z.boolean() }),
   crystal: z.object({ domeMm: z.number().min(0) }),
   dial: z.object({
@@ -53,6 +58,8 @@ export function validateWatch(w: Watch, calibers: Record<string, { specs: { diam
   // The case needs a casing ring and a wall around the movement.
   if (e.case.diameterMm < c.specs.diameterMm + 4) errors.push(`${w.id}: case ${e.case.diameterMm} mm cannot hold a ${c.specs.diameterMm} mm movement`);
   if (e.case.lugToLugMm <= e.case.diameterMm) errors.push(`${w.id}: lug-to-lug must exceed the case diameter`);
+  // Lugs grow out of the round case; past its radius they would hang off the side with nothing to fuse into.
+  if (e.case.lugWidthMm / 2 + e.case.lugs.widthMm >= e.case.diameterMm / 2 - 1) errors.push(`${w.id}: lugs are wider than the case`);
   if (e.bezel.widthMm >= e.case.diameterMm / 4) errors.push(`${w.id}: bezel too wide`);
   return errors;
 }

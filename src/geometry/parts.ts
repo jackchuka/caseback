@@ -4,7 +4,7 @@ import { addSpokes, extrudeCentered, gearOutline, PINION } from './gear';
 
 // Movement materials are shared by every caliber; watch materials are built per watch from its exterior data.
 export type MovementMaterial = MaterialKey | 'slot' | 'date' | 'lume';
-export type WatchMaterial = 'case' | 'crystal' | 'dial' | 'insert' | 'strap' | 'tube';
+export type WatchMaterial = 'case' | 'polished' | 'crystal' | 'dial' | 'insert' | 'strap' | 'tube';
 export type LayerMaterial = MovementMaterial | WatchMaterial;
 export type Layer = { geometry: THREE.BufferGeometry; material: LayerMaterial };
 

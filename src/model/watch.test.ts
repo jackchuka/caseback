@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { WatchSchema, validateWatch, type Watch } from './watch';
 
 const ext = (): Watch['exterior'] => ({
-  case: { diameterMm: 40, thicknessMm: 12, lugToLugMm: 48, lugWidthMm: 20, material: 'steel', finish: 'mixed', flank: 'straight' },
-  bezel: { kind: 'plain', widthMm: 2 },
+  case: { diameterMm: 40, thicknessMm: 12, lugToLugMm: 48, lugWidthMm: 20, material: 'steel', finish: { top: 'brushed', flank: 'polished' }, flank: 'straight', chamferMm: 0.5, lugs: { widthMm: 3, taper: 1, drilled: false } },
+  bezel: { kind: 'plain', widthMm: 2, profile: 'sloped', finish: 'polished' },
   crown: { diameterMm: 6, lengthMm: 3, tube: false, guards: false },
   crystal: { domeMm: 0.5 },
   dial: { color: '#111111', finish: 'matte', indices: 'bars-minute', indexColor: '#ffffff', dateWindow: false },
@@ -36,8 +36,12 @@ describe('watch schema', () => {
     const bad = { ...w(), exterior: { ...ext(), case: { ...ext().case, lugToLugMm: 39 } } };
     expect(validateWatch(bad, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: lug-to-lug must exceed the case diameter');
   });
+  it('rejects lugs that reach past the round case', () => {
+    const bad = { ...w(), exterior: { ...ext(), case: { ...ext().case, lugs: { widthMm: 11, taper: 1, drilled: false } } } };
+    expect(validateWatch(bad, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: lugs are wider than the case');
+  });
   it('rejects a bezel wider than a quarter of the case', () => {
-    const bad = { ...w(), exterior: { ...ext(), bezel: { kind: 'dive' as const, widthMm: 11 } } };
+    const bad = { ...w(), exterior: { ...ext(), bezel: { kind: 'dive' as const, widthMm: 11, finish: 'brushed' as const } } };
     expect(validateWatch(bad, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: bezel too wide');
   });
 });

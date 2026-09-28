@@ -8,8 +8,8 @@ const watch: Watch = {
   caliberNotes: 'Hamilton calibre H-10 is Hamilton\'s version of the ETA C07.611, a 2824 derivative slowed to 21,600 vph for an 80 h power reserve.',
   movement: { name: 'Hamilton H-10', vph: 21600, powerReserveH: 80, sourceIds: ['watchbase-h10', 'calibercorner-h10'] },
   exterior: {
-    case: { diameterMm: 38, thicknessMm: 11, lugToLugMm: 47, lugWidthMm: 20, material: 'steel', finish: 'mixed', flank: 'straight' },
-    bezel: { kind: 'plain', widthMm: 1.4 },
+    case: { diameterMm: 38, thicknessMm: 11, lugToLugMm: 47, lugWidthMm: 20, material: 'steel', finish: { top: 'brushed', flank: 'brushed' }, flank: 'straight', chamferMm: 0.4, lugs: { widthMm: 3.0, taper: 0.95, drilled: false } },
+    bezel: { kind: 'plain', widthMm: 1.4, profile: 'sloped', finish: 'polished' },
     crown: { diameterMm: 6.5, lengthMm: 3.5, tube: false, guards: false },
     crystal: { domeMm: 0.6 },
     dial: { color: '#cfcfca', finish: 'sunburst', indices: 'arabic-24', indexColor: '#1a1a1a', lume: '#e8e2cf', dateWindow: true },

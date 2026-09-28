@@ -5,22 +5,36 @@ import * as THREE from 'three';
 import { extrudeCentered } from '../geometry/gear';
 import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
-import { appStore } from '../state/app';
+import { appStore, useApp } from '../state/app';
 import { useMaterials } from './materials';
 import { crownEuler, crownState } from './crown';
-import { caseProfile, caseRadii, casingRing, stemExtension } from './caseGeometry';
+import { caseRadii, casingRing, stemExtension } from './caseGeometry';
 import { openingPose } from './opening';
 import { buildShape, type Layer, type LayerMaterial, type MovementMaterial } from '../geometry/parts';
 import { bezel as bezelLayers } from './exterior/bezel';
 import { crown as crownLayers } from './exterior/crown';
 import { crystal as crystalLayers } from './exterior/crystal';
 import { dialLayers } from './exterior/dial';
-import { lugFillets, lugs as lugLayers } from './exterior/lugs';
+import { caseBody } from './exterior/caseBody';
 import { paintDial, paintInsert, paintStrap } from './exterior/paint';
 import { strap as strapLayers } from './exterior/strap';
 import { exteriorVisibility } from './exterior/visibility';
 import { registry } from './registry';
 import { engraving } from './textures';
+
+// Reads a per-vertex `polish` attribute (0 brushed … 1 polished) so one case mesh carries both finishes with a soft
+// boundary along the true crease. Meshes without the attribute read 0 and stay brushed.
+function withPolish(m: THREE.MeshPhysicalMaterial, polishedRoughness: number) {
+  m.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float polish;\nvarying float vPolish;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPolish = polish;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vPolish;')
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, ${polishedRoughness.toFixed(3)}, vPolish);`);
+  };
+  return m;
+}
 
 const CASE_COLORS = { steel: [0xc8cbd0, 0.3], titanium: [0xa9acb0, 0.45], gold: [0xe6c27a, 0.25] } as const;
 
@@ -30,6 +44,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
   const { inner, outer, height, bottom } = caseRadii(caliber.specs.diameterMm, ext);
   const top = bottom + height;
   const materials = useMaterials();
+  const quality = useApp((s) => s.quality);
   const caseMat = useMemo(() => {
     const [color, roughness] = CASE_COLORS[ext?.case.material ?? 'steel'];
     return new THREE.MeshPhysicalMaterial({ color, metalness: 1, roughness, clearcoat: 0.15, clearcoatRoughness: 0.3 });
@@ -39,10 +54,11 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
   const watchParts = useMemo(() => {
     if (!ext) return null;
     const r = { inner, outer, height, bottom };
-    const finishRoughness = { polished: 0.22, brushed: 0.42, mixed: 0.34 }[ext.case.finish];
+    const metal = ext.case.material === 'steel' ? 0xe2e4e8 : CASE_COLORS[ext.case.material][0];
     const mats: Record<Exclude<LayerMaterial, MovementMaterial>, THREE.MeshPhysicalMaterial> & { lume: THREE.MeshPhysicalMaterial } = {
       // Stainless cases read as black in the dark studio at the movement's reflection strength; product photos light them harder.
-      case: new THREE.MeshPhysicalMaterial({ color: ext.case.material === 'steel' ? 0xe2e4e8 : CASE_COLORS[ext.case.material][0], metalness: 1, roughness: finishRoughness, clearcoat: 0.15, clearcoatRoughness: 0.3, envMapIntensity: 1.4 }),
+      case: withPolish(new THREE.MeshPhysicalMaterial({ color: metal, metalness: 1, roughness: 0.36, envMapIntensity: 1.4 }), 0.08),
+      polished: new THREE.MeshPhysicalMaterial({ color: metal, metalness: 1, roughness: 0.08, envMapIntensity: 1.4 }),
       crystal: new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.8, ior: 1.77, transparent: true }),
       // Opaque on purpose: three.js renders only opaque objects into the transmission buffer, so a transparent dial
       // would vanish behind the (transmissive) crystal. It is removed by lifting and hiding instead of fading.
@@ -62,7 +78,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
     return {
       mats,
       pick,
-      lugs: [...lugLayers(ext, r), ...lugFillets(ext, r)],
+      body: caseBody(ext, r, quality === 'high' ? 0.2 : 0.3),
       bezel: bezelLayers(ext, r),
       crown: crownLayers(ext, r),
       crystal: crystalLayers(ext, r),
@@ -71,14 +87,15 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       seconds: ext.hands.seconds ? seconds : [],
       secondsMat,
     };
-  }, [ext, inner, outer, height, bottom, materials]);
+  }, [ext, inner, outer, height, bottom, materials, quality]);
   const backMat = useMemo(() => {
     const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^ETA /, '')}` });
     return new THREE.MeshPhysicalMaterial({ color: 0xd0d3d7, metalness: 1, roughness: 0.3, bumpMap: tex, bumpScale: 1.2, roughnessMap: tex, transparent: true });
   }, [caliber]);
   const rotorMat = useMemo(() => materials.gilt.clone(), [materials]);
   const ring = useMemo(() => {
-    const pts = ext ? caseProfile({ inner, outer, height, bottom }, ext) : [[inner, bottom], [outer - 1.1, bottom], [outer - 0.2, bottom + 1.2], [outer, bottom + 4.3], [outer - 0.5, top - 0.4], [outer - 1.0, top], [inner, top]];
+    if (ext) return null;
+    const pts = [[inner, bottom], [outer - 1.1, bottom], [outer - 0.2, bottom + 1.2], [outer, bottom + 4.3], [outer - 0.5, top - 0.4], [outer - 1.0, top], [inner, top]];
     const prof = pts.map(([x, y]) => new THREE.Vector2(x, y));
     return new THREE.LatheGeometry(prof, 160).rotateX(Math.PI / 2);
   }, [inner, outer, bottom, top, height, ext]);
@@ -160,9 +177,9 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
 
   return (
     <group>
-      <mesh geometry={ring} material={caseMat} castShadow receiveShadow />
+      {ring && <mesh geometry={ring} material={caseMat} castShadow receiveShadow />}
       {watchParts
-        ? watchParts.lugs.map((l, i) => <mesh key={`lug${i}`} geometry={l.geometry} material={watchParts.pick(l)} castShadow receiveShadow />)
+        ? watchParts.body.map((l, i) => <mesh key={`body${i}`} name="case" geometry={l.geometry} material={watchParts.pick(l)} castShadow receiveShadow />)
         : [-1, 1].flatMap((sx) =>
         [-1, 1].map((sy) => (
           <RoundedBox key={`${sx}${sy}`} args={[2.8, 7.5, 3.2]} radius={1.1} smoothness={6} position={[sx * lug.x, sy * lug.y, 0.5]} rotation-z={sx * sy * -0.12} material={caseMat} castShadow />

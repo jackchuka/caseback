@@ -4,7 +4,8 @@ import type { Layer } from '../../geometry/parts';
 import type { CaseRadii } from '../caseGeometry';
 
 export function crystalRadius(e: WatchExterior, r: CaseRadii) {
-  return r.outer - (e.bezel.kind === 'dive' ? e.bezel.widthMm : 0.3) - 0.2;
+  // Seated in a groove in the bezel's inner wall, so its edge never shows beside the wall.
+  return r.outer - e.bezel.widthMm + 0.15;
 }
 
 export function crystal(e: WatchExterior, r: CaseRadii): Layer[] {

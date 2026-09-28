@@ -3,7 +3,7 @@ import type { WatchExterior } from '../../model/watch';
 import type { Layer } from '../../geometry/parts';
 import type { CaseRadii } from '../caseGeometry';
 import { bend, flipWinding } from './bend';
-import { lugTipZ } from './lugs';
+import { springBar } from './caseBody';
 
 const WRIST_RADIUS = 26;
 const LENGTH = 38;
@@ -20,9 +20,10 @@ function taper(g: THREE.BufferGeometry, start: number) {
 }
 
 export function strap(e: WatchExterior, r: CaseRadii): Layer[] {
-  const tip = e.case.lugToLugMm / 2 - 1.3;
-  // The strap hangs from the lug tips, which sweep down toward the wrist.
-  const z = lugTipZ(r);
+  // The strap wraps the spring bar, which sits in the lug tips where they have swept down toward the wrist.
+  const bar = springBar(e, r);
+  const tip = bar.y - 0.8;
+  const z = bar.z;
   const layers: Layer[] = [];
   for (const dir of [1, -1] as const) {
     if (e.strap.kind === 'bracelet') {
