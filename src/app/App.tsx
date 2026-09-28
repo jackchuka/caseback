@@ -58,7 +58,7 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
           </group>
           <CameraRig caliber={caliber} watchFront={!!watch} />
         </MaterialsProvider>
-        <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={90} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />
+        <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={140} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />
         {quality === 'high' && <Effects />}
       </Canvas>
       <TopBar caliber={caliber} watch={watch} />
