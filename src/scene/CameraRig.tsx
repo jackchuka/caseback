@@ -13,7 +13,7 @@ import { Tween } from './tween';
 
 declare global {
   interface Window {
-    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3 };
+    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3; probe(id: string): [number, number]; quat(): number[]; enabled(): boolean };
   }
 }
 
@@ -46,6 +46,14 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
       },
       flip: () => flipGroup.current?.rotation.x ?? 0,
       camera: () => camera.position.toArray() as V3,
+      quat: () => camera.quaternion.toArray().map((v) => +v.toFixed(4)),
+      enabled: () => controls.enabled,
+      probe: (id) => {
+        const e = registry.get(id);
+        if (!e) return [NaN, NaN];
+        const v = e.group.getWorldPosition(new THREE.Vector3()).project(camera);
+        return [((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height];
+      },
       hits: (x, y) => {
         const ray = new THREE.Raycaster();
         ray.setFromCamera(new THREE.Vector2((x / size.width) * 2 - 1, -(y / size.height) * 2 + 1), camera);
@@ -65,6 +73,9 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
       if (flipGroup.current) flipGroup.current.rotation.x = flip;
       camera.position.set(...position);
       controls.target.set(...target);
+      // OrbitControls is disabled during a flight and stops re-aiming the camera, so aim it here; otherwise the
+      // camera flies with a stale orientation and snaps when the controls are re-enabled.
+      camera.lookAt(controls.target);
       controls.enabled = done;
       if (done) tween.current = null;
     }

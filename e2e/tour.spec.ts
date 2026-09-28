@@ -375,3 +375,32 @@ test('resizing the window does not move the camera', async ({ page }) => {
   // Auto-rotation moves the camera a little in 100 ms; a reset to the start pose moves it much more.
   expect(moved).toBeLessThan(0.5);
 });
+
+test('the camera keeps looking at its target during chapter flights', async ({ page }) => {
+  await openTour(page);
+  await page.waitForTimeout(2000);
+  const worst = await page.evaluate(async () => {
+    const h = window.__caseback!;
+    const errs: number[] = [];
+    let on = true;
+    const tick = () => {
+      const [x, y, z, w] = h.quat() as [number, number, number, number];
+      // Camera forward is -Z rotated by the quaternion.
+      const fx = -(2 * (x * z + w * y));
+      const fy = -(2 * (y * z - w * x));
+      const fz = -(1 - 2 * (x * x + y * y));
+      const c = h.camera();
+      const t = h.target();
+      const d: [number, number, number] = [t[0] - c[0], t[1] - c[1], t[2] - c[2]];
+      const n = Math.hypot(...d);
+      errs.push(Math.acos(Math.min(1, (fx * d[0] + fy * d[1] + fz * d[2]) / n)));
+      if (on) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    [...document.querySelectorAll<HTMLButtonElement>('.tourbar .chapters button')].find((b) => b.textContent === '針を動かす')!.click();
+    await new Promise((r) => setTimeout(r, 2400));
+    on = false;
+    return Math.max(...errs);
+  });
+  expect(worst).toBeLessThan(0.02);
+});
