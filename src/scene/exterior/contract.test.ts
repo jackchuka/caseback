@@ -54,7 +54,9 @@ describe('exterior contract', () => {
 
       it('ends the casing ring at the case middle\'s back face', () => {
         expect(casingSpan(FRAME, b.anchors.caseBackZ).to).toBeLessThanOrEqual(b.anchors.caseBackZ + 1e-9);
-        expect(b.anchors.caseBackZ).toBeCloseTo(Math.max(...vertices(p.case).map((v) => v.z)), 0);
+        // Around the movement seat: lugs may run on behind the case middle, as the Presage's do.
+        const seat = vertices(p.case).filter((v) => Math.hypot(v.x, v.y) < b.anchors.seatRadius + 1);
+        expect(b.anchors.caseBackZ).toBeCloseTo(Math.max(...seat.map((v) => v.z)), 0);
       });
 
       it('every vertex is finite', () => {
