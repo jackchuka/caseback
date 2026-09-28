@@ -57,16 +57,16 @@ describe('Sinn 556 case', () => {
   });
   it('stands two guards out of the 3 o\'clock flank with the crown\'s notch between them', () => {
     const z = (caseFront(m) + s.back) / 2;
-    expect(s.sdf(S.guard.outer - 0.2, (S.guard.notch + S.guard.width) / 2, z)).toBeLessThan(0);
-    expect(s.sdf(S.guard.outer + 0.1, (S.guard.notch + S.guard.width) / 2, z)).toBeGreaterThan(0);
+    expect(s.sdf(S.guard.outer - 0.2, (S.guard.notch + S.guard.flat) / 2, z)).toBeLessThan(0);
+    expect(s.sdf(S.guard.outer + 0.1, (S.guard.notch + S.guard.flat) / 2, z)).toBeGreaterThan(0);
     expect(s.sdf(S.caseRadius + 0.3, 0, z)).toBeGreaterThan(0);
     // Nothing on the 9 o'clock side.
-    expect(s.sdf(-(S.caseRadius + 0.3), (S.guard.notch + S.guard.width) / 2, z)).toBeGreaterThan(0);
+    expect(s.sdf(-(S.caseRadius + 0.3), (S.guard.notch + S.guard.flat) / 2, z)).toBeGreaterThan(0);
   });
   it('drops the lug tops toward the wrist, not the guards', () => {
     const lugX = S.lugGap / 2 + 0.9;
     expect(s.front(lugX, S.lugToLug / 2 - 0.3) - caseFront(m)).toBeGreaterThan(0.8 * S.lugDrop);
-    expect(s.front(S.guard.outer - 0.3, S.guard.width - 0.3)).toBeCloseTo(caseFront(m), 5);
+    expect(s.front(S.guard.outer - 0.3, S.guard.flat - 0.3)).toBeCloseTo(caseFront(m), 5);
   });
   it('drills the spring-bar holes right through the lugs', () => {
     expect(s.sdf(S.lugGap / 2 + 0.3, s.hole.y, s.hole.z)).toBeGreaterThan(0);

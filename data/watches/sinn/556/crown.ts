@@ -13,7 +13,7 @@ export function sinnCrown(): ExteriorLayer[] {
   return flutedCrown({
     diameter: S.crownDiameter, length: S.crownLength, fluteDepth: 0.16,
     tube: { diameter: S.tubeDiameter, length: S.tubeLength + NOTCH_CLEARANCE },
-    end: { inset: 0.5, run: 0.35, dome: S.crownDome }, grip: { fromEnd: 0.4, fromNeck: 0.25, neckStep: 0.35 },
+    end: { inset: 1.2, run: 0.9, dome: S.crownDome }, grip: { fromEnd: 0.95, fromNeck: 0.25, neckStep: 0.35 },
     material: 'bezel',
   });
 }

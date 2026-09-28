@@ -29,7 +29,7 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
   const lug = (ax: number, ay: number) =>
     smax(Math.max(lw - ax, S.lugFrom - ay, A.r - Math.hypot(ax - A.x, ay - A.y)), ay - tip, S.lugTipRound);
   // Two pads side by side at 3 o'clock, the notch between them left open for the crown.
-  const guard = roundedConvex([[R - 2, G.notch], [G.outer, G.notch], [G.outer, G.width], [R - 2, G.width]], 0.3);
+  const guard = roundedConvex([[R - 2, G.notch], [G.outer, G.notch], [G.outer, G.flat], [R - 1, G.foot], [R - 2, G.foot]], 0.3);
   const plan = (x: number, y: number) => {
     const disc = Math.hypot(x, y) - R;
     // Deep inside the drum only the sign matters.
@@ -38,7 +38,7 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
     let d = disc;
     // The lug can only matter within its blend of the lug's own bounds.
     if (ay > S.lugFrom - S.lugBlend && ax < R + 1) d = smin(d, lug(ax, ay), S.lugBlend);
-    if (x > 0 && ay < G.width + G.blend + 1) d = smin(d, guard(x, ay), G.blend);
+    if (x > 0 && ay < G.foot + G.blend + 1) d = smin(d, guard(x, ay), G.blend);
     return d;
   };
   // 0 at the bezel's edge, 1 at the lug tip, measured along the lug; zero on the guards.

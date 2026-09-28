@@ -14,7 +14,8 @@ export function sinnMaterials(m: MovementFrame): Record<string, () => THREE.Mate
     case: () => withPolish(satin(), 0.1),
     bezel: satin,
     bracelet: satin,
-    flange: () => new THREE.MeshPhysicalMaterial({ color: 0x9a9da2, metalness: 0.8, roughness: 0.45 }),
+    // A dark, polished rehaut: in the photos it mirrors the minute track rather than reading as a grey band.
+    flange: () => new THREE.MeshPhysicalMaterial({ color: 0x55585c, metalness: 1, roughness: 0.2 }),
     crystal: () => glass(1.2),
     // Opaque on purpose, so it never sorts against the crystal; gloss black under a clear coat.
     dial: () => new THREE.MeshPhysicalMaterial({ map: paintDial(m), roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.08 }),

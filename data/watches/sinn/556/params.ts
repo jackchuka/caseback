@@ -28,14 +28,14 @@ export const S = {
   holeRadius: 0.5, // est: drilled spring-bar hole, through the lug
   holeInset: 1.4, // est: hole centre from lug tip
 
-  guard: { outer: 20.9, notch: 3.3, width: 5.3, blend: 1.0 }, // photo:front: pads out to 20.9 mm for 3.3 < |y| < 5.3, blending into the drum by y ≈ 7
+  guard: { outer: 20.9, notch: 3.3, flat: 4.2, foot: 6.6, blend: 0.8 }, // photo:front: pads out to 20.9 mm for 3.3 < |y| < 4.2, their ends sloping back into the drum by |y| = 6.6
 
   bezelOuter: 19.25, // photo:front: flush with the drum at 9 o'clock
   bezelFlat: 17.8, // photo:front: inner edge of the flat brushed top
   bezelLip: 16.4, // photo:front: foot of the inner chamfer, by the crystal
   bezelEdge: 0.2, // photo:front: the dark line of the rounded outer edge
   crystalRadius: 16.1, // photo:front: bright ring at 15.9–16.3 mm
-  crystalDrop: 0.7, // photo:crown: the flat crystal sits well below the bezel top, down its chamfer
+  crystalDrop: 1.0, // photo:crown: the flat crystal sits well below the bezel top, at the foot of a steep chamfer
 
   dialRadius: 15.2, // photo:front: dial visible inside the flange
   indexOuter: 15.0, // photo:front: bars and ticks all end here
@@ -53,8 +53,8 @@ export const S = {
   },
 
   crownDiameter: 6, // spec: 6 x 5.5 mm
-  crownLength: 4.0, // photo:front: 4.5 mm from the notch floor at 19.55 mm to the dome's apex at 24.06 mm, less the dome
-  crownDome: 0.5, // photo:crown: a rounded end face
+  crownLength: 3.7, // photo:front: 4.5 mm from the notch floor at 19.55 mm to the dome's apex at 24.06 mm, less the dome
+  crownDome: 0.8, // photo:front: the end rounds back 0.96 mm by 2 mm off the axis
   tubeDiameter: 3.4, // est: hidden between the guards
   tubeLength: 0.3, // photo:front
 
@@ -63,6 +63,6 @@ export const S = {
   // centre link), centre link 51% of the width and 7.5 long. The studio front shot foreshortens the bracelet as it
   // curves away, so it can't give the pitch. est — thickness, gap, wristRadius, chamfer, crown, links (until it turns
   // under the watch).
-  bracelet: { endWidth: 18, pitch: 10.3, centerRatio: 0.51, bar: 2.4, thickness: 3.0, links: 4, gap: 0.2, wristRadius: 24, centerRaise: 0, chamfer: 0.35, crown: 0.1 },
+  bracelet: { endWidth: 18, pitch: 10.3, centerRatio: 0.51, bar: 2.4, thickness: 3.0, links: 4, gap: 0.2, wristRadius: 24, centerRaise: 0, chamfer: 0.25, crown: 0.05 },
   lume: '#f2eee2', // matches the movement lume the hands use
 } as const;
