@@ -24,6 +24,15 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('hand'), length: pos, width: pos, thickness: pos, style: z.enum(['leaf', 'sword', 'pencil', 'baton']).optional() }),
   z.object({ kind: z.literal('date-driver'), teeth: int, module: pos, thickness: pos, fingerLength: pos }),
   z.object({ kind: z.literal('date-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
+  // The day of the week printed around a disc's band, one per tooth, like the date ring.
+  z.object({ kind: z.literal('day-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
+  // A heart-shaped cam: pressed by a flat hammer it turns its arbor back to zero, the shortest way round. The point
+  // faces local +X at zero.
+  z.object({ kind: z.literal('heart'), radius: pos, thickness: pos }),
+  // A switching cam: ratchet teeth that a push steps one at a time, and a lobed rim that the levers read.
+  z.object({ kind: z.literal('cam'), teeth: int, radius: pos, thickness: pos }),
+  // A flat lever cut to `outline` around its pivot at the origin, with a pivot hole of radius `hole`.
+  z.object({ kind: z.literal('lever'), outline: z.array(Point).min(3), thickness: pos, hole: pos }),
   // A cam disc whose centre sits `throw` off its arbor along local +X.
   z.object({ kind: z.literal('eccentric'), radius: pos, throw: pos, thickness: pos }),
   // A lever whose hub (origin) rides an eccentric and whose two claws, at (length, ±reach), straddle a ratchet-toothed wheel.
@@ -48,7 +57,7 @@ export const ProvenanceSchema = z.object({
 
 export const PartSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
-  mechanism: z.enum(['frame', 'power', 'going-train', 'escapement', 'regulator', 'motion-works', 'calendar', 'automatic', 'keyless']),
+  mechanism: z.enum(['frame', 'power', 'going-train', 'escapement', 'regulator', 'motion-works', 'calendar', 'automatic', 'keyless', 'chronograph']),
   arbor: z.string().optional(),
   focus: z.string().optional(),
   axis: z.enum(['z', 'x']).optional(),
@@ -67,7 +76,26 @@ export const CouplingSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('slip'), a: z.string(), b: z.string() }),
   z.object({ type: z.literal('keyless'), stem: z.string(), slidingPinion: z.string(), windingPinion: z.string(), settingWheel: z.string(), pull: pos }),
   z.object({ type: z.literal('one-way'), input: z.string(), output: z.string() }),
-  z.object({ type: z.literal('intermittent'), driver: z.string(), driven: z.string() }),
+  // A finger on `driver` steps `driven` one tooth per turn: the date (from the day of the month) or the day of the week.
+  z.object({ type: z.literal('intermittent'), driver: z.string(), driven: z.string(), calendar: z.enum(['date', 'day']).optional() }),
+  // A click wheel: `output` turns with `input` while it turns the `direction` way (+1 or −1) and stands still the other.
+  z.object({ type: z.literal('click'), input: z.string(), output: z.string(), direction: z.union([z.literal(1), z.literal(-1)]) }),
+  // A chronograph. Each start/stop push steps the `cam`, which runs or stops it. While it runs, `pinion` (always
+  // turned by the going train) swings `swing` mm in to mesh the `runner`; the runner's finger steps the `minutes`
+  // wheel one tooth per turn, and `hours.wheel` turns with `hours.driver` through a friction clutch. At reset the
+  // `hammers` drop `stroke` mm, each along its own +X, onto the `hearts`, which turn the runner and both counters to zero.
+  z.object({
+    type: z.literal('chronograph'),
+    cam: z.string(),
+    pinion: z.string(),
+    runner: z.string(),
+    swing: pos,
+    minutes: z.object({ wheel: z.string() }).optional(),
+    hours: z.object({ driver: z.string(), wheel: z.string() }).optional(),
+    hearts: z.array(z.string()).min(1),
+    hammers: z.array(z.string()).min(1),
+    stroke: pos,
+  }),
   // Seiko's Magic Lever: the eccentric drives the lever to and fro; one claw pulls, the other pushes, so the wheel
   // advances in one direction whichever way the eccentric turns.
   z.object({ type: z.literal('pawl'), eccentric: z.string(), lever: z.string(), wheel: z.string() }),
@@ -85,7 +113,7 @@ export const TourStepSchema = z.object({
   rotor: z.enum(['show', 'xray', 'hide']),
   cameraOffset: z.tuple([z.number(), z.number(), z.number()]),
   stats: z.array(StatSchema).max(2),
-  ctl: z.literal('crown').optional(),
+  ctl: z.enum(['crown', 'chrono']).optional(),
 });
 
 export const ChapterSchema = z.object({ id: z.string(), flow: z.array(z.string()) });
@@ -111,6 +139,9 @@ export const CaliberSchema = z.object({
     secondsZ: z.number(),
     dialZ: z.number().optional(),
     dateWindow: z.object({ width: pos, height: pos }).optional(),
+    dayWindow: z.object({ width: pos, height: pos }).optional(),
+    // Chronograph pushers: the clock hour each sits at on the case flank and the height of its axis.
+    pushers: z.array(z.object({ action: z.enum(['start-stop', 'reset']), hour: z.number(), z: z.number() })).optional(),
   }),
   parts: z.array(PartSchema).min(1),
   couplings: z.array(CouplingSchema),

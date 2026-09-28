@@ -104,6 +104,6 @@ describe('pawl validation', () => {
   it('allows only one winding rectifier', () => {
     const c = pawlCaliber();
     c.couplings.push({ type: 'one-way', input: 'first', output: 'second' });
-    expect(validateCaliber(c)).toContain('at most one winding rectifier (one-way or pawl) allowed');
+    expect(validateCaliber(c)).toContain('at most one winding rectifier (one-way, pawl or click) allowed');
   });
 });

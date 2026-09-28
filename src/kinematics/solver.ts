@@ -1,5 +1,6 @@
 import type { Caliber } from '../model/schema';
 import { arborKey, toothCount } from '../model/validate';
+import { counterSteps, heartAngle, type ChronoPose } from './chronograph';
 import { escapementState } from './escapement';
 import { smoothstep } from './gearMath';
 import { accumulateWinding } from './winding';
@@ -19,6 +20,9 @@ export type KinematicsInput = {
   t: number;
   explode: number;
   dateBase?: number;
+  // Day of the week, Monday = 0, for a day ring.
+  dayBase?: number;
+  chrono?: ChronoPose;
   rotor?: number;
   wound?: number;
   crownPos?: 0 | 1 | 2;
@@ -34,8 +38,11 @@ export type PawlInfo = { inputKey: string; outputKey: string; throw: number; res
 // Whatever turns the rotor's back-and-forth into one-way winding: the input arbor's angle drives it, and it advances
 // the output arbor (and so the ratchet) by `advance(previous input angle, input angle)`, never backwards.
 export type Winder = { inputKey: string; outputKey: string; advance: (prev: number, next: number) => number };
+// Where the chronograph takes its motion from: the oscillating pinion's and the hour counter driver's arbors, and
+// what one radian of each is worth at the runner and at the hour counter.
+export type ChronoInfo = { pinionKey: string; driverKey: string | null; ratios: { runner: number; hours: number } };
 export type Solver = ((input: KinematicsInput) => Map<string, PartTransform>) & {
-  info: { oneWay: OneWayInfo | null; pawl: PawlInfo | null; winder: Winder | null; ratchetFactor: number };
+  info: { oneWay: OneWayInfo | null; pawl: PawlInfo | null; winder: Winder | null; ratchetFactor: number; chrono: ChronoInfo | null };
 };
 
 // How far the lever has been carried along its own axis by the eccentric.
@@ -117,11 +124,18 @@ export function buildSolver(c: Caliber): Solver {
     };
     lever = { key: arborKey(lv), pin0, wheel: wheel.pos, center: ecc.pos };
   }
+  const clickCp = c.couplings.find((cp) => cp.type === 'click');
   const winder: Winder | null = oneWay
     ? { inputKey: oneWay.inputKey, outputKey: oneWay.outputKey, advance: (a, b) => accumulateWinding(0, a, b, oneWay.ratio) }
     : pawl
       ? { inputKey: pawl.inputKey, outputKey: pawl.outputKey, advance: (a, b) => pawlAdvance(pawl, a, b) }
-      : null;
+      : clickCp && clickCp.type === 'click'
+        ? {
+            inputKey: arborKey(byId.get(clickCp.input)!),
+            outputKey: arborKey(byId.get(clickCp.output)!),
+            advance: (a, b) => Math.max(0, clickCp.direction * (b - a)),
+          }
+        : null;
   const woundFactor = winder ? bfs(winder.outputKey) : new Map<string, number>();
   // The cannon side follows the center wheel through friction, so it is its own root: setting the hands moves it alone.
   const slipCp = c.couplings.find((cp) => cp.type === 'slip');
@@ -151,12 +165,40 @@ export function buildSolver(c: Caliber): Solver {
 
   const intermittents = c.couplings.flatMap((cp) =>
     cp.type === 'intermittent'
-      ? [{ driverKey: arborKey(byId.get(cp.driver)!), drivenKey: arborKey(byId.get(cp.driven)!), teeth: toothCount(byId.get(cp.driven)!.shape)! }]
+      ? [{ driverKey: arborKey(byId.get(cp.driver)!), drivenKey: arborKey(byId.get(cp.driven)!), teeth: toothCount(byId.get(cp.driven)!.shape)!, day: cp.calendar === 'day' }]
       : [],
   );
+
+  const chronoCp = c.couplings.find((cp) => cp.type === 'chronograph');
+  const chrono = chronoCp && chronoCp.type === 'chronograph' ? chronograph(chronoCp) : null;
+  function chronograph(cp: Extract<Caliber['couplings'][number], { type: 'chronograph' }>) {
+    const teeth = (id: string) => toothCount(byId.get(id)!.shape)!;
+    const pinion = byId.get(cp.pinion)!;
+    const runner = byId.get(cp.runner)!;
+    const pinionKey = arborKey(pinion);
+    const hours = cp.hours ? { driverKey: arborKey(byId.get(cp.hours.driver)!), key: arborKey(byId.get(cp.hours.wheel)!), ratio: -teeth(cp.hours.driver) / teeth(cp.hours.wheel) } : null;
+    const minutes = cp.minutes ? { key: arborKey(byId.get(cp.minutes.wheel)!), teeth: teeth(cp.minutes.wheel) } : null;
+    // Out of mesh, the pinion stands `swing` further from the runner along the line between their centres.
+    const d = Math.hypot(pinion.pos.x - runner.pos.x, pinion.pos.y - runner.pos.y);
+    const away = { x: (pinion.pos.x - runner.pos.x) / d, y: (pinion.pos.y - runner.pos.y) / d };
+    const info: ChronoInfo = { pinionKey, driverKey: hours?.driverKey ?? null, ratios: { runner: -teeth(cp.pinion) / teeth(cp.runner), hours: hours?.ratio ?? 0 } };
+    return {
+      info,
+      pinionId: pinion.id,
+      swing: cp.swing,
+      away,
+      runner: { key: arborKey(runner), factor: bfs(arborKey(runner)) },
+      minutes: minutes && { ...minutes, factor: bfs(minutes.key) },
+      hours: hours && { key: hours.key, factor: bfs(hours.key) },
+      camKey: arborKey(byId.get(cp.cam)!),
+      camTeeth: teeth(cp.cam),
+      hammers: cp.hammers.map((id) => ({ id, dir: { x: Math.cos(byId.get(id)!.rest ?? 0), y: Math.sin(byId.get(id)!.rest ?? 0) } })),
+      stroke: cp.stroke,
+    };
+  }
   const WINDOW = 0.1; // the driven part moves during the last 10 % of each driver turn
 
-  const solver = (({ t, explode, dateBase = 0, rotor = 0, wound = 0, crownPos = 0, crownRot = 0, windRot = 0, quickRot = 0, setRot = 0 }: KinematicsInput) => {
+  const solver = (({ t, explode, dateBase = 0, dayBase = 0, chrono: pose, rotor = 0, wound = 0, crownPos = 0, crownRot = 0, windRot = 0, quickRot = 0, setRot = 0 }: KinematicsInput) => {
     const s = escapementState(t, c.specs.vph, escapeTeeth);
     const e = smoothstep(explode);
     const byKey = new Map<string, number>();
@@ -176,10 +218,27 @@ export function buildSolver(c: Caliber): Solver {
       const whole = Math.floor(turns);
       const step = smoothstep((turns - whole - (1 - WINDOW)) / WINDOW);
       const sign = driver < 0 ? -1 : 1;
-      byKey.set(im.drivenKey, sign * (dateBase + snapDates(quickRot / (Math.PI * 2)) + whole + step) * ((Math.PI * 2) / im.teeth));
+      // Quick-set corrects the date only; the day follows the days that pass.
+      const base = im.day ? dayBase : dateBase + snapDates(quickRot / (Math.PI * 2));
+      byKey.set(im.drivenKey, sign * (base + whole + step) * ((Math.PI * 2) / im.teeth));
     }
     const dx = new Map<string, number>();
     const dy = new Map<string, number>();
+    // Offsets for one part rather than its whole arbor.
+    const shift = new Map<string, { x: number; y: number }>();
+    if (chrono) {
+      const p = pose ?? { runner: 0, hours: 0, engage: 0, cam: 0, hammer: 1, zero: 0 };
+      const home = (factor: Map<string, number>, root: number) => {
+        for (const [key, f] of factor) byKey.set(key, f * heartAngle(root, p.zero));
+      };
+      home(chrono.runner.factor, p.runner);
+      if (chrono.minutes) home(chrono.minutes.factor, counterSteps(p.runner) * ((Math.PI * 2) / chrono.minutes.teeth));
+      if (chrono.hours) home(chrono.hours.factor, p.hours);
+      byKey.set(chrono.camKey, (p.cam * Math.PI * 2) / chrono.camTeeth);
+      const out = chrono.swing * (1 - p.engage);
+      shift.set(chrono.pinionId, { x: chrono.away.x * out + 0, y: chrono.away.y * out + 0 });
+      for (const h of chrono.hammers) shift.set(h.id, { x: h.dir.x * chrono.stroke * p.hammer + 0, y: h.dir.y * chrono.stroke * p.hammer + 0 });
+    }
     if (pawl && lever) {
       // The lever's hub rides the eccentric's centre and its claws stay on the wheel, so it slides and swings a little.
       const psi = pawl.rest + (byKey.get(pawl.inputKey) ?? 0);
@@ -200,10 +259,11 @@ export function buildSolver(c: Caliber): Solver {
     const out = new Map<string, PartTransform>();
     for (const p of c.parts) {
       const angle = byKey.get(arborKey(p)) ?? 0;
-      out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e, dx: dx.get(arborKey(p)) ?? 0, dy: dy.get(arborKey(p)) ?? 0 });
+      const own = shift.get(p.id);
+      out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e, dx: own?.x ?? dx.get(arborKey(p)) ?? 0, dy: own?.y ?? dy.get(arborKey(p)) ?? 0 });
     }
     return out;
   }) as Solver;
-  solver.info = { oneWay, pawl, winder, ratchetFactor };
+  solver.info = { oneWay, pawl, winder, ratchetFactor, chrono: chrono?.info ?? null };
   return solver;
 }

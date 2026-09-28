@@ -98,6 +98,19 @@ describe('Magic Lever and plate shapes', () => {
     // The hub is open for the eccentric (less the edge bevel).
     for (let i = 0; i < p.count; i++) expect(Math.hypot(p.getX(i), p.getY(i))).toBeGreaterThan(0.42 - 0.02);
   });
+  it('builds the chronograph shapes to their size: heart, cam, lever and day ring', () => {
+    const box = (g: THREE.BufferGeometry) => (g.computeBoundingBox(), g.boundingBox!);
+    const heart = buildShape({ kind: 'heart', radius: 1.2, thickness: 0.2 }, 'steel')[0]!.geometry;
+    // The point along +X reaches the full radius; the cleft opposite stands in.
+    expect(box(heart).max.x).toBeCloseTo(1.2, 1);
+    expect(-box(heart).min.x).toBeLessThan(0.8);
+    expect(maxRadius(buildShape({ kind: 'cam', teeth: 8, radius: 1.5, thickness: 0.3 }, 'steel')[0]!.geometry)).toBeCloseTo(1.5, 1);
+    const lever = buildShape({ kind: 'lever', outline: [{ x: -1, y: -0.5 }, { x: 5, y: -0.5 }, { x: 5, y: 0.5 }, { x: -1, y: 0.5 }], thickness: 0.2, hole: 0.3 }, 'steel');
+    expect(box(lever[0]!.geometry).max.x).toBeCloseTo(5, 1);
+    const day = buildShape({ kind: 'day-ring', teeth: 7, innerRadius: 5, outerRadius: 7.5, thickness: 0.15 }, 'plate');
+    expect(day[0]!.material).toBe('day');
+    expect(maxRadius(day[0]!.geometry)).toBeCloseTo(7.5, 1);
+  });
   it('cuts slots through the plate', () => {
     const [plate] = buildShape({ kind: 'plate', radius: 13, thickness: 1, slots: [{ from: { x: 5, y: 0 }, to: { x: 11, y: 0 }, r: 1 }] }, 'plate');
     const mesh = new THREE.Mesh(plate!.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));

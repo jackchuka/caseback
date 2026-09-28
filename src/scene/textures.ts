@@ -128,25 +128,30 @@ export function flowStripe() {
   return t;
 }
 
-// Numbers 1..31 around a circle at 0.87 of the texture radius, mirrored vertically so they read correctly from the dial side.
-export function dateNumbers(count = 31) {
+// Labels around a circle at 0.87 of the texture radius, mirrored vertically so they read correctly from the dial side.
+function ringLabels(labels: string[], fontScale: number) {
   return canvasTexture(2048, (g, s) => {
     g.fillStyle = '#f3f0e8';
     g.fillRect(0, 0, s, s);
     g.translate(s / 2, s / 2);
     g.scale(1, -1);
     g.fillStyle = '#1a1a1a';
-    g.font = `600 ${s * 0.05}px Inter, sans-serif`;
+    g.font = `600 ${s * fontScale}px Inter, sans-serif`;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    for (let d = 1; d <= count; d++) {
+    labels.forEach((label, i) => {
       g.save();
-      g.rotate(((d - 1) / count) * Math.PI * 2);
-      // Each date is printed turned a quarter turn so it reads upright once the ring brings it to 3 o'clock.
+      g.rotate((i / labels.length) * Math.PI * 2);
+      // Each label is printed turned a quarter turn so it reads upright once the ring brings it to 3 o'clock.
       g.translate(0, -(s / 2) * 0.87);
       g.rotate(-Math.PI / 2);
-      g.fillText(String(d), 0, 0);
+      g.fillText(label, 0, 0);
       g.restore();
-    }
+    });
   }, true);
 }
+
+export const dateNumbers = (count = 31) => ringLabels(Array.from({ length: count }, (_, i) => String(i + 1)), 0.05);
+
+// Monday first, as the day ring's base index counts.
+export const dayNames = () => ringLabels(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'], 0.11);

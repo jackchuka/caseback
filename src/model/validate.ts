@@ -16,6 +16,8 @@ export function toothCount(shape: Shape): number | null {
     case 'escape-wheel':
     case 'date-driver':
     case 'date-ring':
+    case 'day-ring':
+    case 'cam':
       return shape.teeth;
     case 'pinion':
       return shape.leaves;
@@ -84,6 +86,32 @@ export function validateCaliber(c: Caliber): string[] {
         if (Math.hypot(tip.x - w.pos.x, tip.y - w.pos.y) > off) errors.push(`pawl: ${cp.lever} does not reach ${cp.wheel}'s centre`);
         if (Math.abs(l.shape.reach - (w.shape.teeth * w.shape.module) / 2) > off) errors.push(`pawl: ${cp.lever}'s claws are not on ${cp.wheel}'s pitch circle`);
       }
+    } else if (cp.type === 'click') {
+      ref('click', cp.input);
+      ref('click', cp.output);
+    } else if (cp.type === 'chronograph') {
+      const kind = (id: string, k: string) => {
+        ref('chronograph', id);
+        const p = byId.get(id);
+        if (p && p.shape.kind !== k) errors.push(`chronograph: ${id} is not a ${k}`);
+      };
+      const toothed = (id: string) => {
+        ref('chronograph', id);
+        const p = byId.get(id);
+        if (p && toothCount(p.shape) === null) errors.push(`chronograph: ${id} has no teeth`);
+      };
+      kind(cp.cam, 'cam');
+      for (const id of cp.hammers) kind(id, 'lever');
+      for (const id of [cp.pinion, cp.runner]) toothed(id);
+      if (cp.minutes) toothed(cp.minutes.wheel);
+      if (cp.hours) for (const id of [cp.hours.driver, cp.hours.wheel]) toothed(id);
+      // Each heart must sit on an arbor the hammer can return: the runner's or a counter's.
+      const zeroed = new Set([cp.runner, cp.minutes?.wheel, cp.hours?.wheel].flatMap((id) => (id && byId.has(id) ? [arborKey(byId.get(id)!)] : [])));
+      for (const id of cp.hearts) {
+        kind(id, 'heart');
+        const h = byId.get(id);
+        if (h && !zeroed.has(arborKey(h))) errors.push(`chronograph: heart ${id} is not on the runner or a counter`);
+      }
     } else {
       ref('escapement', cp.balance);
       ref('escapement', cp.fork);
@@ -93,9 +121,13 @@ export function validateCaliber(c: Caliber): string[] {
   if (c.couplings.filter((x) => x.type === 'escapement').length !== 1) {
     errors.push('exactly one escapement coupling required');
   }
-  if (c.couplings.filter((x) => x.type === 'one-way' || x.type === 'pawl').length > 1) {
-    errors.push('at most one winding rectifier (one-way or pawl) allowed');
+  if (c.couplings.filter((x) => x.type === 'one-way' || x.type === 'pawl' || x.type === 'click').length > 1) {
+    errors.push('at most one winding rectifier (one-way, pawl or click) allowed');
   }
+  const chronographs = c.couplings.filter((x) => x.type === 'chronograph').length;
+  if (chronographs > 1) errors.push('at most one chronograph coupling allowed');
+  if (chronographs === 0 && c.tour.some((s) => s.ctl === 'chrono')) errors.push('chrono controls need a chronograph coupling');
+  if (chronographs === 0 && c.exterior.pushers?.length) errors.push('pushers need a chronograph coupling');
 
   const chapters = new Set(c.chapters.map((ch) => ch.id));
   for (const s of c.tour) {

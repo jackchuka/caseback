@@ -4,7 +4,7 @@ import * as THREE from 'three';
 // The movement's textures paint on a canvas, which the node test environment lacks; the colours don't need them.
 vi.mock('../../../../src/scene/textures', () => {
   const tex = () => new THREE.Texture();
-  return { cotesDeGeneve: tex, perlage: tex, sunburst: tex, dateNumbers: tex };
+  return { cotesDeGeneve: tex, perlage: tex, sunburst: tex, dateNumbers: tex, dayNames: tex };
 });
 
 const { createMaterials } = await import('../../../../src/scene/materials');

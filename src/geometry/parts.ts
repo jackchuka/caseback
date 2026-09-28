@@ -4,7 +4,7 @@ import { addSpokes, extrudeCentered, gearOutline, PINION } from './gear';
 
 // Movement materials are shared by every caliber; watch materials are built per watch from its exterior data.
 // The non-caliber movement materials, exported so exterior/materials.ts derives its key list from the same source.
-export const EXTRA_MOVEMENT_MATERIALS = ['slot', 'date', 'lume'] as const;
+export const EXTRA_MOVEMENT_MATERIALS = ['slot', 'date', 'day', 'lume'] as const;
 export type MovementMaterial = MaterialKey | (typeof EXTRA_MOVEMENT_MATERIALS)[number];
 export type WatchMaterial = 'case' | 'polished' | 'crystal' | 'dial' | 'insert' | 'strap' | 'tube';
 export type LayerMaterial = MovementMaterial | WatchMaterial;
@@ -103,6 +103,20 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     }
     case 'date-ring':
       return dateRing(shape.teeth, shape.innerRadius, shape.outerRadius, shape.thickness);
+    case 'day-ring':
+      return dateRing(shape.teeth, shape.innerRadius, shape.outerRadius, shape.thickness, 'day');
+    case 'heart':
+      return [{ geometry: extrudeCentered(heartOutline(shape.radius), shape.thickness, 0.02), material }];
+    case 'cam':
+      return [
+        { geometry: extrudeCentered(camOutline(shape.teeth, shape.radius), shape.thickness, 0.02), material },
+        { geometry: disc(0.35, shape.thickness + 0.1, 24), material: 'blued' },
+      ];
+    case 'lever': {
+      const s = new THREE.Shape(shape.outline.map((p) => new THREE.Vector2(p.x, p.y)));
+      s.holes.push(new THREE.Path().absarc(0, 0, shape.hole, 0, Math.PI * 2, true));
+      return [{ geometry: extrudeCentered(s, shape.thickness, 0.02), material }, { geometry: disc(shape.hole, shape.thickness + 0.08, 20), material: 'blued' }];
+    }
   }
 }
 
@@ -351,8 +365,40 @@ function hand(length: number, width: number, thickness: number, material: Materi
   return [{ geometry: extrudeCentered(handOutline(style, length, width), thickness, 0.02), material }, { geometry: disc(width + 0.1, 0.2, 32), material }];
 }
 
+// A heart cam, its point along +X at the rim and its cleft on the far side, with an arbor hole at the origin. The rim
+// runs as a spiral from the cleft to the point on each side, so a hammer pressing it always turns it toward the point.
+function heartOutline(radius: number): THREE.Shape {
+  const s = new THREE.Shape();
+  const n = 48;
+  const r = (a: number) => radius * (0.55 + 0.45 * (1 - Math.abs(a) / Math.PI));
+  for (let i = 0; i <= n; i++) {
+    const a = -Math.PI + (2 * Math.PI * i) / n;
+    const x = r(a) * Math.cos(a), y = r(a) * Math.sin(a) * 0.9;
+    if (i === 0) s.moveTo(x, y);
+    else s.lineTo(x, y);
+  }
+  s.holes.push(new THREE.Path().absarc(0, 0, 0.18, 0, Math.PI * 2, true));
+  return s;
+}
+
+// A stepped switching cam: `teeth` ratchet teeth, each with a raised lobe on every second one so a lever alternately
+// rises and drops with each step.
+function camOutline(teeth: number, radius: number): THREE.Shape {
+  const s = new THREE.Shape();
+  const pitch = (Math.PI * 2) / teeth;
+  for (let i = 0; i < teeth; i++) {
+    const a = i * pitch;
+    const top = radius * (i % 2 === 0 ? 1 : 0.86);
+    const pts: Array<[number, number]> = [[radius * 0.72, a], [top, a + pitch * 0.75], [top * 0.97, a + pitch * 0.95]];
+    pts.forEach(([r, t], k) => (i === 0 && k === 0 ? s.moveTo(r * Math.cos(t), r * Math.sin(t)) : s.lineTo(r * Math.cos(t), r * Math.sin(t))));
+  }
+  s.closePath();
+  s.holes.push(new THREE.Path().absarc(0, 0, 0.2, 0, Math.PI * 2, true));
+  return s;
+}
+
 // Printed ring: UVs map the band's mid radius to 0.87 of the texture radius (see textures.dateNumbers).
-function dateRing(teeth: number, rIn: number, rOut: number, thickness: number): Layer[] {
+function dateRing(teeth: number, rIn: number, rOut: number, thickness: number, print: 'date' | 'day' = 'date'): Layer[] {
   const s = new THREE.Shape();
   s.absarc(0, 0, rOut, 0, Math.PI * 2, false);
   const hole = new THREE.Path();
@@ -364,7 +410,7 @@ function dateRing(teeth: number, rIn: number, rOut: number, thickness: number): 
   const uv = g.getAttribute('uv');
   for (let i = 0; i < pos.count; i++) uv.setXY(i, 0.5 + pos.getX(i) / (2 * scale), 0.5 + pos.getY(i) / (2 * scale));
   uv.needsUpdate = true;
-  const layers: Layer[] = [{ geometry: g, material: 'date' }];
+  const layers: Layer[] = [{ geometry: g, material: print }];
   for (let i = 0; i < teeth; i++) {
     const a = ((i + 0.5) / teeth) * Math.PI * 2;
     layers.push({ geometry: new THREE.BoxGeometry(0.34, 0.7, thickness).rotateZ(-a).translate(Math.sin(a) * (rIn - 0.25), Math.cos(a) * (rIn - 0.25), 0), material: 'steel' });

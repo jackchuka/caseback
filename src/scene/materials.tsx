@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import * as THREE from 'three';
 import type { MovementMaterial } from '../geometry/parts';
-import { cotesDeGeneve, dateNumbers, perlage, sunburst } from './textures';
+import { cotesDeGeneve, dateNumbers, dayNames, perlage, sunburst } from './textures';
 
 export type MaterialSet = Record<MovementMaterial, THREE.MeshPhysicalMaterial>;
 
@@ -10,7 +10,8 @@ export function createMaterials(): MaterialSet {
   const pearl = perlage();
   const sun = sunburst();
   const dates = dateNumbers();
-  dates.wrapS = dates.wrapT = THREE.ClampToEdgeWrapping;
+  const days = dayNames();
+  dates.wrapS = dates.wrapT = days.wrapS = days.wrapT = THREE.ClampToEdgeWrapping;
   return {
     gilt: new THREE.MeshPhysicalMaterial({ color: 0xe8c07a, metalness: 1, roughness: 0.22, bumpMap: sun, bumpScale: 0.25, clearcoat: 0.3, clearcoatRoughness: 0.2 }),
     steel: new THREE.MeshPhysicalMaterial({ color: 0xeef0f3, metalness: 1, roughness: 0.12 }),
@@ -24,6 +25,7 @@ export function createMaterials(): MaterialSet {
     slot: new THREE.MeshPhysicalMaterial({ color: 0x050a1a, metalness: 0.5, roughness: 0.6 }),
     lume: new THREE.MeshPhysicalMaterial({ color: 0xf2eee2, roughness: 0.5, metalness: 0 }),
     date: new THREE.MeshPhysicalMaterial({ map: dates, roughness: 0.45, clearcoat: 0.4 }),
+    day: new THREE.MeshPhysicalMaterial({ map: days, roughness: 0.45, clearcoat: 0.4 }),
   };
 }
 
