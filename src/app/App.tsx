@@ -7,10 +7,11 @@ import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
-import { caseRadii } from '../scene/caseGeometry';
 import { Exterior } from '../scene/Exterior';
-import { dialRadius } from '../scene/exterior/dial';
-import { watchHands } from '../scene/exterior/hands';
+import { movementFrame } from '../scene/exterior/frame';
+import { dialRadius } from '../scene/exterior/legacy/dial';
+import { watchHands } from '../scene/exterior/legacy/hands';
+import { caseRadii } from '../scene/exterior/legacy/radii';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
@@ -31,7 +32,7 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
   const mode = useApp((s) => s.mode);
   const handLayers = useMemo(() => {
     if (!watch) return undefined;
-    const h = watchHands(watch.exterior, dialRadius(caseRadii(caliber.specs.diameterMm, watch.exterior)));
+    const h = watchHands(watch.exterior, dialRadius(caseRadii(movementFrame(caliber), watch.exterior)));
     return { 'hour-hand': h.hour, 'minute-hand': h.minute };
   }, [caliber, watch]);
   useThemeAttr();

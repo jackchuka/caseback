@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { watches } from '../../../data/watches';
-import { caseRadii } from '../caseGeometry';
-import { bend } from './kit/bend';
+import { calibers } from '../../../../data/calibers';
+import { watches } from '../../../../data/watches';
+import { movementFrame } from '../frame';
+import { caseRadii } from './radii';
+import { bend } from '../kit/bend';
 import { bezel } from './bezel';
 import { crystal } from './crystal';
 import { dialLayers, dialTextureSpec } from './dial';
 import { strap } from './strap';
+
+const FRAME = movementFrame(calibers['eta-2824-2']!);
 
 const bbox = (ls: { geometry: THREE.BufferGeometry }[]) => {
   const b = new THREE.Box3();
@@ -17,14 +21,14 @@ const bbox = (ls: { geometry: THREE.BufferGeometry }[]) => {
 describe('exterior generators', () => {
   for (const w of Object.values(watches)) {
     const e = w.exterior;
-    const r = caseRadii(25.6, e);
+    const r = caseRadii(FRAME, e);
     it(`${w.id}: crystal sits inside the bezel and domes forward`, () => {
       const b = bbox(crystal(e, r));
       expect(b.max.x).toBeLessThan(r.outer - e.bezel.widthMm + 0.2);
       expect(b.min.z).toBeLessThan(r.bottom - e.crystal.domeMm + 0.01);
     });
     it(`${w.id}: dial fits inside the case and indices count`, () => {
-      const layers = dialLayers(e, r);
+      const layers = dialLayers(e, r, FRAME);
       const b = bbox(layers);
       expect(b.max.x).toBeLessThan(r.inner);
       const applied = layers.filter((l) => l.material === 'lume').length;
@@ -34,7 +38,7 @@ describe('exterior generators', () => {
   }
   it('dive bezel stays within the case outline', () => {
     const e = watches['tudor/heritage-black-bay-79220b']!.exterior;
-    const r = caseRadii(25.6, e);
+    const r = caseRadii(FRAME, e);
     const b = bbox(bezel(e, r));
     expect(b.max.x).toBeLessThanOrEqual(r.outer + 0.01);
     expect(b.min.x).toBeGreaterThanOrEqual(-(r.outer + 0.01));
@@ -54,7 +58,7 @@ describe('exterior generators', () => {
 describe('dive bezel insert', () => {
   it('sits on the front (dial) side of the case', () => {
     const e = watches['tudor/heritage-black-bay-79220b']!.exterior;
-    const r = caseRadii(25.6, e);
+    const r = caseRadii(FRAME, e);
     const insert = bezel(e, r).filter((l) => l.material === 'insert');
     expect(insert).toHaveLength(1);
     const b = bbox(insert);
@@ -65,9 +69,9 @@ describe('dive bezel insert', () => {
 describe('strap faces', () => {
   it('every strap piece has outward-facing triangles, including the mirrored ones', () => {
     const e = watches['sinn/556']!.exterior;
-    const r = caseRadii(25.6, e);
+    const r = caseRadii(FRAME, e);
     const hamilton = watches['hamilton/khaki-field-auto-h70455553']!.exterior;
-    for (const [k, l] of [...strap(e, r), ...strap(hamilton, caseRadii(25.6, hamilton))].entries()) {
+    for (const [k, l] of [...strap(e, r), ...strap(hamilton, caseRadii(FRAME, hamilton))].entries()) {
       const g = l.geometry.index ? l.geometry.toNonIndexed() : l.geometry;
       const p = g.getAttribute('position');
       g.computeBoundingBox();
@@ -87,10 +91,10 @@ describe('strap faces', () => {
 
 describe('realism details', () => {
   const ham = watches['hamilton/khaki-field-auto-h70455553']!.exterior;
-  const hr = caseRadii(25.6, ham);
+  const hr = caseRadii(FRAME, ham);
   it('cuts a date window at 3 o\'clock over the date ring and drops the printed 3', () => {
     expect(ham.dial.dateWindow).toBe(true);
-    const disc = dialLayers(ham, hr).find((l) => l.material === 'dial')!;
+    const disc = dialLayers(ham, hr, FRAME).find((l) => l.material === 'dial')!;
     const mesh = new THREE.Mesh(disc.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
     const hitAt = (x: number) => new THREE.Raycaster(new THREE.Vector3(x, 0, -10), new THREE.Vector3(0, 0, 1)).intersectObject(mesh).length;
     expect(hitAt(10.8)).toBe(0);
@@ -116,8 +120,8 @@ describe('dial proportion', () => {
   it('dials fill most of the case, like the real watches (dial radius ≥ 80 % of the case radius)', () => {
     for (const w of Object.values(watches)) {
       const e = w.exterior;
-      const r = caseRadii(25.6, e);
-      const b = bbox(dialLayers(e, r).filter((l) => l.material === 'dial'));
+      const r = caseRadii(FRAME, e);
+      const b = bbox(dialLayers(e, r, FRAME).filter((l) => l.material === 'dial'));
       expect(b.max.x / (e.case.diameterMm / 2), w.id).toBeGreaterThanOrEqual(e.bezel.kind === 'dive' ? 0.75 : 0.85);
     }
   });
@@ -127,7 +131,7 @@ import { crown, fluteCount } from './crown';
 describe('crown', () => {
   it('turns a fluted grip at the real diameter and length', () => {
     const e = watches['tudor/heritage-black-bay-79220b']!.exterior;
-    const body = crown(e, caseRadii(25.6, e))[0]!.geometry;
+    const body = crown(e, caseRadii(FRAME, e))[0]!.geometry;
     const p = body.getAttribute('position');
     const radii: number[] = [];
     let minY = Infinity, maxY = -Infinity;

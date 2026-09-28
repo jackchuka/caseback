@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { watches } from '../../../data/watches';
-import { caseRadii } from '../caseGeometry';
+import { calibers } from '../../../../data/calibers';
+import { watches } from '../../../../data/watches';
+import { movementFrame } from '../frame';
+import { caseRadii } from './radii';
 import { caseBody, caseShape, springBar } from './caseBody';
-import { closedAndOutward } from './kit/meshCheck';
+import { closedAndOutward } from '../kit/meshCheck';
+
+const FRAME = movementFrame(calibers['eta-2824-2']!);
 
 describe('one-piece case middle', () => {
   for (const w of Object.values(watches)) {
     const e = w.exterior;
-    const r = caseRadii(25.6, e);
+    const r = caseRadii(FRAME, e);
     const s = caseShape(e, r);
     const lw = e.case.lugWidthMm / 2;
     const W = e.case.lugs.widthMm;
@@ -67,7 +71,7 @@ describe('one-piece case middle', () => {
 describe('crown guards', () => {
   const base = watches['tudor/heritage-black-bay-79220b']!.exterior;
   const guarded = { ...base, crown: { ...base.crown, guards: true } };
-  const r = caseRadii(25.6, guarded);
+  const r = caseRadii(FRAME, guarded);
   const cr = guarded.crown.diameterMm / 2;
   it('grows two shoulders out of the case beside the crown, leaving the crown free', () => {
     const s = caseShape(guarded, r);

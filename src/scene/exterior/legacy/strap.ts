@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import type { WatchExterior } from '../../model/watch';
-import type { Layer } from '../../geometry/parts';
-import type { CaseRadii } from '../caseGeometry';
-import { bend, flipWinding } from './kit/bend';
+import type { LegacyConfig } from './config';
+import type { Layer } from '../../../geometry/parts';
+import type { CaseRadii } from './radii';
+import { bend, flipWinding } from '../kit/bend';
 import { springBar } from './caseBody';
 
 const WRIST_RADIUS = 26;
@@ -19,7 +19,7 @@ function taper(g: THREE.BufferGeometry, start: number) {
   return g;
 }
 
-export function strap(e: WatchExterior, r: CaseRadii): Layer[] {
+export function strap(e: LegacyConfig, r: CaseRadii): Layer[] {
   // The strap wraps the spring bar, which sits in the lug tips where they have swept down toward the wrist.
   const bar = springBar(e, r);
   const tip = bar.y - 0.8;

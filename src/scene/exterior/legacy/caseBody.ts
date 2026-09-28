@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import type { WatchExterior } from '../../model/watch';
-import type { Layer } from '../../geometry/parts';
-import type { CaseRadii } from '../caseGeometry';
-import { surfaceNets } from './kit/surfaceNets';
-import { extrudeProfile, roundedConvex, smax, smin } from './kit/sdf';
+import type { LegacyConfig } from './config';
+import type { Layer } from '../../../geometry/parts';
+import type { CaseRadii } from './radii';
+import { surfaceNets } from '../kit/surfaceNets';
+import { extrudeProfile, roundedConvex, smax, smin } from '../kit/sdf';
 
 // Fractions of the case-middle height: how far the lug tips sweep toward the wrist, and how much the lug
 // underside lifts off the wrist line toward the tip (Hamilton side photo; Tudor and Sinn are close).
@@ -21,7 +21,7 @@ const HOLE_RADIUS = 0.55;
 // The case middle as one solid, the way it is forged and machined: a round body and four lugs fused by concave
 // fillets, a flat top that runs out along the lugs and sweeps down toward the wrist, a polished bevel along the
 // top edge, and the movement bore through the middle. Everything is symmetric about both axes.
-export function caseShape(e: WatchExterior, r: CaseRadii) {
+export function caseShape(e: LegacyConfig, r: CaseRadii) {
   const R = r.outer;
   const lw = e.case.lugWidthMm / 2;
   const W = e.case.lugs.widthMm;
@@ -106,11 +106,11 @@ export function caseShape(e: WatchExterior, r: CaseRadii) {
   return { sdf, polish, front, back, midZ, hole, bounds: { x: R + (guard ? guardReach : 0) + 0.5, y: tip + 0.5, z: [r.bottom - 0.5, top + 0.5] as [number, number] } };
 }
 
-export function springBar(e: WatchExterior, r: CaseRadii) {
+export function springBar(e: LegacyConfig, r: CaseRadii) {
   return caseShape(e, r).hole;
 }
 
-export function caseBody(e: WatchExterior, r: CaseRadii, step = 0.2): Layer[] {
+export function caseBody(e: LegacyConfig, r: CaseRadii, step = 0.2): Layer[] {
   const s = caseShape(e, r);
   const b = s.bounds;
   const g = surfaceNets(s.sdf, [-b.x, -b.y, b.z[0]], [b.x, b.y, b.z[1]], step);

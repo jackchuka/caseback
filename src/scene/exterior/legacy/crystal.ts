@@ -1,14 +1,14 @@
 import * as THREE from 'three';
-import type { WatchExterior } from '../../model/watch';
-import type { Layer } from '../../geometry/parts';
-import type { CaseRadii } from '../caseGeometry';
+import type { LegacyConfig } from './config';
+import type { Layer } from '../../../geometry/parts';
+import type { CaseRadii } from './radii';
 
-export function crystalRadius(e: WatchExterior, r: CaseRadii) {
+export function crystalRadius(e: LegacyConfig, r: CaseRadii) {
   // Seated in a groove in the bezel's inner wall, so its edge never shows beside the wall.
   return r.outer - e.bezel.widthMm + 0.15;
 }
 
-export function crystal(e: WatchExterior, r: CaseRadii): Layer[] {
+export function crystal(e: LegacyConfig, r: CaseRadii): Layer[] {
   const cr = crystalRadius(e, r);
   const dome = Math.max(0.05, e.crystal.domeMm);
   // Spherical cap with base radius cr and height dome: sphere radius R = (cr² + h²) / 2h.

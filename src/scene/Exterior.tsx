@@ -8,18 +8,20 @@ import type { Watch } from '../model/watch';
 import { appStore, useApp } from '../state/app';
 import { useMaterials } from './materials';
 import { crownEuler, crownState } from './crown';
-import { caseRadii, casingRing, stemExtension } from './caseGeometry';
+import { casingRing, stemExtension } from './caseGeometry';
 import { openingPose } from './opening';
 import { type Layer, type LayerMaterial, type MovementMaterial } from '../geometry/parts';
-import { bezel as bezelLayers } from './exterior/bezel';
-import { crown as crownLayers } from './exterior/crown';
-import { crystal as crystalLayers } from './exterior/crystal';
-import { dialLayers, dialRadius } from './exterior/dial';
-import { watchHands } from './exterior/hands';
-import { caseBody } from './exterior/caseBody';
+import { movementFrame } from './exterior/frame';
+import { bezel as bezelLayers } from './exterior/legacy/bezel';
+import { crown as crownLayers } from './exterior/legacy/crown';
+import { crystal as crystalLayers } from './exterior/legacy/crystal';
+import { dialLayers, dialRadius } from './exterior/legacy/dial';
+import { watchHands } from './exterior/legacy/hands';
+import { caseBody } from './exterior/legacy/caseBody';
+import { caseRadii } from './exterior/legacy/radii';
 import { withPolish } from './exterior/kit/polish';
-import { paintDial, paintInsert, paintStrap } from './exterior/paint';
-import { strap as strapLayers } from './exterior/strap';
+import { paintDial, paintInsert, paintStrap } from './exterior/legacy/paint';
+import { strap as strapLayers } from './exterior/legacy/strap';
 import { exteriorVisibility } from './exterior/visibility';
 import { registry } from './registry';
 import { engraving } from './textures';
@@ -29,7 +31,8 @@ const CASE_COLORS = { steel: [0xc8cbd0, 0.3], titanium: [0xa9acb0, 0.45], gold: 
 export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
   const r = caliber.specs.diameterMm / 2;
   const ext = watch?.exterior;
-  const { inner, outer, height, bottom } = caseRadii(caliber.specs.diameterMm, ext);
+  const frame = useMemo(() => movementFrame(caliber), [caliber]);
+  const { inner, outer, height, bottom } = caseRadii(frame, ext);
   const top = bottom + height;
   const materials = useMaterials();
   const quality = useApp((s) => s.quality);
@@ -68,11 +71,11 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       bezel: bezelLayers(ext, r),
       crown: crownLayers(ext, r),
       crystal: crystalLayers(ext, r),
-      dial: dialLayers(ext, r),
+      dial: dialLayers(ext, r, frame),
       strap: strapLayers(ext, r),
       seconds: ext.hands.seconds ? watchHands(ext, dialRadius(r)).seconds : [],
     };
-  }, [ext, inner, outer, height, bottom, materials, quality]);
+  }, [ext, inner, outer, height, bottom, materials, quality, frame]);
   const backMat = useMemo(() => {
     const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^ETA /, '')}` });
     return new THREE.MeshPhysicalMaterial({ color: 0xd0d3d7, metalness: 1, roughness: 0.3, bumpMap: tex, bumpScale: 1.2, roughnessMap: tex, transparent: true });

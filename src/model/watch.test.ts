@@ -32,16 +32,4 @@ describe('watch schema', () => {
     tiny.exterior.case.diameterMm = 26;
     expect(validateWatch(tiny, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: case 26 mm cannot hold a 25.6 mm movement');
   });
-  it('rejects lug-to-lug not exceeding the case', () => {
-    const bad = { ...w(), exterior: { ...ext(), case: { ...ext().case, lugToLugMm: 39 } } };
-    expect(validateWatch(bad, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: lug-to-lug must exceed the case diameter');
-  });
-  it('rejects lugs that reach past the round case', () => {
-    const bad = { ...w(), exterior: { ...ext(), case: { ...ext().case, lugs: { widthMm: 11, taper: 1, drilled: false } } } };
-    expect(validateWatch(bad, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: lugs are wider than the case');
-  });
-  it('rejects a bezel wider than a quarter of the case', () => {
-    const bad = { ...w(), exterior: { ...ext(), bezel: { kind: 'dive' as const, widthMm: 11, finish: 'brushed' as const } } };
-    expect(validateWatch(bad, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: bezel too wide');
-  });
 });

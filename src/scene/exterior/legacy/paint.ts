@@ -1,10 +1,10 @@
-import type { WatchExterior } from '../../model/watch';
-import { canvasTexture } from './kit/canvas';
+import type { LegacyConfig } from './config';
+import { canvasTexture } from '../kit/canvas';
 import { dialTextureSpec } from './dial';
 
 // Pre-mirrored vertically: the disc is seen from −Z, like the date ring.
 // The dial disc is turned to face the front (rotateX(π)), which already flips it vertically; no pre-mirror.
-export function paintDial(e: WatchExterior) {
+export function paintDial(e: LegacyConfig) {
   return canvasTexture(2048, 2048, (g) => {
     const s = 2048;
     g.fillStyle = e.dial.color;
@@ -53,7 +53,7 @@ export function paintDial(e: WatchExterior) {
   }, 8);
 }
 
-export function paintInsert(e: WatchExterior) {
+export function paintInsert(e: LegacyConfig) {
   return canvasTexture(2048, 2048, (g) => {
     const s = 2048;
     g.fillStyle = e.bezel.insertColor ?? '#222';
@@ -84,7 +84,7 @@ export function paintInsert(e: WatchExterior) {
 }
 
 // Leather with contrast stitching along both edges; mapped onto the strap's faces (UV x across, y along).
-export function paintStrap(e: WatchExterior) {
+export function paintStrap(e: LegacyConfig) {
   return canvasTexture(256, 1024, (g) => {
     const w = 256;
     const h = 1024;

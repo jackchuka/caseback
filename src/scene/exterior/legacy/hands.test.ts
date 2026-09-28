@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { watches } from '../../../data/watches';
+import { watches } from '../../../../data/watches';
 import { watchHands } from './hands';
 
 const extent = (layers: { geometry: THREE.BufferGeometry }[]) => {

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import type { WatchExterior } from '../../model/watch';
-import type { Layer } from '../../geometry/parts';
-import type { CaseRadii } from '../caseGeometry';
+import type { LegacyConfig } from './config';
+import type { Layer } from '../../../geometry/parts';
+import type { CaseRadii } from './radii';
 
-export function crownX(e: WatchExterior, r: CaseRadii) {
+export function crownX(e: LegacyConfig, r: CaseRadii) {
   return r.outer + e.crown.lengthMm / 2 - 0.2;
 }
 
@@ -14,7 +14,7 @@ export function fluteCount(diameterMm: number) {
 
 // A crown turned on a lathe: a slightly domed end face with a chamfer, a fluted grip, and a neck stepping down to the
 // tube. Its axis is local Y with +Y toward the case.
-export function crown(e: WatchExterior, _r: CaseRadii): Layer[] {
+export function crown(e: LegacyConfig, _r: CaseRadii): Layer[] {
   const rad = e.crown.diameterMm / 2;
   const L = e.crown.lengthMm;
   const out = -L / 2;

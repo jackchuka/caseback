@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import type { WatchExterior } from '../../model/watch';
-import type { Layer } from '../../geometry/parts';
-import type { CaseRadii } from '../caseGeometry';
-import { bezelProfile } from '../caseGeometry';
-import { lathe } from './kit/lathe';
+import type { LegacyConfig } from './config';
+import type { Layer } from '../../../geometry/parts';
+import type { CaseRadii } from './radii';
+import { bezelProfile } from './radii';
+import { lathe } from '../kit/lathe';
 
 // Plain bezels in (radius, z), front is −z. They stop short of the case's polished bevel so it still shows, and
 // reach a little into the case front so no gap opens between the separate parts.
-export function plainBezelProfile(e: WatchExterior, r: CaseRadii): Array<[number, number]> {
+export function plainBezelProfile(e: LegacyConfig, r: CaseRadii): Array<[number, number]> {
   const b = r.bottom;
   const inner = r.outer - e.bezel.widthMm;
   const outer = r.outer - e.case.chamferMm * 0.6;
@@ -23,7 +23,7 @@ export function plainBezelProfile(e: WatchExterior, r: CaseRadii): Array<[number
   return [[inner, b + 0.05], [inner, b - 1.05], [inner + 0.25, b - 1.1], [outer - 0.2, b - 0.35], [outer, b - 0.15], [outer, b + 0.05], [inner, b + 0.05]];
 }
 
-export function bezel(e: WatchExterior, r: CaseRadii): Layer[] {
+export function bezel(e: LegacyConfig, r: CaseRadii): Layer[] {
   const metal = e.bezel.finish === 'polished' ? 'polished' : 'case';
   if (e.bezel.kind !== 'dive') return [{ geometry: lathe(plainBezelProfile(e, r)), material: metal }];
   const o = r.outer;

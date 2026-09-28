@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import type { WatchExterior } from '../../model/watch';
-import type { Layer, MovementMaterial } from '../../geometry/parts';
+import type { LegacyConfig } from './config';
+import type { Layer, MovementMaterial } from '../../../geometry/parts';
 
 type P = [number, number];
 type Outline = { frame: P[]; lume: P[] | null };
@@ -58,11 +58,11 @@ const hub = (r: number, z: number) => new THREE.CylinderGeometry(r, r, 0.2, 40).
 
 export type HandLayers = { hour: Layer[]; minute: Layer[]; seconds: Layer[] };
 
-export function frameMaterial(e: WatchExterior): MovementMaterial {
+export function frameMaterial(e: LegacyConfig): MovementMaterial {
   return ({ white: 'lume', silver: 'steel', blued: 'blued' } as const)[e.hands.color];
 }
 
-export function watchHands(e: WatchExterior, dialRadius: number): HandLayers {
+export function watchHands(e: LegacyConfig, dialRadius: number): HandLayers {
   const metal = frameMaterial(e);
   const [hw, mw] = WIDTH[e.hands.style];
   const one = (L: number, w: number): Layer[] => {
