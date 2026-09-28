@@ -5,7 +5,54 @@ import { bend, flipWinding } from './bend';
 export type BraceletSpec = {
   startWidth: number; endWidth: number; pitch: number; centerRatio: number; thickness: number;
   links: number; gap: number; wristRadius: number; centerRaise: number;
+  // Chamfer: how far the top face's bevel cuts back from each side edge. Crown: how far the top face's centre
+  // bulges outward past its edges (0 for a flat top).
+  chamfer: number; crown: number;
 };
+
+// One link piece's cross-section (width x thickness), constant along its length: a chamfered top edge on both
+// sides and, between them, a shallow outward crown so the top face reads as domed rather than flat. `z` is local
+// depth, more negative toward the outward (visible) face, matching how callers offset a piece with `dz`. Exported
+// so tests can pin the chamfer/crown shape directly, without the wrist bend's curvature confounding it.
+export function plateProfile(width: number, thickness: number, chamfer: number, crown: number, archSegments = 6): Array<[number, number]> {
+  const hw = width / 2, hz = thickness / 2;
+  const innerHw = Math.max(0, hw - chamfer);
+  const topZ = (x: number) => -hz - crown * (1 - (x / hw) ** 2);
+  const pts: Array<[number, number]> = [[-hw, hz], [-hw, topZ(-innerHw) + chamfer]];
+  for (let i = 0; i <= archSegments; i++) pts.push([-innerHw + (2 * innerHw * i) / archSegments, topZ(-innerHw + (2 * innerHw * i) / archSegments)]);
+  pts.push([hw, topZ(innerHw) + chamfer], [hw, hz]);
+  return pts;
+}
+
+// Sweeps a closed (width, depth) profile along Y from -len/2 to len/2: an indexed tube (profile vertices shared
+// around the ring, so the chamfer and crown shade smoothly) capped by two unshared fans (flat-shaded, since a
+// link's end butts against a real gap, not a soft edge).
+function extrudePlate(profile: Array<[number, number]>, len: number): THREE.BufferGeometry {
+  const n = profile.length;
+  const hl = len / 2;
+  const positions: number[] = [];
+  for (const y of [-hl, hl]) for (const [x, z] of profile) positions.push(x, y, z);
+  const indices: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = i, b = (i + 1) % n, c = n + ((i + 1) % n), d = n + i;
+    indices.push(a, c, b, a, d, c);
+  }
+  const cap = (y: number, reverse: boolean) => {
+    const start = positions.length / 3;
+    for (const [x, z] of profile) positions.push(x, y, z);
+    for (let i = 1; i < n - 1; i++) {
+      if (reverse) indices.push(start, start + i, start + i + 1);
+      else indices.push(start, start + i + 1, start + i);
+    }
+  };
+  cap(-hl, true);
+  cap(hl, false);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  return g;
+}
 
 // A three-piece-link bracelet running from the 12 and 6 o'clock lugs toward the wrist. Links narrow evenly from the
 // lugs to the far end; the centre piece stands a little proud, as on Oyster-type bracelets.
@@ -20,7 +67,7 @@ export function bracelet(s: BraceletSpec, start: { y: number; z: number }, mater
       // Trailing gap per link, not split around it, so the first link's near edge sits exactly at start.y.
       const y = start.y + i * s.pitch + len / 2;
       const piece = (width: number, x: number, dz: number, name: string, mat: string) => {
-        let g: THREE.BufferGeometry = new THREE.BoxGeometry(width, len, s.thickness, 2, 6, 1).translate(x, y, start.z + dz);
+        let g: THREE.BufferGeometry = extrudePlate(plateProfile(width, s.thickness, s.chamfer, s.crown), len).translate(x, y, start.z + dz);
         if (dir < 0) g = flipWinding(g.scale(1, -1, 1));
         layers.push({ geometry: bend(g, s.wristRadius, start.y, dir), material: mat, name });
       };
