@@ -5,7 +5,6 @@ import { watches } from '../../../data/watches';
 import type { ExteriorBuilder, ExteriorLayer } from './contract';
 import { movementFrame } from './frame';
 import { genericCase } from './generic';
-import { legacyRound } from './legacy';
 import { MOVEMENT_MATERIAL_KEYS, SHARED_EXTERIOR_MATERIALS, materialKeys } from './materials';
 
 const FRAME = movementFrame(calibers['eta-2824-2']!);
@@ -18,10 +17,7 @@ const vertices = (layers: ExteriorLayer[]) =>
   });
 const box = (layers: ExteriorLayer[]) => new THREE.Box3().setFromPoints(vertices(layers));
 
-const builders: Array<[string, ExteriorBuilder]> = [
-  ['generic', genericCase],
-  ...Object.values(watches).map((w): [string, ExteriorBuilder] => [w.id, legacyRound(w.exterior)]),
-];
+const builders: Array<[string, ExteriorBuilder]> = [['generic', genericCase], ...Object.values(watches).map((w): [string, ExteriorBuilder] => [w.id, w.exterior])];
 
 describe('exterior contract', () => {
   for (const [id, build] of builders) {

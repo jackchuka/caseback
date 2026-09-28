@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { watches } from '../../../../data/watches';
+import { legacyConfigs } from './configs';
 import { watchHands } from './hands';
 
 const extent = (layers: { geometry: THREE.BufferGeometry }[]) => {
@@ -10,11 +10,10 @@ const extent = (layers: { geometry: THREE.BufferGeometry }[]) => {
 };
 
 describe('watch hands', () => {
-  for (const w of Object.values(watches)) {
-    const e = w.exterior;
+  for (const [id, e] of Object.entries(legacyConfigs)) {
     const rd = 16;
     const h = watchHands(e, rd);
-    it(`${w.id}: sizes the hands to the dial like the real watch`, () => {
+    it(`${id}: sizes the hands to the dial like the real watch`, () => {
       const hour = extent(h.hour), minute = extent(h.minute), seconds = extent(h.seconds);
       // Hands point to −Y. Hour hand reaches the numerals, the minute hand the minute track.
       expect(-hour.min.y / rd).toBeGreaterThan(0.55);
@@ -28,7 +27,7 @@ describe('watch hands', () => {
       // The seconds hand carries a counterweight tail past the pivot.
       expect(seconds.max.y).toBeGreaterThan(rd * 0.2);
     });
-    it(`${w.id}: fills the hour and minute hands with lume in front of a metal frame`, () => {
+    it(`${id}: fills the hour and minute hands with lume in front of a metal frame`, () => {
       for (const hand of [h.hour, h.minute]) {
         const lume = hand.filter((l) => l.material === 'lume');
         const frame = hand.filter((l) => l.material !== 'lume');

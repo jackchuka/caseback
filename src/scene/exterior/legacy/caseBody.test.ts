@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../../data/calibers';
-import { watches } from '../../../../data/watches';
+import { legacyConfigs } from './configs';
 import { movementFrame } from '../frame';
 import { caseRadii } from './radii';
 import { caseBody, caseShape, springBar } from './caseBody';
@@ -10,8 +10,7 @@ import { closedAndOutward } from '../kit/meshCheck';
 const FRAME = movementFrame(calibers['eta-2824-2']!);
 
 describe('one-piece case middle', () => {
-  for (const w of Object.values(watches)) {
-    const e = w.exterior;
+  for (const [id, e] of Object.entries(legacyConfigs)) {
     const r = caseRadii(FRAME, e);
     const s = caseShape(e, r);
     const lw = e.case.lugWidthMm / 2;
@@ -21,12 +20,12 @@ describe('one-piece case middle', () => {
     const box = new THREE.Box3();
     for (const l of layers) { l.geometry.computeBoundingBox(); box.union(l.geometry.boundingBox!); }
 
-    it(`${w.id}: matches the real diameter and lug-to-lug`, () => {
+    it(`${id}: matches the real diameter and lug-to-lug`, () => {
       expect(box.max.y - box.min.y).toBeCloseTo(e.case.lugToLugMm, 0);
       expect(box.max.x - box.min.x).toBeCloseTo(e.case.diameterMm, 0);
     });
 
-    it(`${w.id}: leaves exactly the lug width free for the strap`, () => {
+    it(`${id}: leaves exactly the lug width free for the strap`, () => {
       // Away from the spring-bar hole.
       const y = tip - 4;
       const z = s.midZ(lw + W / 2, y);
@@ -34,25 +33,25 @@ describe('one-piece case middle', () => {
       expect(s.sdf(lw + 0.25, y, z)).toBeLessThan(0);
     });
 
-    it(`${w.id}: blends each lug into the round case with a concave fillet, not a sharp corner`, () => {
+    it(`${id}: blends each lug into the round case with a concave fillet, not a sharp corner`, () => {
       const x = lw + W + 0.4;
       const y = Math.sqrt(r.outer ** 2 - x ** 2) + 0.4;
       expect(s.sdf(x, y, s.midZ(x, y))).toBeLessThan(0);
     });
 
-    it(`${w.id}: keeps the case front flat and sweeps the lug tips toward the wrist`, () => {
+    it(`${id}: keeps the case front flat and sweeps the lug tips toward the wrist`, () => {
       expect(s.front(0, r.outer - 1)).toBeCloseTo(r.bottom, 5);
       expect(s.front(lw + W / 2, tip) - r.bottom).toBeGreaterThan(0.35 * r.height);
     });
 
-    it(`${w.id}: is one closed, outward-facing surface`, () => {
+    it(`${id}: is one closed, outward-facing surface`, () => {
       expect(layers).toHaveLength(1);
       const { open, volume } = closedAndOutward(layers[0]!.geometry);
       expect(open).toBe(0);
       expect(volume).toBeGreaterThan(0);
     });
 
-    it(`${w.id}: polishes the bevel and finishes top and flank as specified`, () => {
+    it(`${id}: polishes the bevel and finishes top and flank as specified`, () => {
       const z = r.bottom + e.case.chamferMm / 2;
       // Middle of the bevel at 9 o'clock, the top face just inside it, and the flank below.
       expect(s.polish(-(r.outer - e.case.chamferMm / 2), 0, z)).toBeGreaterThan(0.9);
@@ -60,7 +59,7 @@ describe('one-piece case middle', () => {
       expect(s.polish(-r.outer, 0, r.bottom + r.height / 2)).toBeCloseTo(e.case.finish.flank === 'polished' ? 1 : 0, 1);
     });
 
-    it(`${w.id}: ${e.case.lugs.drilled ? 'drills' : 'does not drill'} through the lugs`, () => {
+    it(`${id}: ${e.case.lugs.drilled ? 'drills' : 'does not drill'} through the lugs`, () => {
       const b = springBar(e, r);
       const through = s.sdf(lw + W * 0.5, b.y, b.z) > 0;
       expect(through).toBe(e.case.lugs.drilled);
@@ -69,7 +68,7 @@ describe('one-piece case middle', () => {
 });
 
 describe('crown guards', () => {
-  const base = watches['tudor/heritage-black-bay-79220b']!.exterior;
+  const base = legacyConfigs['tudor/heritage-black-bay-79220b']!;
   const guarded = { ...base, crown: { ...base.crown, guards: true } };
   const r = caseRadii(FRAME, guarded);
   const cr = guarded.crown.diameterMm / 2;

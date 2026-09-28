@@ -1,20 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { WatchSchema, validateWatch, type Watch } from './watch';
+import { WatchSchema, validateWatch, type WatchMeta } from './watch';
 
-const ext = (): Watch['exterior'] => ({
-  case: { diameterMm: 40, thicknessMm: 12, lugToLugMm: 48, lugWidthMm: 20, material: 'steel', finish: { top: 'brushed', flank: 'polished' }, flank: 'straight', chamferMm: 0.5, lugs: { widthMm: 3, taper: 1, drilled: false } },
-  bezel: { kind: 'plain', widthMm: 2, profile: 'sloped', finish: 'polished' },
-  crown: { diameterMm: 6, lengthMm: 3, tube: false, guards: false },
-  crystal: { domeMm: 0.5 },
-  dial: { color: '#111111', finish: 'matte', indices: 'bars-minute', indexColor: '#ffffff', dateWindow: false },
-  hands: { style: 'baton', color: 'white', seconds: true },
-  strap: { kind: 'leather', color: '#6b4226' },
-  caseback: 'solid',
-});
-
-const w = (): Watch => ({
+const w = (): WatchMeta => ({
   id: 'acme/diver', brand: 'Acme', model: 'Diver', reference: 'A1', caliberId: 'eta-2824-2',
-  exterior: ext(),
   sources: [{ id: 's', title: 'S', url: 'https://example.com' }],
 });
 
@@ -25,11 +13,8 @@ describe('watch schema', () => {
   it('rejects an id that is not brand/model', () => {
     expect(() => WatchSchema.parse({ ...w(), id: 'diver' })).toThrow();
   });
-  it('reports unknown calibers and cases smaller than the movement', () => {
-    const bad = { ...w(), caliberId: 'nope' };
-    expect(validateWatch(bad, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: unknown caliber nope');
-    const tiny = w();
-    tiny.exterior.case.diameterMm = 26;
-    expect(validateWatch(tiny, { 'eta-2824-2': { specs: { diameterMm: 25.6 } } })).toContain('acme/diver: case 26 mm cannot hold a 25.6 mm movement');
+  it('reports unknown calibers', () => {
+    expect(validateWatch({ ...w(), caliberId: 'nope' }, { 'eta-2824-2': {} })).toEqual(['acme/diver: unknown caliber nope']);
+    expect(validateWatch(w(), { 'eta-2824-2': {} })).toEqual([]);
   });
 });

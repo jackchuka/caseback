@@ -9,9 +9,7 @@ import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
 import { Exterior } from '../scene/Exterior';
 import { movementFrame } from '../scene/exterior/frame';
-import { dialRadius } from '../scene/exterior/legacy/dial';
-import { watchHands } from '../scene/exterior/legacy/hands';
-import { caseRadii } from '../scene/exterior/legacy/radii';
+import { genericCase } from '../scene/exterior/generic';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
@@ -30,11 +28,13 @@ import { TourBar } from '../ui/TourBar';
 export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i18n; webgl: boolean; watch?: Watch }) {
   const quality = useApp((s) => s.quality);
   const mode = useApp((s) => s.mode);
-  const handLayers = useMemo(() => {
-    if (!watch) return undefined;
-    const h = watchHands(watch.exterior, dialRadius(caseRadii(movementFrame(caliber), watch.exterior)));
-    return { 'hour-hand': h.hour, 'minute-hand': h.minute };
-  }, [caliber, watch]);
+  const frame = useMemo(() => movementFrame(caliber), [caliber]);
+  const build = useMemo(() => (watch?.exterior ?? genericCase)({ movement: frame, quality }), [watch, frame, quality]);
+  // A watch's own hands replace the movement's; the generic case keeps the movement's.
+  const handLayers = useMemo(
+    () => (build.parts.hands.hour.length > 0 ? { 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute } : undefined),
+    [build],
+  );
   useThemeAttr();
   useI18nLang(i18n);
   useKeyboard();
@@ -53,7 +53,7 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
           <group ref={(g) => { flipGroup.current = g; }}>
           <Movement caliber={caliber} handLayers={handLayers}>
             <FlowPaths caliber={caliber} />
-            <Exterior caliber={caliber} watch={watch} />
+            <Exterior caliber={caliber} build={build} frame={frame} watchFront={!!watch} />
           </Movement>
           </group>
           <CameraRig caliber={caliber} watchFront={!!watch} />

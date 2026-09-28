@@ -3,9 +3,8 @@ import type { LegacyConfig } from './config';
 
 export type CaseRadii = { inner: number; outer: number; height: number; bottom: number };
 
-export function caseRadii(m: Pick<MovementFrame, 'diameterMm' | 'frontZ'>, ext?: LegacyConfig): CaseRadii {
+export function caseRadii(m: Pick<MovementFrame, 'diameterMm' | 'frontZ'>, ext: LegacyConfig): CaseRadii {
   const r = m.diameterMm / 2;
-  if (!ext) return { inner: r + 0.35, outer: r + 3.5, height: 7.8, bottom: m.frontZ };
   const outer = ext.case.diameterMm / 2;
   // The opening follows the bezel: a slim bezel leaves a wide dial, as on the real watches.
   return { inner: Math.max(r + 0.35, outer - ext.bezel.widthMm - 1.0), outer, height: ext.case.thicknessMm * 0.62, bottom: m.frontZ };

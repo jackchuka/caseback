@@ -1,5 +1,5 @@
-import type { Watch } from '../../../../src/model/watch';
-const watch: Watch = {
+import type { WatchMeta } from '../../../../src/model/watch';
+const watch: WatchMeta = {
   id: 'hamilton/khaki-field-auto-h70455553',
   brand: 'Hamilton',
   model: 'Khaki Field Auto',
@@ -7,16 +7,6 @@ const watch: Watch = {
   caliberId: 'eta-2824-2',
   caliberNotes: 'Hamilton calibre H-10 is Hamilton\'s version of the ETA C07.611, a 2824 derivative slowed to 21,600 vph for an 80 h power reserve.',
   movement: { name: 'Hamilton H-10', vph: 21600, powerReserveH: 80, sourceIds: ['watchbase-h10', 'calibercorner-h10'] },
-  exterior: {
-    case: { diameterMm: 38, thicknessMm: 11, lugToLugMm: 47, lugWidthMm: 20, material: 'steel', finish: { top: 'brushed', flank: 'brushed' }, flank: 'straight', chamferMm: 0.4, lugs: { widthMm: 3.0, taper: 0.95, drilled: false } },
-    bezel: { kind: 'plain', widthMm: 1.4, profile: 'sloped', finish: 'polished' },
-    crown: { diameterMm: 6.5, lengthMm: 3.5, tube: false, guards: false },
-    crystal: { domeMm: 0.6 },
-    dial: { color: '#cfcfca', finish: 'sunburst', indices: 'arabic-24', indexColor: '#1a1a1a', lume: '#e8e2cf', dateWindow: true },
-    hands: { style: 'syringe', color: 'silver', seconds: true },
-    strap: { kind: 'leather', color: '#6b4226' },
-    caseback: 'display',
-  },
   sources: [
     { id: 'gnomon-h70455553', title: 'Khaki Field Automatic Silver 38 (luminous syringe hands) — Gnomon Watches', url: 'https://www.gnomonwatches.com/products/khaki-field-automatic-silver-38-brown-leather-ref-h70455553' },
     { id: 'watchreviewblog-h70455553', title: 'Hamilton Khaki Field Automatic 38mm review — WatchReviewBlog', url: 'https://www.watchreviewblog.com/hamilton-khaki-field-automatic-38mm-watch-review/' },
