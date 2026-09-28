@@ -208,7 +208,8 @@ describe('ETA 2824-2 back-side geometry', () => {
         if (r > reach || (r > boss && r < discInner)) continue;
         expect(v.z, `${p.id} at r=${r.toFixed(2)}`).toBeLessThan((r <= boss ? hubBottom : discBottom) - 0.02);
       }
-  });
+    // Builds every back-side part's geometry: ~2.5 s alone, slower under the parallel suite.
+  }, 20_000);
   it('keeps the automatic wheels clear of the bridges, their screws and jewels', () => {
     const bridges = ['train-bridge', 'barrel-bridge', 'balance-cock'].flatMap(verts);
     for (const id of ['reverser-a', 'reverser-b', 'reduction-wheel']) {
