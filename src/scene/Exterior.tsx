@@ -22,6 +22,8 @@ function Layers({ layers, pick, name, shadows = false }: { layers: ExteriorLayer
 
 // Half of the cover rotor's 0.45 mm extrusion: it sits flush with the movement's rotor.
 const ROTOR_HALF = 0.225;
+// How far the watch's seconds hand travels when exploded: beyond the minute hand (−7.2), as it sits in front of it.
+const SECONDS_EXPLODE_DZ = -8.2;
 
 export function Exterior({ caliber, build, frame, watchFront }: { caliber: Caliber; build: ExteriorBuild; frame: MovementFrame; watchFront: boolean }) {
   const r = frame.diameterMm / 2;
@@ -104,6 +106,12 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
     if (strapGroup.current) strapGroup.current.visible = vis.strap;
     const fourth = registry.get('fourth-wheel');
     if (secondsGroup.current && fourth) secondsGroup.current.rotation.z = fourth.group.rotation.z;
+    // The seconds hand isn't a movement part, so it follows the minute hand's explode progress, one step further out.
+    const minute = registry.get('minute-hand');
+    if (secondsGroup.current && minute) {
+      const progress = (minute.group.position.z - minute.part.pos.z) / minute.part.explode.dz;
+      secondsGroup.current.position.z = frame.secondsZ + SECONDS_EXPLODE_DZ * progress;
+    }
     if (s.mode === 'opening' && pose.done) {
       openT.current = 0;
       s.finishOpening();
@@ -144,7 +152,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
       <group ref={strapGroup} name="strap">
         <Layers layers={p.strap} pick={pick} shadows />
       </group>
-      <group ref={secondsGroup} name="seconds-hand" position-z={frame.secondsZ}>
+      <group ref={secondsGroup} name="seconds-hand">
         {p.hands.seconds.map((l, i) => <mesh key={i} geometry={l.geometry} material={resolveMaterial(l.material, {}, movementMaterials)} />)}
       </group>
       <group ref={back}>
