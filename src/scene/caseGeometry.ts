@@ -6,3 +6,8 @@ export function casingRing(movementRadius: number, inner: number): { rIn: number
 export function stemExtension(stemEnd: number, crownX: number, crownLength: number): { from: number; to: number } {
   return { from: stemEnd, to: Math.max(stemEnd, crownX - crownLength / 2) };
 }
+
+// The casing ring fills the gap between a small movement and the case wall over the movement's whole depth.
+export function casingSpan(f: { plateFrontZ: number; rotorBackZ: number }) {
+  return { from: f.plateFrontZ, to: f.rotorBackZ };
+}

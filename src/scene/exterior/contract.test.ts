@@ -33,6 +33,11 @@ describe('exterior contract', () => {
         all = [...p.case, ...p.bezel, ...p.dial, ...p.crystal, ...p.strap, ...p.caseback, ...p.crown, ...p.hands.hour, ...p.hands.minute, ...p.hands.seconds];
       });
 
+      it('closes the case and caseback over the rotor', () => {
+        const enclosure = Math.max(box(p.caseback).max.z, box(p.case).max.z);
+        expect(enclosure - FRAME.rotorBackZ).toBeGreaterThanOrEqual(0.05);
+      });
+
       it('every vertex is finite', () => {
         const bad = vertices(all).filter((v) => !Number.isFinite(v.x) || !Number.isFinite(v.y) || !Number.isFinite(v.z));
         expect(bad).toHaveLength(0);

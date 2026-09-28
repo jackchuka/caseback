@@ -17,6 +17,12 @@ describe('movementFrame', () => {
     expect(f.dateWindow!.x).toBeCloseTo(10.8, 6);
     expect(f.dateWindow).toMatchObject({ width: 2.4, height: 1.8 });
   });
+  it('reports the plate dial face and the rotor back', () => {
+    const f = movementFrame(c);
+    expect(f.plateFrontZ).toBeCloseTo(-1.15, 6);
+    expect(f.rotorBackZ - f.plateFrontZ).toBeGreaterThan(4.3);
+    expect(f.rotorBackZ - f.plateFrontZ).toBeLessThan(4.9);
+  });
   it('gives a caliber without a date ring no window and a dial just in front of the hour wheel', () => {
     const f = movementFrame({ ...c, parts: c.parts.filter((p) => p.shape.kind !== 'date-ring') });
     expect(f.dateWindow).toBeNull();

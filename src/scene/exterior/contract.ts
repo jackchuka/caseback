@@ -25,6 +25,8 @@ export type MovementFrame = {
   stemEnd: number | null;
   stemRadius: number;
   dateWindow: { x: number; width: number; height: number } | null;
+  plateFrontZ: number;
+  rotorBackZ: number;
 };
 
 export type ExteriorContext = { movement: MovementFrame; quality: 'high' | 'low' };

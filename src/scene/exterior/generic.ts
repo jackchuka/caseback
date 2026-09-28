@@ -7,7 +7,9 @@ import { lathe } from './kit/lathe';
 // The plain case a caliber page shows when no watch is chosen: a turned ring, four lugs and a crown.
 export const genericCase: ExteriorBuilder = ({ movement: m }) => {
   const r = m.diameterMm / 2;
-  const inner = r + 0.35, outer = r + 3.5, height = 7.8;
+  const inner = r + 0.35, outer = r + 3.5;
+  // Deep enough to close over the rotor with the caseback's clearance.
+  const height = m.rotorBackZ + 0.4 - m.frontZ;
   const bottom = m.frontZ, top = bottom + height;
   const ring = lathe([[inner, bottom], [outer - 1.1, bottom], [outer - 0.2, bottom + 1.2], [outer, bottom + 4.3], [outer - 0.5, top - 0.4], [outer - 1.0, top], [inner, top]], 160);
   const lugs = [-1, 1].flatMap((sx) =>

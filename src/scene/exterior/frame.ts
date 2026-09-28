@@ -13,6 +13,12 @@ export function movementFrame(c: Caliber): MovementFrame {
   const stem = c.parts.find((p) => p.shape.kind === 'stem');
   const ringShape = ring?.shape.kind === 'date-ring' ? ring.shape : null;
   const stemShape = stem?.shape.kind === 'stem' ? stem.shape : null;
+  const plate = c.parts.find((p) => p.shape.kind === 'plate');
+  const rotor = c.parts.find((p) => p.shape.kind === 'rotor');
+  const half = (p: Caliber['parts'][number]) => {
+    const s = p.shape as { thickness?: number; length?: number };
+    return (s.thickness ?? s.length ?? 0) / 2;
+  };
   return {
     diameterMm: c.specs.diameterMm,
     frontZ: c.exterior.frontZ,
@@ -23,5 +29,8 @@ export function movementFrame(c: Caliber): MovementFrame {
     stemRadius: stemShape?.radius ?? DEFAULT_STEM_RADIUS,
     // Over the middle of the ring's printed band at 3 o'clock.
     dateWindow: ringShape ? { x: (ringShape.innerRadius + ringShape.outerRadius) / 2, ...WINDOW } : null,
+    plateFrontZ: plate ? plate.pos.z - half(plate) : c.exterior.frontZ,
+    // Without a rotor, the back of the movement is its highest back-side part.
+    rotorBackZ: rotor ? rotor.pos.z + half(rotor) : Math.max(...c.parts.filter((p) => p.side === 'back').map((p) => p.pos.z + half(p))),
   };
 }

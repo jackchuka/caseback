@@ -12,3 +12,10 @@ describe('case fit', () => {
     expect(stemExtension(16.1, 17.1, 2).to).toBeGreaterThanOrEqual(16.1);
   });
 });
+
+import { casingSpan } from './caseGeometry';
+describe('casing ring span', () => {
+  it('runs from the plate dial face to the rotor back', () => {
+    expect(casingSpan({ plateFrontZ: -1.15, rotorBackZ: 3.4 })).toEqual({ from: -1.15, to: 3.4 });
+  });
+});

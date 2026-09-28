@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { extrudeCentered } from '../geometry/gear';
 import type { Caliber } from '../model/schema';
 import { appStore } from '../state/app';
-import { casingRing, stemExtension } from './caseGeometry';
+import { casingRing, casingSpan, stemExtension } from './caseGeometry';
 import { crownEuler, crownState } from './crown';
 import type { ExteriorBuild, ExteriorLayer, MovementFrame } from './exterior/contract';
 import { instantiate, materialKeys, resolveMaterial, SHARED_EXTERIOR_MATERIALS } from './exterior/materials';
@@ -19,6 +19,9 @@ type PickMaterial = (l: ExteriorLayer) => THREE.Material | THREE.Material[];
 function Layers({ layers, pick, name, shadows = false }: { layers: ExteriorLayer[]; pick: PickMaterial; name?: string; shadows?: boolean }) {
   return layers.map((l, i) => <mesh key={i} name={l.name ?? name} geometry={l.geometry} material={pick(l)} castShadow={shadows} receiveShadow={shadows} />);
 }
+
+// Half of the cover rotor's 0.45 mm extrusion: it sits flush with the movement's rotor.
+const ROTOR_HALF = 0.225;
 
 export function Exterior({ caliber, build, frame, watchFront }: { caliber: Caliber; build: ExteriorBuild; frame: MovementFrame; watchFront: boolean }) {
   const r = frame.diameterMm / 2;
@@ -46,6 +49,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
   }, [r]);
   const { crownX } = build.anchors;
   const casing = casingRing(r, build.anchors.seatRadius);
+  const span = casingSpan(frame);
   // Seen from both the caseback and the dial side, so it needs both faces.
   const casingMat = useMemo(() => Object.assign(movementMaterials.plate.clone(), { side: THREE.DoubleSide }), [movementMaterials]);
   // The stem runs on into the crown's centre, where the crown hides its end.
@@ -75,7 +79,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
     shared['caseback-glass'].opacity = pose.casebackOpacity;
     if (rotor.current) {
       rotor.current.visible = pose.rotorSlide < 29;
-      rotor.current.position.set(pose.rotorSlide, 0, 4.45 + pose.rotorLift);
+      rotor.current.position.set(pose.rotorSlide, 0, frame.rotorBackZ - ROTOR_HALF + pose.rotorLift);
       rotor.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.7) * 1.4 + Math.sin(state.clock.elapsedTime * 0.23) * 0.8;
     }
     if (crown.current) {
@@ -114,12 +118,12 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
         {p.crown.map((l, i) => <mesh key={i} geometry={l.geometry} material={pick(l)} castShadow />)}
       </group>
       {casing && (
-        <mesh rotation-x={Math.PI / 2} material={casingMat} receiveShadow>
-          <cylinderGeometry args={[casing.rOut, casing.rOut, 4.4, 160, 1, true]} />
+        <mesh rotation-x={Math.PI / 2} position-z={(span.from + span.to) / 2} material={casingMat} receiveShadow>
+          <cylinderGeometry args={[casing.rOut, casing.rOut, span.to - span.from, 160, 1, true]} />
         </mesh>
       )}
       {casing && (
-        <mesh position-z={-1.15} material={casingMat} receiveShadow>
+        <mesh position-z={span.from} material={casingMat} receiveShadow>
           <ringGeometry args={[casing.rIn, casing.rOut, 160]} />
         </mesh>
       )}
