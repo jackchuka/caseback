@@ -80,7 +80,7 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
     const pose = openingPose(s.mode === 'intro' ? 0 : s.mode === 'opening' ? openT.current : 99, flipFirst);
     if (back.current) {
       back.current.visible = pose.casebackOpacity > 0.01;
-      back.current.rotation.z = pose.casebackAngle;
+      back.current.rotation.z = build.anchors.casebackTurns ? pose.casebackAngle : 0;
       back.current.position.z = pose.casebackLift;
     }
     shared['caseback-engraving'].opacity = pose.casebackOpacity;

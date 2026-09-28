@@ -22,7 +22,7 @@ const tudor79220b: ExteriorBuilder = {
       crown: tudorCrown(),
       hands: tudorHands(T.dialRadius),
     },
-    anchors: { seatRadius: T.bore, crownX: crownX(), caseBackZ: caseShape(m).back },
+    anchors: { seatRadius: T.bore, crownX: crownX(), caseBackZ: caseShape(m).back, casebackTurns: true },
   }),
   materials: tudorMaterials,
 };

@@ -9,7 +9,7 @@ import type { MovementMaterial } from '../../geometry/parts';
 //   caseback-glass), then movement materials, in that order; an unknown key throws;
 // - hands use movement materials only, never the build's own;
 // - every instantiated crystal material is transparent;
-// - the caseback is placed at its closed position; the opening animation only adds lift and turn;
+// - the caseback is placed at its closed position; the opening animation only adds lift, and turn if it screws down;
 // - a new builder adds its own closed-case mesh test.
 
 // A hand layer replaces one of the movement's own hands, so it may only use a movement material.
@@ -44,7 +44,7 @@ export type ExteriorGeometry = {
     dial: ExteriorLayer[];
     crystal: ExteriorLayer[];
     strap: ExteriorLayer[];
-    // Placed at its closed position; the opening animation only adds lift and turn.
+    // Placed at its closed position; the opening animation only adds lift, and turn when anchors.casebackTurns.
     caseback: ExteriorLayer[];
     // Local frame: origin at the crown's centre, +Y toward the case.
     crown: ExteriorLayer[];
@@ -52,8 +52,9 @@ export type ExteriorGeometry = {
     hands: { hour: HandLayer[]; minute: HandLayer[]; seconds: HandLayer[] };
   };
   // seatRadius: the round movement seat's radius, which drives the casing ring in Exterior.tsx. caseBackZ: the case
-  // middle's back face (the caseback's seat), where the casing ring must stop.
-  anchors: { seatRadius: number; crownX: number; caseBackZ: number };
+  // middle's back face (the caseback's seat), where the casing ring must stop. casebackTurns: a screw-down back
+  // unscrews as it lifts; a back held by screws (any non-round one) lifts straight off.
+  anchors: { seatRadius: number; crownX: number; caseBackZ: number; casebackTurns: boolean };
 };
 
 // Built lazily so geometry tests never touch a canvas.

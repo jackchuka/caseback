@@ -22,7 +22,7 @@ const srpb43: ExteriorBuilder = {
       crown: presageCrown(),
       hands: presageHands(P.dialRadius),
     },
-    anchors: { seatRadius: P.bore, crownX: crownX(), caseBackZ: caseBack(m) },
+    anchors: { seatRadius: P.bore, crownX: crownX(), caseBackZ: caseBack(m), casebackTurns: true },
   }),
   materials: presageMaterials,
 };

@@ -21,7 +21,7 @@ const sinn556: ExteriorBuilder = {
       crown: sinnCrown(),
       hands: sinnHands(),
     },
-    anchors: { seatRadius: S.bore, crownX: crownX(), caseBackZ: caseBack(m) },
+    anchors: { seatRadius: S.bore, crownX: crownX(), caseBackZ: caseBack(m), casebackTurns: true },
   }),
   materials: sinnMaterials,
 };

@@ -24,7 +24,7 @@ const khakiField: ExteriorBuilder = {
       crown: hamiltonCrown(),
       hands: hamiltonHands(),
     },
-    anchors: { seatRadius: H.bore, crownX: crownX(), caseBackZ: caseBack(m) },
+    anchors: { seatRadius: H.bore, crownX: crownX(), caseBackZ: caseBack(m), casebackTurns: true },
   }),
   materials: hamiltonMaterials,
 };

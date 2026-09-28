@@ -60,6 +60,15 @@ describe('exterior contract', () => {
         expect(b.anchors.caseBackZ).toBeCloseTo(Math.max(...all.filter((v) => Math.hypot(v.x, v.y) <= radius).map((v) => v.z)), 0);
       });
 
+      it('only a round caseback turns as it opens', () => {
+        if (!b.anchors.casebackTurns) return;
+        const r = vertices(p.caseback).map((v) => Math.hypot(v.x, v.y));
+        const back = box(p.caseback);
+        // A turn leaves a round back's footprint where it was; anything else would swing through the case.
+        expect(Math.abs(back.max.x - back.min.x - (back.max.y - back.min.y))).toBeLessThan(0.5);
+        expect(Math.max(...r)).toBeLessThan(Math.max(back.max.x, -back.min.x) + 0.5);
+      });
+
       it('every vertex is finite', () => {
         const bad = vertices(all).filter((v) => !Number.isFinite(v.x) || !Number.isFinite(v.y) || !Number.isFinite(v.z));
         expect(bad).toHaveLength(0);

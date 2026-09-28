@@ -30,7 +30,7 @@ export const genericCase: ExteriorBuilder = {
         crown: [{ geometry: new THREE.CylinderGeometry(1.25, 1.25, 2.0, 48), material: 'case' }],
         hands: { hour: [], minute: [], seconds: [] },
       },
-      anchors: { seatRadius: inner, crownX: r + 4.3, caseBackZ: top },
+      anchors: { seatRadius: inner, crownX: r + 4.3, caseBackZ: top, casebackTurns: true },
     };
   },
 };
