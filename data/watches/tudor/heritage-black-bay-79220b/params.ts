@@ -2,14 +2,11 @@
 // page; est = estimated, to be calibrated against the photos.
 export const T = {
   caseRadius: 20.5, // spec: 41 mm
-  // spec: caseback to crystal apex. The model is deliberately thicker, ~14.5 mm: the movement model is deeper than a
-  // real 2824 (rotor back at z 4.75), and with the crown centre at its measured depth, mid-flank as the photos show,
-  // the extra depth has to go behind the crown, into a thick screw-down back that keeps the rotor inside.
-  totalThickness: 13,
+  totalThickness: 13, // spec: caseback to crystal apex
   caseFrontOffset: 3.1, // photo:crown-low: puts the crown centre 4.4 mm behind the case front
   caseHeight: 8.55, // photo:crown-low: case middle, front face to caseback seat; the crown spans most of it
-  casebackThickness: 2.24, // deviation (see totalThickness): reaches back past the rotor
-  casebackPlate: 0.08, // est: hidden; the pocket in front of it clears the rotor by 0.06 mm
+  casebackThickness: 1.03, // est: the rest of the published 13 mm behind the case middle; still clears the rotor
+  casebackPlate: 0.05, // est: hidden; the pocket in front of it keeps the rotor clear
   casebackPocketClearance: 0.5, // est: hidden; the pocket's radius over the movement's
   lugToLug: 50, // spec: 50 mm (aBlogtoWatch, Millenary)
   lugGap: 22, // spec: lug width

@@ -157,10 +157,11 @@ describe('Tudor 79220B thickness and caseback', () => {
   // Coplanar or touching faces z-fight, so the rotor keeps a real gap to the back throughout the opening.
   const margin = 0.05;
 
-  it('keeps the rotor inside the case and caseback, at most 1.6 mm over the published thickness', () => {
+  it('keeps the rotor inside the case and caseback at the published thickness', () => {
     const front = zRange(tudorCrystal(m))[0];
     const outer = zRange(back)[1];
-    expect(outer - front).toBeLessThanOrEqual(T.totalThickness + 1.6);
+    expect(outer - front).toBeGreaterThan(T.totalThickness - 0.3);
+    expect(outer - front).toBeLessThan(T.totalThickness + 0.3);
     expect(rotorBack).toBeLessThan(outer);
   });
   it('hollows the caseback so the rotor clears it, closed or lifting off', () => {
