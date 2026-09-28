@@ -1,10 +1,10 @@
-import { Environment, Lightformer } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type * as THREE from 'three';
 import { flipGroup } from './flip';
 import { useApp } from '../state/app';
 import { LOOKS } from './looks';
+import { buildStudioEnvironments } from './studioEnv';
 
 export function Studio() {
   const theme = useApp((s) => s.theme);
@@ -13,10 +13,12 @@ export function Studio() {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
 
+  const envs = useMemo(() => buildStudioEnvironments(gl), [gl]);
   useEffect(() => {
     gl.toneMappingExposure = look.exposure;
+    scene.environment = theme === 'light' ? envs.light : envs.dark;
     scene.environmentIntensity = look.envIntensity;
-  }, [gl, scene, look]);
+  }, [gl, scene, look, theme, envs]);
 
   const floor = useRef<THREE.Mesh>(null);
   useFrame(() => {
@@ -27,14 +29,6 @@ export function Studio() {
   return (
     <>
       <color attach="background" args={[look.background]} />
-      <Environment key={theme} resolution={256} frames={1}>
-        <Lightformer form="rect" intensity={look.softbox} color={look.softboxColor} scale={[18, 18, 1]} position={[0, 14, 0]} rotation-x={Math.PI / 2} />
-        <Lightformer form="rect" intensity={1.2 * look.strip} scale={[5, 16, 1]} position={[-12, 3, 4]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={0.8 * look.strip} color={look.rimColor} scale={[5, 16, 1]} position={[12, 3, -4]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={0.6} scale={[20, 2, 1]} position={[0, -2, -12]} target={[0, 0, 0]} />
-        {/* A dim surrounding ring so fully metallic parts never mirror pure black between the softboxes. */}
-        <Lightformer form="ring" intensity={look.fill} scale={40} position={[0, 0, 0]} rotation-x={Math.PI / 2} />
-      </Environment>
       <directionalLight
         castShadow
         position={[-14, 30, 10]}
