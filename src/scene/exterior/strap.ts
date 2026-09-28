@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { WatchExterior } from '../../model/watch';
 import type { Layer } from '../../geometry/parts';
 import type { CaseRadii } from '../caseGeometry';
-import { bend, flipWinding } from './bend';
+import { bend, flipWinding } from './kit/bend';
 import { springBar } from './caseBody';
 
 const WRIST_RADIUS = 26;

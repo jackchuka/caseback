@@ -3,8 +3,7 @@ import type { WatchExterior } from '../../model/watch';
 import type { Layer } from '../../geometry/parts';
 import type { CaseRadii } from '../caseGeometry';
 import { bezelProfile } from '../caseGeometry';
-
-const lathe = (pts: Array<[number, number]>) => new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), 180).rotateX(Math.PI / 2);
+import { lathe } from './kit/lathe';
 
 // Plain bezels in (radius, z), front is −z. They stop short of the case's polished bevel so it still shows, and
 // reach a little into the case front so no gap opens between the separate parts.

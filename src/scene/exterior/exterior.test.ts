@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { watches } from '../../../data/watches';
 import { caseRadii } from '../caseGeometry';
-import { bend } from './bend';
+import { bend } from './kit/bend';
 import { bezel } from './bezel';
 import { crystal } from './crystal';
 import { dialLayers, dialTextureSpec } from './dial';

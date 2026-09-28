@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { watches } from '../../../data/watches';
 import { caseRadii } from '../caseGeometry';
 import { caseBody, caseShape, springBar } from './caseBody';
-import { closedAndOutward } from './meshCheck';
+import { closedAndOutward } from './kit/meshCheck';
 
 describe('one-piece case middle', () => {
   for (const w of Object.values(watches)) {

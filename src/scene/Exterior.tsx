@@ -17,25 +17,12 @@ import { crystal as crystalLayers } from './exterior/crystal';
 import { dialLayers, dialRadius } from './exterior/dial';
 import { watchHands } from './exterior/hands';
 import { caseBody } from './exterior/caseBody';
+import { withPolish } from './exterior/kit/polish';
 import { paintDial, paintInsert, paintStrap } from './exterior/paint';
 import { strap as strapLayers } from './exterior/strap';
 import { exteriorVisibility } from './exterior/visibility';
 import { registry } from './registry';
 import { engraving } from './textures';
-
-// Reads a per-vertex `polish` attribute (0 brushed … 1 polished) so one case mesh carries both finishes with a soft
-// boundary along the true crease. Meshes without the attribute read 0 and stay brushed.
-function withPolish(m: THREE.MeshPhysicalMaterial, polishedRoughness: number) {
-  m.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float polish;\nvarying float vPolish;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPolish = polish;');
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vPolish;')
-      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, ${polishedRoughness.toFixed(3)}, vPolish);`);
-  };
-  return m;
-}
 
 const CASE_COLORS = { steel: [0xc8cbd0, 0.3], titanium: [0xa9acb0, 0.45], gold: [0xe6c27a, 0.25] } as const;
 

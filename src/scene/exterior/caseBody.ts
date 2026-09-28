@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import type { WatchExterior } from '../../model/watch';
 import type { Layer } from '../../geometry/parts';
 import type { CaseRadii } from '../caseGeometry';
-import { surfaceNets } from './surfaceNets';
+import { surfaceNets } from './kit/surfaceNets';
+import { extrudeProfile, roundedConvex, smax, smin } from './kit/sdf';
 
 // Fractions of the case-middle height: how far the lug tips sweep toward the wrist, and how much the lug
 // underside lifts off the wrist line toward the tip (Hamilton side photo; Tudor and Sinn are close).
@@ -16,43 +17,6 @@ const EDGE = 0.3;
 const BACK_CHAMFER = 0.3;
 const FLANK_SLOPE = 0.6;
 const HOLE_RADIUS = 0.55;
-
-const smin = (a: number, b: number, k: number) => {
-  const h = Math.max(k - Math.abs(a - b), 0) / k;
-  return Math.min(a, b) - (h * h * k) / 4;
-};
-const smax = (a: number, b: number, k: number) => -smin(-a, -b, k);
-
-type P2 = [number, number];
-
-// Signed distance to a convex polygon given counter-clockwise, rounded by `round` (the polygon is inset first,
-// so the outline keeps its size).
-function roundedConvex(pts: P2[], round: number) {
-  const lines = pts.map((p, i) => {
-    const q = pts[(i + 1) % pts.length]!;
-    const len = Math.hypot(q[0] - p[0], q[1] - p[1]);
-    const n: P2 = [(q[1] - p[1]) / len, -(q[0] - p[0]) / len];
-    return { n, d: n[0] * p[0] + n[1] * p[1] - round };
-  });
-  const inset: P2[] = lines.map((a, i) => {
-    const b = lines[(i + lines.length - 1) % lines.length]!;
-    const det = a.n[0] * b.n[1] - a.n[1] * b.n[0];
-    return [(a.d * b.n[1] - b.d * a.n[1]) / det, (a.n[0] * b.d - b.n[0] * a.d) / det];
-  });
-  return (x: number, y: number) => {
-    let inside = true;
-    let best = Infinity;
-    for (let i = 0; i < inset.length; i++) {
-      const a = inset[i]!;
-      const b = inset[(i + 1) % inset.length]!;
-      const ex = b[0] - a[0], ey = b[1] - a[1];
-      const t = Math.max(0, Math.min(1, ((x - a[0]) * ex + (y - a[1]) * ey) / (ex * ex + ey * ey)));
-      best = Math.min(best, Math.hypot(x - a[0] - ex * t, y - a[1] - ey * t));
-      if (ex * (y - a[1]) - ey * (x - a[0]) < 0) inside = false;
-    }
-    return (inside ? -best : best) - round;
-  };
-}
 
 // The case middle as one solid, the way it is forged and machined: a round body and four lugs fused by concave
 // fillets, a flat top that runs out along the lugs and sweeps down toward the wrist, a polished bevel along the
@@ -117,7 +81,7 @@ export function caseShape(e: WatchExterior, r: CaseRadii) {
     const p = flank(z);
     const vf = cFront - z;
     const vb = z - cBack;
-    const solid = smax(smax(smax(smax(p, vf, EDGE), vb, EDGE), (p + vf + e.case.chamferMm) / Math.SQRT2, EDGE), (p + vb + BACK_CHAMFER) / Math.SQRT2, EDGE);
+    const solid = extrudeProfile(p, vf, vb, { chamfer: e.case.chamferMm, backChamfer: BACK_CHAMFER, edge: EDGE });
     return Math.max(smax(solid, cBore, EDGE), drill(y, z));
   };
   // How polished a surface point is (0 brushed … 1 polished). Each face's finish is weighted by how close its term
