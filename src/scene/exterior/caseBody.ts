@@ -66,13 +66,28 @@ export function caseShape(e: WatchExterior, r: CaseRadii) {
   const lug = roundedConvex([[lw, 0], [lw + W, 0], [lw + W * e.case.lugs.taper, tip], [lw, tip]], TIP_CORNER);
   const edgeY = (x: number) => Math.sqrt(Math.max(0, R * R - Math.min(x, R) ** 2));
   const run = tip - edgeY(lw + W / 2);
-  // How far along the lug a point is, measured from the round case edge, so the case itself stays flat.
-  const along = (x: number, y: number) => Math.min(1, Math.max(0, (Math.abs(y) - edgeY(Math.abs(x))) / run));
+  // How far along the lug a point is, measured from the round case edge, so the case itself stays flat. Only the
+  // 12 and 6 o'clock sides carry lugs; the 3 and 9 o'clock flanks (and crown guards) keep the full height.
+  const lugSide = (y: number) => {
+    const t = Math.min(1, Math.max(0, (Math.abs(y) - R * 0.45) / (R * 0.2)));
+    return t * t * (3 - 2 * t);
+  };
+  const along = (x: number, y: number) => lugSide(y) * Math.min(1, Math.max(0, (Math.abs(y) - edgeY(Math.abs(x))) / run));
   const front = (x: number, y: number) => r.bottom + DROP * r.height * along(x, y) ** 1.7;
   const back = (x: number, y: number) => top - RISE * r.height * along(x, y) ** 2;
   const midZ = (x: number, y: number) => (front(x, y) + back(x, y)) / 2;
   const lugBox = { x0: lw, x1: lw + W, y1: tip };
+  const cr = e.crown.diameterMm / 2;
+  const guardReach = e.crown.lengthMm * 0.75;
+  // Crown guards: shoulders either side of the crown at 3 o'clock, tapering outward, fused to the case like the lugs.
+  const guard = e.crown.guards
+    ? roundedConvex([[R - 3, cr + 0.4], [R + guardReach, cr + 0.4], [R + guardReach, cr + 2.2], [R - 3, cr + 3.2]], 0.6)
+    : null;
   const plan = (x: number, y: number) => {
+    const body = lugsAndCase(x, y);
+    return guard && x > R - 4 ? smin(body, guard(x, Math.abs(y)), FILLET * 0.6) : body;
+  };
+  const lugsAndCase = (x: number, y: number) => {
     const disc = Math.hypot(x, y) - R;
     const ax = Math.abs(x), ay = Math.abs(y);
     // The lug's bounding box is a lower bound on its distance; when that is beyond the blend, the lug cannot matter.
@@ -124,7 +139,7 @@ export function caseShape(e: WatchExterior, r: CaseRadii) {
     }
     return sum / weight;
   };
-  return { sdf, polish, front, back, midZ, hole, bounds: { x: R + 0.5, y: tip + 0.5, z: [r.bottom - 0.5, top + 0.5] as [number, number] } };
+  return { sdf, polish, front, back, midZ, hole, bounds: { x: R + (guard ? guardReach : 0) + 0.5, y: tip + 0.5, z: [r.bottom - 0.5, top + 0.5] as [number, number] } };
 }
 
 export function springBar(e: WatchExterior, r: CaseRadii) {

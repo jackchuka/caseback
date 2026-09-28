@@ -122,3 +122,23 @@ describe('dial proportion', () => {
     }
   });
 });
+
+import { crown, fluteCount } from './crown';
+describe('crown', () => {
+  it('turns a fluted grip at the real diameter and length', () => {
+    const e = watches['tudor/heritage-black-bay-79220b']!.exterior;
+    const body = crown(e, caseRadii(25.6, e))[0]!.geometry;
+    const p = body.getAttribute('position');
+    const radii: number[] = [];
+    let minY = Infinity, maxY = -Infinity;
+    for (let i = 0; i < p.count; i++) {
+      minY = Math.min(minY, p.getY(i)); maxY = Math.max(maxY, p.getY(i));
+      if (Math.abs(p.getY(i)) < e.crown.lengthMm / 2 - 0.3) radii.push(Math.hypot(p.getX(i), p.getZ(i)));
+    }
+    expect(maxY - minY).toBeCloseTo(e.crown.lengthMm, 0);
+    expect(Math.max(...radii)).toBeCloseTo(e.crown.diameterMm / 2, 1);
+    // Grooves cut into the grip.
+    expect(Math.min(...radii.filter((x) => x > e.crown.diameterMm / 4))).toBeLessThan(e.crown.diameterMm / 2 - 0.1);
+    expect(fluteCount(e.crown.diameterMm)).toBeGreaterThan(30);
+  });
+});

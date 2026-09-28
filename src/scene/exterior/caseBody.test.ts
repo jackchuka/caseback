@@ -63,3 +63,34 @@ describe('one-piece case middle', () => {
     });
   }
 });
+
+describe('crown guards', () => {
+  const base = watches['tudor/heritage-black-bay-79220b']!.exterior;
+  const guarded = { ...base, crown: { ...base.crown, guards: true } };
+  const r = caseRadii(25.6, guarded);
+  const cr = guarded.crown.diameterMm / 2;
+  it('grows two shoulders out of the case beside the crown, leaving the crown free', () => {
+    const s = caseShape(guarded, r);
+    const x = r.outer + guarded.crown.lengthMm * 0.4;
+    const z = s.midZ(x, 0);
+    expect(s.sdf(x, cr + 1.5, z)).toBeLessThan(0);
+    expect(s.sdf(x, -(cr + 1.5), z)).toBeLessThan(0);
+    expect(s.sdf(x, 0, z)).toBeGreaterThan(0);
+    // Only at 3 o'clock.
+    expect(s.sdf(-x, cr + 1.5, z)).toBeGreaterThan(0);
+  });
+  it('keeps the guards at full case height rather than sweeping down like lugs', () => {
+    const s = caseShape(guarded, r);
+    expect(s.front(r.outer + 1, cr + 1.5)).toBeCloseTo(r.bottom, 5);
+  });
+  it('stays one closed surface with the guards fused on', () => {
+    const { open, volume } = closedAndOutward(caseBody(guarded, r, 0.3)[0]!.geometry);
+    expect(open).toBe(0);
+    expect(volume).toBeGreaterThan(0);
+  });
+  it('adds nothing when a watch has no guards', () => {
+    const s = caseShape(base, r);
+    const x = r.outer + base.crown.lengthMm * 0.4;
+    expect(s.sdf(x, cr + 1.5, s.midZ(x, 0))).toBeGreaterThan(0);
+  });
+});
