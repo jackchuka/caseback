@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
+import { lathe } from '../../../../src/scene/exterior/kit/lathe';
 import { extrudeProfile, roundedConvex, smax, smin } from '../../../../src/scene/exterior/kit/sdf';
 import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { T } from './params';
@@ -33,7 +34,10 @@ export function caseShape(m: MovementFrame) {
     const ax = Math.abs(x), ay = Math.abs(y);
     // The lug's edge lines bound its distance from below; beyond the blend the lug cannot change the result.
     const bound = Math.max(lw - ax, onx * ax + ony * ay - oc, ay - tip);
-    return bound >= disc + T.lugFillet ? disc : smin(disc, lug(ax, ay), T.lugFillet);
+    if (bound >= disc + T.lugFillet) return disc;
+    // Along the flank the drum and the lug's outer edge already meet on a tangent, where a blend would bulge the
+    // outline; only the inner corner under the end link gets the fillet.
+    return ax < lw + 2 * T.lugFillet ? smin(disc, lug(ax, ay), T.lugFillet) : Math.min(disc, lug(ax, ay));
   };
   // 0 at the bezel's edge, 1 at the lug tip, measured along the lug.
   const run = (x: number, y: number) => {
@@ -95,4 +99,20 @@ export function tudorCase(m: MovementFrame, step: number): ExteriorLayer[] {
   for (let i = 0; i < pos.count; i++) polish[i] = s.polish(pos.getX(i), pos.getY(i), pos.getZ(i));
   g.setAttribute('polish', new THREE.BufferAttribute(polish, 1));
   return [{ geometry: g, material: 'case' }];
+}
+
+// The screw-down back, hollowed from the inside: the movement model's rotor reaches almost to its outer face, so a
+// solid back would swallow the rotor and show it poking through as the back unscrews and lifts. Its flank keeps the
+// kit caseback's taper; the outer face carries the shared engraving material like the kit's.
+export function tudorCaseback(m: MovementFrame): ExteriorLayer[] {
+  const R = T.caseRadius;
+  const zi = caseFront(m) + T.caseHeight, zo = zi + T.casebackThickness, zj = zo - T.casebackPlate;
+  const flank = (z: number) => R - 0.8 - (0.3 * (z - zi)) / T.casebackThickness;
+  const pocket = m.diameterMm / 2 + T.casebackPocketClearance;
+  const plate = new THREE.CylinderGeometry(flank(zo), flank(zj), T.casebackPlate, 160).rotateX(Math.PI / 2).translate(0, 0, (zo + zj) / 2);
+  const rim = lathe([[pocket, zj], [pocket, zi], [flank(zi), zi], [flank(zj), zj], [pocket, zj]], 160);
+  return [
+    { geometry: plate, material: ['caseback-metal', 'caseback-engraving', 'caseback-metal'], name: 'caseback-solid' },
+    { geometry: rim, material: 'caseback-metal' },
+  ];
 }

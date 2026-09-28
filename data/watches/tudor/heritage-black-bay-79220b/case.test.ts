@@ -9,9 +9,15 @@ const m = movementFrame(calibers['eta-2824-2']!);
 
 describe('Tudor 79220B case', () => {
   const s = caseShape(m);
-  const t0 = performance.now();
-  const layers = tudorCase(m, 0.3);
-  const buildMs = performance.now() - t0;
+  const timed = () => {
+    const t0 = performance.now();
+    const ls = tudorCase(m, 0.3);
+    return { ls, ms: performance.now() - t0 };
+  };
+  const first = timed();
+  const layers = first.ls;
+  // Best of three: the suite runs files in parallel, and a single build's wall time mostly measures that load.
+  const buildMs = Math.min(first.ms, timed().ms, timed().ms);
   const g = layers[0]!.geometry;
   g.computeBoundingBox();
   const b = g.boundingBox!;
@@ -38,6 +44,11 @@ describe('Tudor 79220B case', () => {
   const outerX = (y: number) => {
     let x = T.caseRadius + 0.4;
     while (s.sdf(x, y, mid) > 0) x -= 0.01;
+    let hi = x + 0.01;
+    while (hi - x > 1e-4) {
+      const c = (x + hi) / 2;
+      if (s.sdf(c, y, mid) > 0) hi = c; else x = c;
+    }
     return x;
   };
 
@@ -61,6 +72,14 @@ describe('Tudor 79220B case', () => {
     // A concave notch would pull the middle sample inside the chord between its neighbours.
     for (let i = 1; i < xs.length - 1; i++) expect(xs[i]! - (xs[i - 1]! + xs[i + 1]!) / 2).toBeGreaterThan(-0.05);
   });
+  it('joins the drum to the lug edge on the tangent, with no bulge along the flank', () => {
+    // The tangent from the drum through the tip's outer corner, and its touching point.
+    const R = T.caseRadius, xo = T.lugGap / 2 + T.lugWidth;
+    const phi = Math.atan2(tip, xo) - Math.acos(R / Math.hypot(xo, tip));
+    const tx = R * Math.cos(phi), ty = R * Math.sin(phi);
+    const chord = (y: number) => (y < ty ? Math.sqrt(R * R - y * y) : tx + ((y - ty) * (xo - tx)) / (tip - ty));
+    for (let y = 5; y <= 12; y += 0.25) expect(Math.abs(outerX(y) - chord(y))).toBeLessThan(0.03);
+  });
   it('makes the lugs wide wedges, as measured on the front photo', () => {
     expect(outerX(tip - 1) - T.lugGap / 2).toBeCloseTo(T.lugWidth + 0.35, 0);
     expect(outerX(tip - 5) - T.lugGap / 2).toBeGreaterThan(4);
@@ -83,7 +102,8 @@ describe('Tudor 79220B case', () => {
     expect(volume).toBeGreaterThan(0);
   });
   it('builds within budget', () => {
-    expect(buildMs).toBeLessThan(1500);
+    // Best of three measures 0.6–0.9 s on a busy machine, alone or with the whole suite, so a 2× slowdown fails.
+    expect(buildMs).toBeLessThan(1200);
   });
   it('carries a polish attribute per vertex', () => {
     expect(g.getAttribute('polish').count).toBe(g.getAttribute('position').count);

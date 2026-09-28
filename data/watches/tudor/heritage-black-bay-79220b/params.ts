@@ -2,13 +2,15 @@
 // page; est = estimated, to be calibrated against the photos.
 export const T = {
   caseRadius: 20.5, // spec: 41 mm
-  totalThickness: 13, // spec: caseback to crystal apex
-  // Deliberate deviation: the movement model is deeper than the real 2824 (rotor back at z 4.75); see ledger. With
-  // the crown centre at its measured depth the watch comes out ~14.5 mm thick, not 13, and the extra depth goes into a
-  // thick screw-down back so the rotor stays inside.
+  // spec: caseback to crystal apex. The model is deliberately thicker, ~14.45 mm: the movement model is deeper than a
+  // real 2824 (rotor back at z 4.75), and with the crown centre at its measured depth, mid-flank as the photos show,
+  // the extra depth has to go behind the crown, into a thick screw-down back that keeps the rotor inside.
+  totalThickness: 13,
   caseFrontOffset: 3.1, // photo:crown-low: puts the crown centre 4.4 mm behind the case front
   caseHeight: 8.55, // photo:crown-low: case middle, front face to caseback seat; the crown spans most of it
-  casebackThickness: 2.2, // deviation (see above): reaches back past the rotor
+  casebackThickness: 2.2, // deviation (see totalThickness): reaches back past the rotor
+  casebackPlate: 0.08, // est: hidden; thin enough that the pocket behind it clears the rotor
+  casebackPocketClearance: 0.5, // est: hidden; the pocket's radius over the movement's
   lugToLug: 50, // spec: 50 mm (aBlogtoWatch, Millenary)
   lugGap: 22, // spec: lug width
   lugWidth: 2.9, // photo:front: lug top at the tip, gap edge to outer edge (bobs-126699.jpg agrees)
@@ -74,5 +76,5 @@ export const T = {
   // piece, but not their depth. The rest of the object is est.
   bracelet: { endWidth: 18, pitch: 6.5, centerRatio: 0.55, thickness: 2.6, links: 6, gap: 0.15, wristRadius: 26, centerRaise: 0.15, chamfer: 0.3, crown: 0.12 },
   lume: '#f2eee2', // matches the movement lume the hands must use
-  insertBlue: '#1b2a4a', // photo:front: hue of the insert's shaded areas (12, 18, 32)
+  insertBlue: '#1b2a4a', // photo:front: matches only the hue of the insert's shaded areas (RGB 12, 18, 32), not their darkness
 } as const;

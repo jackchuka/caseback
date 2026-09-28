@@ -1,8 +1,7 @@
 import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
-import { caseback } from '../../../../src/scene/exterior/kit/caseback';
 import { tudorBezel } from './bezel';
 import { tudorBracelet } from './bracelet';
-import { caseShape, tudorCase } from './case';
+import { tudorCase, tudorCaseback } from './case';
 import { crownX, tudorCrown } from './crown';
 import { tudorCrystal } from './crystal';
 import { tudorDial } from './dial';
@@ -18,7 +17,7 @@ const tudor79220b: ExteriorBuilder = ({ movement: m, quality }) => ({
     dial: tudorDial(m),
     crystal: tudorCrystal(m),
     strap: tudorBracelet(m),
-    caseback: caseback(T.caseRadius, false, caseShape(m).back + T.casebackThickness / 2, T.casebackThickness),
+    caseback: tudorCaseback(m),
     crown: tudorCrown(),
     hands: tudorHands(T.dialRadius),
   },
