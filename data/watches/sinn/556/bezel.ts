@@ -1,6 +1,6 @@
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { crystal } from '../../../../src/scene/exterior/kit/crystal';
-import { flange, lathe } from '../../../../src/scene/exterior/kit/lathe';
+import { crease, flange, lathe } from '../../../../src/scene/exterior/kit/lathe';
 import { bezelTop, caseFront } from './case';
 import { S } from './params';
 
@@ -11,11 +11,13 @@ export const crystalFront = (m: MovementFrame) => bezelTop(m) + S.crystalDrop;
 export function sinnBezel(m: MovementFrame): ExteriorLayer[] {
   const b = caseFront(m), top = bezelTop(m), glass = crystalFront(m);
   // (radius, z), front is −Z: the wall hugging the crystal, the chamfer's foot, the flat top, the rounded outer edge.
-  const body = lathe([
+  // Every corner is a hard crease, so the flat top shades flat rather than like a doughnut.
+  const corners: Array<[number, number]> = [
     [S.crystalRadius, b - 0.02], [S.crystalRadius, glass - 0.05], [S.bezelLip, glass - 0.15],
     [S.bezelFlat, top], [S.bezelOuter - S.bezelEdge, top], [S.bezelOuter, top + S.bezelEdge],
     [S.bezelOuter, b - 0.02], [S.crystalRadius, b - 0.02],
-  ], 240);
+  ];
+  const body = lathe(corners.flatMap((p, i) => (i === 0 || i === corners.length - 1 ? [p] : crease(p))), 240);
   return [
     { geometry: body, material: 'bezel' },
     // The flange (rehaut) closes the wall between the dial's edge and the case front, which stands proud of the dial.

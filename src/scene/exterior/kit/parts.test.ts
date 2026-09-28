@@ -77,3 +77,19 @@ describe('kit parts', () => {
     expect(softFinish([[0, 0], [1, 0]])).toBeCloseTo(0.5, 5);
   });
 });
+
+describe('lathe creases', () => {
+  it('shades a flat crystal\'s face flat, facing the front, right out to its rim', () => {
+    const g = crystal({ radius: 16, rim: -5, dome: 0, foot: -4 })[0]!.geometry;
+    const p = g.getAttribute('position'), n = g.getAttribute('normal');
+    let face = 0;
+    for (let i = 0; i < p.count; i++) {
+      if (Math.abs(p.getZ(i) + 5) > 1e-6) continue;
+      // The copy on the rim's wall side faces outward; every face-side vertex faces the front.
+      if (Math.abs(n.getZ(i)) < 0.5) continue;
+      face++;
+      expect(n.getZ(i)).toBeCloseTo(-1, 5);
+    }
+    expect(face).toBeGreaterThan(2 * 180);
+  });
+});

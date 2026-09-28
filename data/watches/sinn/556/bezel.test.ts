@@ -46,3 +46,19 @@ describe('Sinn 556 bezel and crystal', () => {
     for (let i = 0; i < p.count; i += 17) expect(p.getX(i) * n.getX(i) + p.getY(i) * n.getY(i)).toBeLessThan(0);
   });
 });
+
+describe('Sinn 556 bezel shading', () => {
+  it('shades the flat top with axial normals, not like a doughnut', () => {
+    const body = sinnBezel(m).find((l) => l.material === 'bezel')!.geometry;
+    const p = body.getAttribute('position'), n = body.getAttribute('normal');
+    let top = 0;
+    for (let i = 0; i < p.count; i++) {
+      if (Math.abs(p.getZ(i) - bezelTop(m)) > 1e-6) continue;
+      // Each crease vertex has a twin facing the neighbouring face; only the top's own copies must face the front.
+      if (Math.abs(n.getZ(i)) < 0.9) continue;
+      top++;
+      expect(n.getZ(i)).toBeCloseTo(-1, 5);
+    }
+    expect(top).toBeGreaterThanOrEqual(2 * 241);
+  });
+});
