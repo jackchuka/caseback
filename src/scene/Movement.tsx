@@ -37,7 +37,7 @@ function fadeTo(entry: RegistryEntry, target: number) {
 
 // A watch replaces the geometry of the movement's hour and minute hands (keyed by part id) with its own, sized to
 // its dial; the parts keep their arbors, so the kinematics still drive them.
-export function Movement({ caliber, handLayers, children }: { caliber: Caliber; handLayers?: Record<string, Layer[]>; children?: ReactNode }) {
+export function Movement({ caliber, handLayers, timeOverride, children }: { caliber: Caliber; handLayers?: Record<string, Layer[]>; timeOverride?: number; children?: ReactNode }) {
   const parts = caliber.parts;
   const solve = useMemo(() => buildSolver(caliber), [caliber]);
   const pick = useApp((s) => s.pick);
@@ -68,7 +68,7 @@ export function Movement({ caliber, handLayers, children }: { caliber: Caliber; 
       } else if (s.crownPos === 1) crownState.quick += d;
       else crownState.set += d;
     } else crownState.quick = settleQuick(crownState.quick, Math.min(dt, 0.05));
-    t.current = advance(t.current, dt, speed);
+    t.current = timeOverride ?? advance(t.current, dt, speed);
     if (!s.paused) swingT.current += Math.min(dt, 0.05);
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;
     const rotorState = s.mode === 'tour' ? step.rotor : 'hide';

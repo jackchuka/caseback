@@ -425,3 +425,9 @@ test('watch pages open on the dial, and dial chapters remove it', async ({ page 
   const dialSide = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [hx, hy]);
   expect(dialSide).not.toContain('dial');
 });
+
+test('the compare page is not in production builds', async ({ page }) => {
+  await page.goto('/dev/compare/sinn/556');
+  await expect(page.locator('.home')).toBeVisible();
+  await expect(page.locator('.compare')).toHaveCount(0);
+});

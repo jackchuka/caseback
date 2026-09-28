@@ -19,6 +19,12 @@ if (redirect) location.replace(redirect);
 else await start();
 
 async function start() {
+  // Vite replaces import.meta.env.DEV with false in production builds, which drops this branch and its chunk.
+  if (import.meta.env.DEV && location.pathname.startsWith(`${base}dev/compare`)) {
+    const { startCompare } = await import('./dev/start');
+    await startCompare(base);
+    return;
+  }
   const route = parseRoute(location.pathname, base, calibers, watches);
   const caliberId = route.kind === 'home' ? DEFAULT_CALIBER : route.caliberId;
   const url = parseLocation({ pathname: `${base}calibers/${caliberId}`, search: location.search }, base, calibers, DEFAULT_CALIBER);
