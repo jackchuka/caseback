@@ -6,17 +6,17 @@ import { lathe } from '../../../../src/scene/exterior/kit/lathe';
 import { caseFront } from './case';
 import { T } from './params';
 
-export type BezelMark = { minute: number; kind: 'triangle' | 'tick' | 'bar' | 'numeral'; text?: string; flipped: boolean };
+export type BezelMark = { minute: number; kind: 'triangle' | 'tick' | 'bar' | 'numeral'; text?: string };
 
 // The dive scale as printed on the 79220B insert: minute ticks for the first quarter hour, bars at the fives, tens as
 // numerals. Every numeral stands with its top toward the rim, so 20, 30 and 40 read upside down from the front, as in
 // the photos.
 export function bezelMarks(): BezelMark[] {
   return Array.from({ length: 60 }, (_, minute): BezelMark | null => {
-    if (minute === 0) return { minute, kind: 'triangle', flipped: false };
-    if (minute % 10 === 0) return { minute, kind: 'numeral', text: String(minute), flipped: false };
-    if (minute % 5 === 0) return { minute, kind: 'bar', flipped: false };
-    return minute < 15 ? { minute, kind: 'tick', flipped: false } : null;
+    if (minute === 0) return { minute, kind: 'triangle' };
+    if (minute % 10 === 0) return { minute, kind: 'numeral', text: String(minute) };
+    if (minute % 5 === 0) return { minute, kind: 'bar' };
+    return minute < 15 ? { minute, kind: 'tick' } : null;
   }).filter((x): x is BezelMark => x !== null);
 }
 
@@ -85,7 +85,6 @@ export function paintInsert() {
         // Tall, narrow digits about 0.7 of the band high (2.7 mm on bobs-126699.jpg).
         g.font = `300 ${band * 1.1}px Inter, sans-serif`;
         g.translate(0, -(inner + band * 0.5));
-        if (mark.flipped) g.rotate(Math.PI);
         g.scale(0.85, 1);
         g.fillText(mark.text!, 0, 0);
       }
