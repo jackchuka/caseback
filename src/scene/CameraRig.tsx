@@ -13,7 +13,7 @@ import { Tween } from './tween';
 
 declare global {
   interface Window {
-    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[] };
+    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3 };
   }
 }
 
@@ -28,9 +28,14 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
   const tween = useRef<Tween | null>(null);
   const shift = useRef(-0.16);
 
+  // Only a new shot (mode, step, side) starts a flight; resizes, scene or hook changes must never re-fly the camera.
   useEffect(() => {
     if (!controls) return;
     tween.current = new Tween(camera.position.toArray() as V3, controls.target.toArray() as V3, shotFor(caliber, mode, stepIndex, freeSide), flipGroup.current?.rotation.x ?? 0);
+  }, [caliber, camera, controls, mode, stepIndex, freeSide]);
+
+  useEffect(() => {
+    if (!controls) return;
     window.__caseback = {
       target: () => controls.target.toArray() as V3,
       state: () => appStore().getState(),
@@ -40,6 +45,7 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
         return [((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height];
       },
       flip: () => flipGroup.current?.rotation.x ?? 0,
+      camera: () => camera.position.toArray() as V3,
       hits: (x, y) => {
         const ray = new THREE.Raycaster();
         ray.setFromCamera(new THREE.Vector2((x / size.width) * 2 - 1, -(y / size.height) * 2 + 1), camera);

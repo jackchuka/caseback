@@ -362,3 +362,16 @@ test('display caseback lets you see the movement, a solid one does not', async (
   const solid = await firstHits('/watches/sinn/556?lang=en');
   expect(solid[0]).toBe('caseback-solid');
 });
+
+test('resizing the window does not move the camera', async ({ page }) => {
+  await page.goto('/calibers/eta-2824-2?lang=ja');
+  await ready(page);
+  await page.waitForTimeout(3000);
+  const before = await page.evaluate(() => window.__caseback!.camera());
+  await page.setViewportSize({ width: 1400, height: 880 });
+  await page.waitForTimeout(100);
+  const after = await page.evaluate(() => window.__caseback!.camera());
+  const moved = Math.hypot(after[0] - before[0], after[1] - before[1], after[2] - before[2]);
+  // Auto-rotation moves the camera a little in 100 ms; a reset to the start pose moves it much more.
+  expect(moved).toBeLessThan(0.5);
+});
