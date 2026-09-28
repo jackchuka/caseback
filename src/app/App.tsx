@@ -39,7 +39,8 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
         shadows
         dpr={quality === 'high' ? [1, 2] : [1, 1.5]}
         camera={{ fov: 26, near: 0.5, far: 400, position: [-24, 52, 62] }}
-        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
+        // The effect composer multisamples its own buffer on high; the canvas's MSAA would only be discarded.
+        gl={{ antialias: quality !== 'high', toneMapping: THREE.ACESFilmicToneMapping }}
       >
         <MaterialsProvider>
           <Studio />
