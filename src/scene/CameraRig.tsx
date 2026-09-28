@@ -68,9 +68,10 @@ export function CameraRig({ caliber, watchFront = false }: { caliber: Caliber; w
         const ray = new THREE.Raycaster();
         ray.setFromCamera(new THREE.Vector2((x / size.width) * 2 - 1, -(y / size.height) * 2 + 1), camera);
         const named = (o: THREE.Object3D | null): string => (!o ? '' : o.name || named(o.parent));
-        // three.js raycasts ignore visibility, so report only objects whose whole ancestor chain is rendered.
+        // three.js raycasts ignore visibility, so report only objects whose whole ancestor chain is rendered. Deep enough
+        // that the hands (two layers each) passing over a probe never push the dial out of the list.
         const shown = (o: THREE.Object3D | null): boolean => !o || (o.visible && shown(o.parent));
-        return ray.intersectObjects(scene.children, true).filter((h) => shown(h.object)).slice(0, 5).map((h) => named(h.object));
+        return ray.intersectObjects(scene.children, true).filter((h) => shown(h.object)).slice(0, 12).map((h) => named(h.object));
       },
       angle: (id) => {
         const e = registry.get(id);

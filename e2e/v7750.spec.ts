@@ -103,3 +103,54 @@ test('screenshots every 7750 tour chapter', async ({ page }) => {
     }
   }
 });
+
+test('the 7750 lists the Sinn 103 among its watches', async ({ page }) => {
+  await page.goto('/calibers/valjoux-7750/watches?lang=en');
+  await expect(page.locator('.caliber-watches .watch')).toHaveCount(1);
+  await expect(page.locator('.caliber-watches')).toContainText('103 St Sa');
+});
+
+test('the Sinn 103 opens on its dial and its pushers run the chronograph @quick', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/watches/sinn/103-st-sa?lang=en');
+  await expect(page.locator('.intro .eyebrow')).toContainText('Valjoux 7750');
+  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: 'test-results/v7750/watch-sinn103-intro.png' });
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
+  const front = (await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y])).filter((n) => !/hand/.test(n));
+  expect(front.slice(0, 2)).toEqual(['crystal', 'dial']);
+  await page.locator('.intro button').click();
+  await expect.poll(() => state(page).then((s) => s.mode), { timeout: 45_000 }).toBe('tour');
+  await page.getByRole('button', { name: 'Chronograph', exact: true }).click();
+  const pusher = () => page.evaluate(() => {
+    const p = window.__caseback!.three().scene.getObjectByName('pusher-start-stop')!.position;
+    return Math.hypot(p.x, p.y);
+  });
+  const out = await pusher();
+  await page.locator('.info .chrono-ctl .start-stop').click();
+  // The pusher goes in under the finger and springs back.
+  await expect.poll(pusher, { timeout: 2_000 }).toBeLessThan(out - 0.1);
+  await expect.poll(pusher, { timeout: 5_000 }).toBeCloseTo(out, 3);
+  await expect.poll(() => angle(page, 'chrono-seconds-hand'), { timeout: 5_000 }).toBeGreaterThan(0.01 * TAU);
+  expect(errors).toEqual([]);
+});
+
+test('the Sinn 103\'s display back shows the movement', async ({ page }) => {
+  await page.goto('/watches/sinn/103-st-sa?lang=en');
+  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await page.locator('.intro button').click();
+  await page.evaluate(async () => {
+    const h = window.__caseback!;
+    const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+    for (let i = 0; i < 15 && h.enabled(); i++) await frame();
+    const end = performance.now() + 20_000;
+    while (!h.enabled() && performance.now() < end) await frame();
+  });
+  // The centre: the 103's tall back ring would hide an off-centre probe seen at the turn's angle.
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('runner'));
+  const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
+  expect(hits[0]).toBe('caseback-glass');
+  await page.screenshot({ path: 'test-results/v7750/watch-sinn103-back.png' });
+});

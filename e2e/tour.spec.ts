@@ -371,8 +371,8 @@ test('dive bezel watch opens into the same tour', async ({ page }) => {
 test('home lists calibers and watches and searches', async ({ page }) => {
   await page.goto('/?lang=en');
   await expect(page.locator('.home')).toBeVisible();
-  await expect(page.locator('.home .watch')).toHaveCount(5);
-  await page.getByRole('searchbox').fill('sinn');
+  await expect(page.locator('.home .watch')).toHaveCount(6);
+  await page.getByRole('searchbox').fill('556');
   await expect(page.locator('.home .watch')).toHaveCount(1);
   await page.locator('.home .watch a').first().click();
   await expect(page).toHaveURL(/\/watches\/sinn\/556/);
@@ -458,7 +458,7 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
   expect(worst).toBeLessThan(0.02);
 });
 
-for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja'], ['Hamilton Khaki Field Auto', '/watches/hamilton/khaki-field-auto-h70455553?lang=ja'], ['Seiko Presage SRPB43', '/watches/seiko/presage-srpb43?lang=ja'], ['Hamilton Ventura XXL Auto', '/watches/hamilton/ventura-xxl-auto-h24655331?lang=ja']]) {
+for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja'], ['Hamilton Khaki Field Auto', '/watches/hamilton/khaki-field-auto-h70455553?lang=ja'], ['Seiko Presage SRPB43', '/watches/seiko/presage-srpb43?lang=ja'], ['Hamilton Ventura XXL Auto', '/watches/hamilton/ventura-xxl-auto-h24655331?lang=ja'], ['Sinn 103 St Sa', '/watches/sinn/103-st-sa?lang=ja']]) {
   test(`${name}: the watch page opens on the dial, and dial chapters remove it @quick`, async ({ page }) => {
     await page.goto(url!);
     await ready(page);
@@ -467,7 +467,7 @@ for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79
     const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
     const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
     // The real-time hands sweep over this probe point too; ignore them so the assertion doesn't flake.
-    const front = hits.filter((n) => n !== 'hour-hand' && n !== 'minute-hand' && n !== 'seconds-hand');
+    const front = hits.filter((n) => !/hand/.test(n));
     expect(front.slice(0, 2)).toEqual(['crystal', 'dial']);
     await page.getByRole('button', { name: '裏蓋を開ける' }).click();
     await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
