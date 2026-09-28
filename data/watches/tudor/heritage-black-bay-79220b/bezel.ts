@@ -32,7 +32,7 @@ export function tudorBezel(m: MovementFrame): ExteriorLayer[] {
   ], T.knurlCount * 4);
   cutFlutes(body, { axis: 'z', radius: T.bezelOuter, count: T.knurlCount, depth: T.knurlDepth, from: top + 0.2, to: b - 0.1 });
   const insert = new THREE.RingGeometry(T.insertInner, T.insertOuter, 360).rotateX(Math.PI).translate(0, 0, seat - 0.01);
-  const pipAt = -(T.insertInner + T.insertOuter) / 2 + 0.25;
+  const pipAt = -T.pipAt;
   const cup = new THREE.CylinderGeometry(T.pipRadius + 0.18, T.pipRadius + 0.18, 0.3, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.15);
   const pip = new THREE.CylinderGeometry(T.pipRadius, T.pipRadius, 0.1, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.32);
   return [
@@ -61,12 +61,12 @@ export function paintInsert() {
       const outer = -R * 0.985;
       if (mark.kind === 'triangle') {
         g.beginPath();
-        g.moveTo(0, -inner - band * 0.12);
-        g.lineTo(band * 0.34, outer);
-        g.lineTo(-band * 0.34, outer);
+        g.moveTo(0, -inner - band * 0.3);
+        g.lineTo(band * 0.48, outer);
+        g.lineTo(-band * 0.48, outer);
         g.fill();
       } else if (mark.kind === 'tick') g.fillRect(-R * 0.004, outer, R * 0.008, band * 0.3);
-      else if (mark.kind === 'bar') g.fillRect(-R * 0.009, outer, R * 0.018, band * 0.55);
+      else if (mark.kind === 'bar') g.fillRect(-R * 0.009, outer, R * 0.018, band * 0.75);
       else {
         g.font = `500 ${band * 0.52}px Inter, sans-serif`;
         g.translate(0, -(inner + band * 0.5));

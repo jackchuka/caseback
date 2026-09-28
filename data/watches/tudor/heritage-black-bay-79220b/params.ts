@@ -4,16 +4,16 @@ export const T = {
   caseRadius: 20.5, // spec: 41 mm
   totalThickness: 13, // spec: caseback to crystal apex
   caseHeight: 8.2, // est: case middle, front face to caseback seat
-  lugToLug: 50, // est: reviews quote ~50 mm; photo:front
+  lugToLug: 50, // spec: 50 mm (aBlogtoWatch, Millenary)
   lugGap: 22, // spec: lug width
   lugWidth: 2.9, // photo:front: lug top at the tip, gap edge to outer edge (bobs-126699.jpg agrees)
-  lugTipRound: 0.6, // est
+  lugTipRound: 0.6, // photo:front: small rounding of the lug-tip corners
   lugFillet: 0.6, // photo:front: only the inner corner where the gap meets the drum, under the end link
   lugDrop: 1.8, // photo:crown-low: lug tip dip toward the wrist
   lugCurve: 1.6, // photo:crown-low: the dip starts at the bezel edge and steepens toward the tip
   lugHeel: 1.2, // photo:crown-low: the underside rounds up at the tip
   lugHeelRun: 4, // photo:crown-low
-  bevel: 0.9, // est: polished top-edge bevel, photo:crown-low
+  bevel: 0.9, // photo:front: the polished band along the case edge is ~5 px wide
   backChamfer: 0.3, // est
   edge: 0.25, // softening of every crease
   bore: 16.2, // est: inner radius of the case middle (movement seat)
@@ -22,24 +22,25 @@ export const T = {
   holeDepth: 1.5, // est: blind hole, drilled from the inner face only
 
   bezelOuter: 20.5, // spec: same as the case
-  bezelInner: 16.3, // est: inner lip, photo:front
-  insertOuter: 19.95, // est: photo:front
-  insertInner: 16.75, // est: photo:front
+  bezelInner: 15.3, // photo:front: inner edge of the polished lip
+  insertOuter: 19.95, // photo:front
+  insertInner: 16.15, // photo:front
   bezelHeight: 1.7, // est: photo:crown-low
-  knurlCount: 120, // est: photo:crown-low
+  knurlCount: 230, // photo:front: 0.56 mm pitch on bobs-126699.jpg's 6 o'clock edge
   knurlDepth: 0.12, // est
-  pipRadius: 0.55, // est: lume pip on the 12 o'clock triangle
+  pipRadius: 0.67, // photo:front: lume pip on the 12 o'clock triangle
+  pipAt: 18.6, // photo:front: pip centre from the watch centre, in the triangle's wide end
 
-  crystalRadius: 16.25, // est: just inside the bezel lip
+  crystalRadius: 15.25, // photo:front: just inside the bezel lip
   crystalWall: 0.6, // est: box wall above the bezel top, photo:crown-low
   crystalDome: 1.4, // est: photo:crown-low
 
-  dialRadius: 15.2, // est: photo:front
-  indexRing: 0.8, // est: index centres as a fraction of the dial radius, photo:front
-  dotRadius: 0.085, // est: dot radius / dial radius
-  barWidth: 0.1, barLength: 0.27, // est: / dial radius
-  triangle: 0.14, // est: / dial radius
-  surround: 0.16, // est: polished rim around each index
+  dialRadius: 15.2, // photo:front: dial edge inside the rehaut
+  indexRing: 0.81, // photo:front: outer edge of every index's lume / dial radius
+  dotRadius: 0.071, // photo:front: dot radius / dial radius
+  barWidth: 0.092, barLength: 0.27, // photo:front: / dial radius
+  triangle: { width: 0.18, height: 0.29 }, // photo:front: a long isosceles triangle, / dial radius
+  surround: 0.16, // photo:front: polished rim around each index
 
   // Hands, measured on the front shot and on bobs-126699.jpg (same pose, 3× the resolution).
   hour: 0.625, minute: 0.92, seconds: 0.96, secondsTail: 0.3, // photo:front: / dial radius
@@ -57,12 +58,12 @@ export const T = {
     bevel: 0.07, // photo:front: the thin bright line along each frame edge
   },
 
-  crownDiameter: 8, // est: big crown, photo:front
-  crownLength: 4, // est
+  crownDiameter: 8, // photo:front: 8.1 mm across the flutes
+  crownLength: 2.8, // photo:front: the crown ends 23.4 mm from the centre
   tubeDiameter: 4.2, // est: photo:three-quarter
-  tubeLength: 1.1, // est
+  tubeLength: 0.5, // photo:front: a short dark neck between case and crown
 
   bracelet: { endWidth: 18, pitch: 6.5, centerRatio: 0.42, thickness: 2.6, links: 6, gap: 0.15, wristRadius: 26, centerRaise: 0.15 }, // est: photo:front
   lume: '#f2eee2', // matches the movement lume the hands must use
-  insertBlue: '#1b2a4a', // est: midnight blue, photo:front
+  insertBlue: '#1b2a4a', // photo:front: hue of the insert's shaded areas (12, 18, 32)
 } as const;
