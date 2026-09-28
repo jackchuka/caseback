@@ -25,9 +25,19 @@ export type MovementFrame = {
   stemEnd: number | null;
   stemRadius: number;
   dateWindow: { x: number; width: number; height: number } | null;
+  // A day window beside the date, over the middle of the day ring's printed band at 3 o'clock.
+  dayWindow: { x: number; width: number; height: number } | null;
   plateFrontZ: number;
   rotorBackZ: number;
+  // Hands the movement carries besides the hour and minute hands (a small seconds, a chronograph's hands): the
+  // movement part each belongs to and its pivot.
+  extraHands: Array<{ id: string; x: number; y: number; z: number }>;
+  // Chronograph pushers: where each one meets the case flank, as an angle from 3 o'clock toward 6 (radians), and the
+  // height of its axis.
+  pushers: Array<{ action: PusherAction; angle: number; z: number }>;
 };
+
+export type PusherAction = 'start-stop' | 'reset';
 
 export type ExteriorContext = { movement: MovementFrame; quality: 'high' | 'low' };
 
@@ -49,7 +59,11 @@ export type ExteriorGeometry = {
     // Local frame: origin at the crown's centre, +Y toward the case.
     crown: ExteriorLayer[];
     // Pivot at the origin, 12 o'clock toward −Y. Movement materials only: they replace the movement's own hands.
-    hands: { hour: HandLayer[]; minute: HandLayer[]; seconds: HandLayer[] };
+    // `extra` replaces the movement's other hands, keyed by their part ids in MovementFrame.extraHands.
+    hands: { hour: HandLayer[]; minute: HandLayer[]; seconds: HandLayer[]; extra?: Record<string, HandLayer[]> };
+    // One per MovementFrame pusher. Local frame: axis Y, +Y toward the case, origin at the pusher's centre, which
+    // sits `radius` from the watch centre; a push moves it `travel` toward the case.
+    pushers?: Array<{ action: PusherAction; radius: number; travel: number; layers: ExteriorLayer[] }>;
   };
   // seatRadius: the round movement seat's radius, which drives the casing ring in Exterior.tsx. caseBackZ: the case
   // middle's back face (the caseback's seat), where the casing ring must stop. casebackTurns: a screw-down back

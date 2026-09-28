@@ -32,6 +32,20 @@ describe('movementFrame', () => {
     const f = movementFrame({ ...c, parts: c.parts.filter((p) => p.shape.kind !== 'stem') });
     expect(f.stemEnd).toBeNull();
   });
+  it('gives a time-only caliber no day window, extra hands or pushers', () => {
+    const f = movementFrame(c);
+    expect(f.dayWindow).toBeNull();
+    expect(f.extraHands).toEqual([]);
+    expect(f.pushers).toEqual([]);
+  });
+  it('reads a chronograph\'s day window, sub-dial and chronograph hands and pushers', () => {
+    const f = movementFrame(calibers['valjoux-7750']!);
+    expect(f.dayWindow!.x).toBeCloseTo((5.3 + 7.8) / 2, 6);
+    expect(f.dayWindow!.x + f.dayWindow!.width / 2).toBeLessThan(f.dateWindow!.x - f.dateWindow!.width / 2);
+    expect(f.extraHands.map((h) => h.id).sort()).toEqual(['chrono-seconds-hand', 'hour-counter-hand', 'minute-counter-hand', 'seconds-hand']);
+    expect(f.extraHands.find((h) => h.id === 'seconds-hand')).toMatchObject({ x: -8.2, y: 0 });
+    expect(f.pushers.map((p) => p.action)).toEqual(['start-stop', 'reset']);
+  });
   it('needs an hour hand to place the dial', () => {
     expect(() => movementFrame({ ...c, parts: c.parts.filter((p) => p.id !== 'hour-hand') })).toThrow(/hour-hand/);
   });
