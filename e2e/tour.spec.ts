@@ -11,9 +11,20 @@ async function ready(page: Page) {
 }
 
 // True once the camera/flip tween created for the current mode/step/side has finished (CameraRig re-enables
-// OrbitControls when its tween completes), i.e. any in-flight camera flight or dial flip has settled.
+// OrbitControls when its tween completes), i.e. any in-flight camera flight or dial flip has settled. The
+// tween is created in a React effect after the triggering click, so enabled() may still read stale-true for a
+// few frames; wait out that grace window (real shots run 1.2s+, far longer) before trusting it means "done".
 async function settled(page: Page) {
-  await page.waitForFunction(() => window.__caseback!.enabled(), null, { timeout: 10_000 });
+  await page.evaluate(async () => {
+    const h = window.__caseback!;
+    const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+    let sawFlight = false;
+    for (let i = 0; i < 15 && !sawFlight; i++) {
+      await frame();
+      if (!h.enabled()) sawFlight = true;
+    }
+    while (!h.enabled()) await frame();
+  });
 }
 
 // Waits for a couple of render frames, for state changes that apply on the next frame of the r3f loop
