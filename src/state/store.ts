@@ -1,4 +1,5 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
+import { nextMode, type ChronoAction, type ChronoMode } from '../kinematics/chronograph';
 import type { Caliber } from '../model/schema';
 import type { Side } from '../scene/focus';
 
@@ -18,6 +19,12 @@ export type AppState = InitState & {
   reserveH: number;
   crownPos: 0 | 1 | 2;
   turning: boolean;
+  // The chronograph's state, how many times its start/stop pusher has stepped the cam, and how many times each pusher
+  // has been pressed (the case's pushers move on every press, even one the chronograph ignores).
+  chrono: ChronoMode;
+  chronoPresses: number;
+  pushes: Record<ChronoAction, number>;
+  pressChrono(action: ChronoAction): void;
   setCrownPos(p: 0 | 1 | 2): void;
   setTurning(b: boolean): void;
   setReserve(h: number): void;
@@ -60,6 +67,17 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
     crownPos: 0,
     turning: false,
     setCrownPos: (crownPos) => set({ crownPos }),
+    chrono: 'reset',
+    chronoPresses: 0,
+    pushes: { 'start-stop': 0, reset: 0 },
+    pressChrono: (action) => {
+      const s = get();
+      set({
+        chrono: nextMode(s.chrono, action),
+        chronoPresses: s.chronoPresses + (action === 'start-stop' ? 1 : 0),
+        pushes: { ...s.pushes, [action]: s.pushes[action] + 1 },
+      });
+    },
     setTurning: (turning) => set({ turning }),
     setMode: (mode) =>
       set(mode === 'free' ? { mode, selected: null, freeSide: caliber.tour[get().stepIndex]!.side, ...PUSH_IN } : mode === 'tour' ? { mode } : { mode, ...PUSH_IN }),
@@ -67,7 +85,7 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
     goStep: (i) => {
       const stepIndex = clamp(Math.round(i), 0, last);
       // Leaving the crown chapter pushes the crown in, so the watch never stays stopped by accident.
-      set(caliber.tour[stepIndex]!.ctl ? { stepIndex } : { stepIndex, ...PUSH_IN });
+      set(caliber.tour[stepIndex]!.ctl === 'crown' ? { stepIndex } : { stepIndex, ...PUSH_IN });
     },
     next: () => get().goStep(get().stepIndex + 1),
     prev: () => get().goStep(get().stepIndex - 1),

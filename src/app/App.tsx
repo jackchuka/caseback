@@ -55,7 +55,7 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
       <Intro caliber={caliber} watch={watch} />
       <InfoPanel caliber={caliber} />
       <TourBar caliber={caliber} />
-      <Dock />
+      <Dock caliber={caliber} />
       <Hint />
     </>
   );
@@ -69,7 +69,7 @@ function Scene({ caliber, watch, exterior }: { caliber: Caliber; watch?: Watch; 
   const frame = useMemo(() => movementFrame(caliber), [caliber]);
   // A watch's own hands replace the movement's; the generic case keeps the movement's.
   const handLayers = useMemo(
-    () => (build.parts.hands.hour.length > 0 ? { 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute } : undefined),
+    () => (build.parts.hands.hour.length > 0 ? { 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute, ...build.parts.hands.extra } : undefined),
     [build],
   );
   return (

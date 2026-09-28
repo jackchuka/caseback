@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { caliberVars } from '../i18n/caliberVars';
 import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
+import { ChronoPushers } from './ChronoPushers';
 import { panelModel } from './panel';
 
 export function InfoPanel({ caliber }: { caliber: Caliber }) {
@@ -13,6 +14,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
   const lang = useApp((s) => s.lang);
   const reserveH = useApp((s) => Math.round(s.reserveH * 10) / 10);
   const crownPos = useApp((s) => s.crownPos);
+  const chrono = useApp((s) => s.chrono);
   const setCrownPos = useApp((s) => s.setCrownPos);
   const setTurning = useApp((s) => s.setTurning);
   const ctl = mode === 'tour' ? caliber.tour[stepIndex]!.ctl : undefined;
@@ -45,7 +47,15 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
           {m.stats.map((s) => (
             <div key={s.label}>
               {t(`ui:stats.${s.label}`)}
-              <b>{s.value === 'live:reserve' ? t('ui:reserveUnit', { h: reserveH.toFixed(1) }) : s.value === 'live:crown' ? t(`ui:crown.pos${crownPos}`) : s.value}</b>
+              <b>
+                {s.value === 'live:reserve'
+                  ? t('ui:reserveUnit', { h: reserveH.toFixed(1) })
+                  : s.value === 'live:crown'
+                    ? t(`ui:crown.pos${crownPos}`)
+                    : s.value === 'live:chrono'
+                      ? t(`ui:chrono.${chrono === 'reset' ? 'zero' : chrono}`)
+                      : s.value}
+              </b>
             </div>
           ))}
         </div>
@@ -74,6 +84,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
           </button>
         </div>
       )}
+      {ctl === 'chrono' && <ChronoPushers />}
       {m.speed && <div className="badge">{t('ui:speedBadge', { speed: m.speed.toLocaleString() })}</div>}
       {m.estimated && <div className="badge">{t('ui:estimated')}</div>}
       {(m.sources.length > 0 || m.notes.length > 0) && (

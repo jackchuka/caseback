@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
+import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
+import { ChronoPushers } from './ChronoPushers';
 
-export function Dock() {
+export function Dock({ caliber }: { caliber: Caliber }) {
   const { t } = useTranslation();
   const mode = useApp((s) => s.mode);
   const explode = useApp((s) => s.explode);
@@ -37,6 +39,12 @@ export function Dock() {
       <button type="button" className="mode" aria-label={paused ? t('ui:tour.play') : t('ui:tour.pause')} onClick={togglePaused}>
         {paused ? '▶' : '❚❚'}
       </button>
+      {caliber.couplings.some((cp) => cp.type === 'chronograph') && (
+        <>
+          <span className="sep" />
+          <ChronoPushers />
+        </>
+      )}
     </div>
   );
 }

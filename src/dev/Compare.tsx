@@ -64,7 +64,7 @@ export function Compare({ caliber, watch, shots, shotId, view, mode: initialMode
   const [opacity, setOpacity] = useState(0.5);
   const frame = useMemo(() => movementFrame(caliber), [caliber]);
   const build = useMemo(() => buildExterior(watch.exterior, { movement: frame, quality: 'high' }), [watch, frame]);
-  const hands = useMemo(() => ({ 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute }), [build]);
+  const hands = useMemo(() => ({ 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute, ...build.parts.hands.extra }), [build]);
   const time = parseTime(shot?.time ?? DEFAULT_TIME);
 
   useEffect(() => { window.__compare = { shots: shots.map((s) => s.id) }; }, [shots]);

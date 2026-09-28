@@ -72,6 +72,17 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
   const strapGroup = useRef<THREE.Group>(null);
   const secondsGroup = useRef<THREE.Group>(null);
   const dialFade = useRef(1);
+  // Each pusher's group, with the press count it last answered and how far in it is (1 = fully pressed).
+  const pusherGroups = useRef<Array<THREE.Group | null>>([]);
+  const pusherState = useRef<Array<{ seen: number; depth: number }>>([]);
+  const pushers = useMemo(
+    () =>
+      (build.parts.pushers ?? []).flatMap((p) => {
+        const at = frame.pushers.find((f) => f.action === p.action);
+        return at ? [{ ...p, angle: at.angle, z: at.z }] : [];
+      }),
+    [build, frame],
+  );
   const flipFirst = watchFront ? 1.2 : 0;
 
   useFrame((state, dt) => {
@@ -118,6 +129,17 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
       const progress = (minute.group.position.z - minute.part.pos.z) / minute.part.explode.dz;
       secondsGroup.current.position.z = frame.secondsZ + SECONDS_EXPLODE_DZ * progress;
     }
+    pushers.forEach((p, i) => {
+      const g = pusherGroups.current[i];
+      const st = (pusherState.current[i] ??= { seen: s.pushes[p.action], depth: 0 });
+      if (s.pushes[p.action] !== st.seen) {
+        st.seen = s.pushes[p.action];
+        st.depth = 1;
+      } else st.depth = Math.max(0, st.depth - Math.min(dt, 0.05) * 6);
+      if (!g) return;
+      const r = p.radius - p.travel * st.depth;
+      g.position.set(Math.cos(p.angle) * r, Math.sin(p.angle) * r, p.z);
+    });
     if (s.mode === 'opening' && pose.done) {
       openT.current = 0;
       s.finishOpening();
@@ -148,6 +170,19 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
           </mesh>
         </group>
       )}
+      {pushers.map((ps, i) => (
+        <group
+          key={ps.action}
+          ref={(g) => {
+            pusherGroups.current[i] = g;
+          }}
+          name={`pusher-${ps.action}`}
+          position={[Math.cos(ps.angle) * ps.radius, Math.sin(ps.angle) * ps.radius, ps.z]}
+          rotation={[0, 0, ps.angle + Math.PI / 2]}
+        >
+          {ps.layers.map((l, j) => <mesh key={j} geometry={l.geometry} material={pick(l)} castShadow />)}
+        </group>
+      ))}
       <Layers layers={p.bezel} pick={pick} />
       <group ref={dialGroup} name="dial">
         <Layers layers={p.dial} pick={pick} name="dial" />

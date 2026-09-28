@@ -114,4 +114,18 @@ describe('app store', () => {
     store.getState().setMode('free');
     expect(store.getState()).toMatchObject({ crownPos: 0, turning: false });
   });
+  it('runs the chronograph from its pushers and counts every push', () => {
+    const store = make();
+    const s = () => store.getState();
+    expect(s().chrono).toBe('reset');
+    s().pressChrono('reset');
+    expect(s()).toMatchObject({ chrono: 'reset', chronoPresses: 0, pushes: { 'start-stop': 0, reset: 1 } });
+    s().pressChrono('start-stop');
+    expect(s()).toMatchObject({ chrono: 'running', chronoPresses: 1 });
+    s().pressChrono('reset');
+    expect(s().chrono).toBe('running');
+    s().pressChrono('start-stop');
+    s().pressChrono('reset');
+    expect(s()).toMatchObject({ chrono: 'reset', chronoPresses: 2, pushes: { 'start-stop': 2, reset: 3 } });
+  });
 });

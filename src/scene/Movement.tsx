@@ -2,6 +2,7 @@ import type { Layer } from '../geometry/parts';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
+import { CHRONO_REST, trackChrono } from '../kinematics/chronograph';
 import { buildSolver, settleQuick } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { arborKey, focusKey } from '../model/validate';
@@ -12,7 +13,7 @@ import { effectiveSpeed } from '../tour/engine';
 import { MOVEMENT_ROTATION_VALUE } from './focus';
 import { PartMesh } from './PartMesh';
 import { registry, type RegistryEntry } from './registry';
-import { advance, dayOfMonthIndex, localSeconds } from './simClock';
+import { advance, dayOfMonthIndex, dayOfWeekIndex, localSeconds } from './simClock';
 
 export const MOVEMENT_ROTATION = MOVEMENT_ROTATION_VALUE;
 const XRAY_OPACITY = 0.12;
@@ -43,6 +44,8 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
   const pick = useApp((s) => s.pick);
   const t = useRef(localSeconds(new Date()));
   const dateBase = useMemo(() => dayOfMonthIndex(new Date()), []);
+  const dayBase = useMemo(() => dayOfWeekIndex(new Date()), []);
+  const chrono = useRef(CHRONO_REST);
   const explode = useRef(0);
   const wound = useRef(0);
   const prevInput = useRef(0);
@@ -53,6 +56,12 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
   const winderInput = useMemo(() => {
     const w = solve.info.winder;
     return w ? caliber.parts.find((p) => arborKey(p) === w.inputKey)!.id : null;
+  }, [caliber, solve]);
+  // A part on each arbor the chronograph takes its motion from.
+  const chronoInputs = useMemo(() => {
+    const info = solve.info.chrono;
+    const on = (key: string | null) => (key ? caliber.parts.find((p) => arborKey(p) === key)!.id : null);
+    return info ? { pinion: on(info.pinionKey)!, driver: on(info.driverKey) } : null;
   }, [caliber, solve]);
 
   useFrame((state, dt) => {
@@ -77,6 +86,8 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
       t: t.current,
       explode: explode.current,
       dateBase,
+      dayBase,
+      chrono: chrono.current,
       rotor,
       wound: wound.current,
       crownPos: s.crownPos,
@@ -85,6 +96,16 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
       quickRot: crownState.quick,
       setRot: crownState.set,
     });
+    if (chronoInputs && solve.info.chrono) {
+      const angleOf = (id: string | null) => (id ? transforms.get(id)!.angle : 0);
+      chrono.current = trackChrono(
+        chrono.current,
+        { mode: s.chrono, presses: s.chronoPresses },
+        solve.info.chrono.ratios,
+        { pinion: angleOf(chronoInputs.pinion), driver: angleOf(chronoInputs.driver) },
+        Math.min(dt, 0.05),
+      );
+    }
     if (winderInput && solve.info.winder) {
       const input = transforms.get(winderInput)!.angle;
       wound.current += solve.info.winder.advance(prevInput.current, input);

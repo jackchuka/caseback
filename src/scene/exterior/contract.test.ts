@@ -27,6 +27,8 @@ const box = (layers: ExteriorLayer[]) => new THREE.Box3().setFromPoints(vertices
 // The generic case is checked around the default caliber; every watch around its own.
 const builders: Array<[string, ExteriorBuilder, string]> = [
   ['generic', genericCase, 'eta-2824-2'],
+  // And around a chronograph, for its pushers.
+  ['generic chronograph', genericCase, 'valjoux-7750'],
   ...Object.values(watches).map((w): [string, ExteriorBuilder, string] => [w.id, w.exterior, w.caliberId]),
 ];
 
@@ -44,7 +46,7 @@ describe('exterior contract', () => {
       beforeAll(() => {
         b = buildExterior(builder, ctx);
         p = b.parts;
-        all = [...p.case, ...p.bezel, ...p.dial, ...p.crystal, ...p.strap, ...p.caseback, ...p.crown, ...p.hands.hour, ...p.hands.minute, ...p.hands.seconds];
+        all = [...p.case, ...p.bezel, ...p.dial, ...p.crystal, ...p.strap, ...p.caseback, ...p.crown, ...p.hands.hour, ...p.hands.minute, ...p.hands.seconds, ...Object.values(p.hands.extra ?? {}).flat(), ...(p.pushers ?? []).flatMap((x) => x.layers)];
       });
 
       it('closes the case and caseback over the rotor', () => {
@@ -109,12 +111,39 @@ describe('exterior contract', () => {
         }
       });
 
+      it('replaces only the movement\'s own extra hands, each pointing to 12 within the dial', () => {
+        const ids = new Set(FRAME.extraHands.map((h) => h.id));
+        for (const [id, layers] of Object.entries(p.hands.extra ?? {})) {
+          expect(ids.has(id), id).toBe(true);
+          if (layers.length === 0) continue;
+          const h = box(layers);
+          expect(h.min.y, id).toBeLessThan(0);
+          expect(h.max.y, id).toBeLessThan(-h.min.y);
+        }
+      });
+
+      it('puts one pusher on each of the movement\'s pusher positions, outside the case', () => {
+        const pushers = p.pushers ?? [];
+        expect(pushers.map((x) => x.action).sort()).toEqual(FRAME.pushers.map((x) => x.action).sort());
+        for (const ps of pushers) {
+          const at = FRAME.pushers.find((f) => f.action === ps.action)!;
+          const dir = { x: Math.cos(at.angle), y: Math.sin(at.angle) };
+          // The case's reach along the pusher's direction, near its axis.
+          const reach = Math.max(...vertices(p.case).filter((v) => Math.abs(-v.x * dir.y + v.y * dir.x) < 0.5 && Math.abs(v.z - at.z) < 1).map((v) => v.x * dir.x + v.y * dir.y));
+          // Local +Y runs toward the case: the pusher's inner end, pressed in, still stands clear of the case's reach.
+          const inner = Math.max(...vertices(ps.layers).map((v) => v.y));
+          expect(ps.radius - inner - ps.travel, ps.action).toBeGreaterThan(reach - 1.5);
+          expect(ps.travel, ps.action).toBeGreaterThan(0);
+        }
+      });
+
       it('every material key resolves', () => {
         const exterior = new Set([...Object.keys(b.materials), ...SHARED_EXTERIOR_MATERIALS, ...MOVEMENT_MATERIAL_KEYS]);
         const handsOnly = new Set(MOVEMENT_MATERIAL_KEYS);
         const outer = [...p.case, ...p.bezel, ...p.dial, ...p.crystal, ...p.strap, ...p.caseback, ...p.crown];
         expect(materialKeys(outer).filter((k) => !exterior.has(k))).toEqual([]);
-        expect(materialKeys([...p.hands.hour, ...p.hands.minute, ...p.hands.seconds]).filter((k) => !handsOnly.has(k))).toEqual([]);
+        expect(materialKeys([...p.hands.hour, ...p.hands.minute, ...p.hands.seconds, ...Object.values(p.hands.extra ?? {}).flat()]).filter((k) => !handsOnly.has(k))).toEqual([]);
+        expect(materialKeys((p.pushers ?? []).flatMap((x) => x.layers)).filter((k) => !exterior.has(k))).toEqual([]);
       });
 
       it('crystal materials come from the build\'s own materials and are transparent', () => {
