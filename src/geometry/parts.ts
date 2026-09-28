@@ -74,7 +74,7 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
       return [{ geometry: extrudeCentered(s, shape.thickness, 0.06), material }, { geometry: disc(shape.hub * 0.75, shape.thickness + 0.15, 48), material: 'steel' }];
     }
     case 'hand':
-      return hand(shape.length, shape.width, shape.thickness, material);
+      return hand(shape.length, shape.width, shape.thickness, material, shape.style ?? 'leaf');
     case 'date-driver': {
       const s = gearOutline(shape.teeth, shape.module);
       const rf = (shape.module * shape.teeth) / 2 - 1.55 * shape.module;
@@ -195,20 +195,30 @@ function bridge(shape: Bridge, material: MaterialKey): Layer[] {
 }
 
 // Hands point to local −Y (12 o'clock) at angle 0.
-function hand(length: number, width: number, thickness: number, material: MaterialKey): Layer[] {
+type HandStyle = 'leaf' | 'sword' | 'pencil' | 'baton';
+
+// Hands point to local −Y (12 o'clock) at angle 0; every style ends its tip at length + 0.25.
+function handOutline(style: HandStyle, length: number, w: number): THREE.Shape {
   const s = new THREE.Shape();
-  s.moveTo(-width * 0.35, 1.6);
-  s.lineTo(width * 0.35, 1.6);
-  s.lineTo(width, 0);
-  s.lineTo(width * 0.22, -length);
-  s.lineTo(0, -length - 0.25);
-  s.lineTo(-width * 0.22, -length);
-  s.lineTo(-width, 0);
+  const tip = -length - 0.25;
+  const pts: Array<[number, number]> =
+    style === 'sword'
+      ? [[-w * 0.2, 1.4], [w * 0.2, 1.4], [w, -0.15 * length], [0, tip], [-w, -0.15 * length]]
+      : style === 'pencil'
+        ? [[-w * 0.35, 1.4], [w * 0.35, 1.4], [w * 0.35, -0.8 * length], [w * 1.4, -0.9 * length], [0, tip], [-w * 1.4, -0.9 * length], [-w * 0.35, -0.8 * length]]
+        : style === 'baton'
+          ? [[-w * 0.6, 1.2], [w * 0.6, 1.2], [w * 0.6, tip], [-w * 0.6, tip]]
+          : [[-w * 0.35, 1.6], [w * 0.35, 1.6], [w, 0], [w * 0.22, -length], [0, tip], [-w * 0.22, -length], [-w, 0]];
+  pts.forEach(([x, y], k) => (k === 0 ? s.moveTo(x, y) : s.lineTo(x, y)));
   s.closePath();
   const hole = new THREE.Path();
-  hole.absarc(0, 0, 0.3, 0, Math.PI * 2, true);
+  hole.absarc(0, 0, Math.min(0.3, w * 0.5), 0, Math.PI * 2, true);
   s.holes.push(hole);
-  return [{ geometry: extrudeCentered(s, thickness, 0.02), material }, { geometry: disc(width + 0.1, 0.2, 32), material }];
+  return s;
+}
+
+function hand(length: number, width: number, thickness: number, material: MaterialKey, style: HandStyle): Layer[] {
+  return [{ geometry: extrudeCentered(handOutline(style, length, width), thickness, 0.02), material }, { geometry: disc(width + 0.1, 0.2, 32), material }];
 }
 
 // Printed ring: UVs map the band's mid radius to 0.87 of the texture radius (see textures.dateNumbers).

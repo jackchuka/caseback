@@ -7,11 +7,11 @@ import { focusKey } from '../model/validate';
 import { useMaterials } from './materials';
 import { registry } from './registry';
 
-export function PartMesh({ part, onPick }: { part: Part; onPick: (focus: string) => void }) {
+export function PartMesh({ part, onPick, materialOverride }: { part: Part; onPick: (focus: string) => void; materialOverride?: MovementMaterial }) {
   const materials = useMaterials();
   const layers = useMemo(() => buildShape(part.shape, part.material), [part]);
   // Caliber part shapes only ever produce movement materials; watch materials belong to the exterior.
-  const mats = useMemo(() => layers.map((l) => materials[l.material as MovementMaterial].clone()), [layers, materials]);
+  const mats = useMemo(() => layers.map((l) => materials[materialOverride ?? (l.material as MovementMaterial)].clone()), [layers, materials, materialOverride]);
   const ref = useRef<THREE.Group>(null);
 
   useEffect(() => {

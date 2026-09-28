@@ -34,7 +34,15 @@ function fadeTo(entry: RegistryEntry, target: number) {
   for (const child of entry.group.children) (child as THREE.Mesh).raycast = see ? THREE.Mesh.prototype.raycast : ignoreRaycast;
 }
 
-export function Movement({ caliber, children }: { caliber: Caliber; children?: ReactNode }) {
+export type HandStyle = { style: 'sword' | 'pencil' | 'baton'; color: 'white' | 'silver' | 'blued' };
+const HAND_MATERIAL = { white: 'lume', silver: 'steel', blued: 'blued' } as const;
+
+export function Movement({ caliber, handStyle, children }: { caliber: Caliber; handStyle?: HandStyle; children?: ReactNode }) {
+  // A watch restyles the movement's own hour and minute hands; the kinematics keep driving them.
+  const parts = useMemo(
+    () => (handStyle ? caliber.parts.map((p) => (p.shape.kind === 'hand' ? { ...p, shape: { ...p.shape, style: handStyle.style } } : p)) : caliber.parts),
+    [caliber, handStyle],
+  );
   const solve = useMemo(() => buildSolver(caliber), [caliber]);
   const pick = useApp((s) => s.pick);
   const t = useRef(localSeconds(new Date()));
@@ -125,8 +133,8 @@ export function Movement({ caliber, children }: { caliber: Caliber; children?: R
 
   return (
     <group rotation={[MOVEMENT_ROTATION, 0, 0]}>
-      {caliber.parts.map((p) => (
-        <PartMesh key={p.id} part={p} onPick={pick} />
+      {parts.map((p) => (
+        <PartMesh key={p.id} part={p} onPick={pick} materialOverride={handStyle && p.shape.kind === 'hand' ? HAND_MATERIAL[handStyle.color] : undefined} />
       ))}
       {children}
     </group>

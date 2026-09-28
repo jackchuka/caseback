@@ -19,7 +19,7 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('plate'), radius: pos, thickness: pos }),
   z.object({ kind: z.literal('stem'), radius: pos, length: pos }),
   z.object({ kind: z.literal('rotor'), radius: pos, hub: pos, thickness: pos }),
-  z.object({ kind: z.literal('hand'), length: pos, width: pos, thickness: pos }),
+  z.object({ kind: z.literal('hand'), length: pos, width: pos, thickness: pos, style: z.enum(['leaf', 'sword', 'pencil', 'baton']).optional() }),
   z.object({ kind: z.literal('date-driver'), teeth: int, module: pos, thickness: pos, fingerLength: pos }),
   z.object({ kind: z.literal('date-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
   z.object({

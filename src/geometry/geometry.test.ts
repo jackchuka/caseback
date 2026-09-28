@@ -50,4 +50,25 @@ describe('buildShape', () => {
     const shape = { kind: 'pinion' as const, leaves: 10, module: 0.1, length: 0.6 };
     expect(buildShape(shape, 'steel')[0]!.geometry).toBe(buildShape({ ...shape }, 'steel')[0]!.geometry);
   });
+  it('builds every hand style with the requested length', () => {
+    for (const style of ['leaf', 'sword', 'pencil', 'baton'] as const) {
+      const [layer] = buildShape({ kind: 'hand', length: 9.6, width: 0.32, thickness: 0.08, style }, 'blued');
+      layer!.geometry.computeBoundingBox();
+      expect(-layer!.geometry.boundingBox!.min.y, style).toBeCloseTo(9.6 + 0.25, 0);
+    }
+  });
+});
+
+describe('hand styles differ', () => {
+  const outline = (style: 'leaf' | 'sword' | 'pencil' | 'baton') => {
+    const [layer] = buildShape({ kind: 'hand', length: 9.6, width: 0.32, thickness: 0.08, style }, 'blued');
+    layer!.geometry.computeBoundingBox();
+    return layer!.geometry;
+  };
+  it('pencil widens near the tip, baton stays narrow, sword differs from leaf', () => {
+    const leaf = outline('leaf');
+    expect(outline('pencil').boundingBox!.max.x).toBeGreaterThan(leaf.boundingBox!.max.x);
+    expect(outline('baton').boundingBox!.max.x).toBeLessThan(leaf.boundingBox!.max.x);
+    expect(outline('sword').getAttribute('position').count).not.toBe(leaf.getAttribute('position').count);
+  });
 });
