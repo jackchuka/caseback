@@ -61,7 +61,7 @@ export const T = {
     secondsPlateAt: 0.62, // photo:front: / dial radius
     lumeFrom: 1.8, // photo:front: lume starts this far from the pivot
     frame: 0.3, // photo:front: steel rim around the lume
-    bevel: 0.07, // photo:front: the thin bright line along each frame edge
+    ridge: 0.24, // est: frame height, rounded to a ridge; the photos show the bright outline, not the section
   },
 
   crownDiameter: 8, // photo:front: 8.1 mm across the flutes

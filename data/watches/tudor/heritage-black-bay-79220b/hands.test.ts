@@ -47,6 +47,17 @@ describe('Tudor 79220B snowflake hands', () => {
     expect(centre).toBeLessThan(0.7);
     expect(p.max.y).toBeLessThan(0);
   });
+  it('sets the lume in a rounded frame that stands proud of it', () => {
+    for (const hand of [h.hour, h.minute]) {
+      const frame = hand[0]!.geometry;
+      expect(extent([hand[0]!]).min.z).toBeLessThan(lume(hand).min.z);
+      // A rounded section has faces tilted all the way from the view axis to the side, not just a flat top.
+      const n = frame.getAttribute('normal');
+      const tilts = new Set<number>();
+      for (let i = 0; i < n.count; i++) if (n.getZ(i) < 0) tilts.add(Math.round((Math.acos(-n.getZ(i)) * 180) / Math.PI / 15));
+      expect([1, 2, 3, 4, 5].every((b) => tilts.has(b))).toBe(true);
+    }
+  });
   it('uses movement materials only', () => {
     for (const l of [...h.hour, ...h.minute, ...h.seconds]) expect(['steel', 'lume']).toContain(l.material);
   });
