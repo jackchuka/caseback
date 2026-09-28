@@ -371,7 +371,7 @@ test('dive bezel watch opens into the same tour', async ({ page }) => {
 test('home lists calibers and watches and searches', async ({ page }) => {
   await page.goto('/?lang=en');
   await expect(page.locator('.home')).toBeVisible();
-  await expect(page.locator('.home .watch')).toHaveCount(4);
+  await expect(page.locator('.home .watch')).toHaveCount(5);
   await page.getByRole('searchbox').fill('sinn');
   await expect(page.locator('.home .watch')).toHaveCount(1);
   await page.locator('.home .watch a').first().click();
@@ -381,7 +381,7 @@ test('home lists calibers and watches and searches', async ({ page }) => {
 
 test('caliber watch list', async ({ page }) => {
   await page.goto('/calibers/eta-2824-2/watches?lang=ja');
-  await expect(page.locator('.caliber-watches .watch')).toHaveCount(3);
+  await expect(page.locator('.caliber-watches .watch')).toHaveCount(4);
   await expect(page.locator('.caliber-watches')).toContainText('ETA 2824-2');
 });
 
@@ -403,6 +403,9 @@ test('display caseback lets you see the movement, a solid one does not @quick', 
   };
   const glass = await firstHits('/watches/sinn/556?lang=en');
   expect(glass[0]).toBe('caseback-glass');
+  // A non-round back held by screws: it lifts straight off rather than unscrewing.
+  const shield = await firstHits('/watches/hamilton/ventura-xxl-auto-h24655331?lang=en');
+  expect(shield[0]).toBe('caseback-glass');
   const solid = await firstHits('/watches/tudor/heritage-black-bay-79220b?lang=en');
   expect(solid[0]).toBe('caseback-solid');
 });
@@ -455,7 +458,7 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
   expect(worst).toBeLessThan(0.02);
 });
 
-for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja'], ['Hamilton Khaki Field Auto', '/watches/hamilton/khaki-field-auto-h70455553?lang=ja'], ['Seiko Presage SRPB43', '/watches/seiko/presage-srpb43?lang=ja']]) {
+for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja'], ['Hamilton Khaki Field Auto', '/watches/hamilton/khaki-field-auto-h70455553?lang=ja'], ['Seiko Presage SRPB43', '/watches/seiko/presage-srpb43?lang=ja'], ['Hamilton Ventura XXL Auto', '/watches/hamilton/ventura-xxl-auto-h24655331?lang=ja']]) {
   test(`${name}: the watch page opens on the dial, and dial chapters remove it @quick`, async ({ page }) => {
     await page.goto(url!);
     await ready(page);
