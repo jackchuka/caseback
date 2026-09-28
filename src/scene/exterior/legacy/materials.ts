@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { glass } from '../kit/glass';
 import { withPolish } from '../kit/polish';
 import type { LegacyConfig } from './config';
 import { paintDial, paintInsert, paintStrap } from './paint';
@@ -12,9 +13,8 @@ export function legacyMaterials(e: LegacyConfig): Record<string, () => THREE.Mat
     // Stainless cases read as black in the dark studio at the movement's reflection strength; product photos light them harder.
     case: () => withPolish(new THREE.MeshPhysicalMaterial({ color: metal, metalness: 1, roughness: 0.36, envMapIntensity: 1.4 }), 0.08),
     polished: () => new THREE.MeshPhysicalMaterial({ color: metal, metalness: 1, roughness: 0.08, envMapIntensity: 1.4 }),
-    crystal: () => new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.8, ior: 1.77, transparent: true }),
-    // Opaque on purpose: three.js renders only opaque objects into the transmission buffer, so a transparent dial
-    // would vanish behind the (transmissive) crystal. It is removed by lifting and hiding instead of fading.
+    crystal: () => glass(0.8),
+    // Opaque and removed by lifting and hiding instead of fading, so it never sorts against the crystal.
     dial: () => new THREE.MeshPhysicalMaterial({ map: paintDial(e), roughness: e.dial.finish === 'matte' ? 0.8 : 0.35, clearcoat: e.dial.finish === 'gloss' ? 1 : 0 }),
     insert: () => new THREE.MeshPhysicalMaterial({ map: paintInsert(e), roughness: 0.5, metalness: 0.1 }),
     strap: () =>

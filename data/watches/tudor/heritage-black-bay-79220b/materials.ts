@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { glass } from '../../../../src/scene/exterior/kit/glass';
 import { withPolish } from '../../../../src/scene/exterior/kit/polish';
 import { paintInsert } from './bezel';
 import { paintDial } from './dial';
@@ -11,8 +12,8 @@ export function tudorMaterials(): Record<string, () => THREE.Material> {
     // Stainless reads as black in the dark studio at the movement's reflection strength; product photos light it harder.
     case: () => withPolish(new THREE.MeshPhysicalMaterial({ color: STEEL, metalness: 1, roughness: 0.34, envMapIntensity: 1.4 }), 0.07),
     polished: () => new THREE.MeshPhysicalMaterial({ color: STEEL, metalness: 1, roughness: 0.07, envMapIntensity: 1.4 }),
-    crystal: () => new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 1.2, ior: 1.77, transparent: true }),
-    // Opaque on purpose: a transparent dial would vanish behind the transmissive crystal.
+    crystal: () => glass(1.2),
+    // Opaque on purpose, so it never sorts against the crystal.
     dial: () => new THREE.MeshPhysicalMaterial({ map: paintDial(), roughness: 0.85 }),
     // Separate from the movement lume so it fades with the dial; same colour so dial and hands match.
     'dial-lume': () => new THREE.MeshPhysicalMaterial({ color: T.lume, roughness: 0.5, metalness: 0 }),

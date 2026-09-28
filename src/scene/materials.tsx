@@ -17,10 +17,9 @@ export function createMaterials(): MaterialSet {
     rhodium: new THREE.MeshPhysicalMaterial({ color: 0xc4c8ce, metalness: 1, roughness: 0.22, roughnessMap: cotes, bumpMap: cotes, bumpScale: 0.35 }),
     plate: new THREE.MeshPhysicalMaterial({ color: 0xa9adb3, metalness: 1, roughness: 0.42, roughnessMap: pearl, bumpMap: pearl, bumpScale: 0.3 }),
     balance: new THREE.MeshPhysicalMaterial({ color: 0xf0d59a, metalness: 1, roughness: 0.16 }),
-    ruby: new THREE.MeshPhysicalMaterial({
-      color: 0xc8103c, metalness: 0, roughness: 0.03, transmission: 0.85, thickness: 0.4, ior: 1.76,
-      attenuationColor: new THREE.Color(0x8a0020), attenuationDistance: 0.35, clearcoat: 1,
-    }),
+    // Opaque on purpose: a transmissive jewel makes three.js render the whole scene twice every frame, and at this
+    // size the refraction never read anyway.
+    ruby: new THREE.MeshPhysicalMaterial({ color: 0x8a0020, metalness: 0, roughness: 0.03, ior: 1.76, clearcoat: 1, sheen: 0.6, sheenColor: 0xff3050 }),
     blued: new THREE.MeshPhysicalMaterial({ color: 0x1b3aa8, metalness: 1, roughness: 0.18, iridescence: 0.5, iridescenceIOR: 1.6 }),
     slot: new THREE.MeshPhysicalMaterial({ color: 0x050a1a, metalness: 0.5, roughness: 0.6 }),
     lume: new THREE.MeshPhysicalMaterial({ color: 0xf2eee2, roughness: 0.5, metalness: 0 }),

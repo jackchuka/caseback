@@ -8,6 +8,7 @@ import { casingRing, casingSpan, stemExtension } from './caseGeometry';
 import { crownEuler, crownState } from './crown';
 import type { ExteriorBuild, ExteriorLayer, MovementFrame } from './exterior/contract';
 import { instantiate, materialKeys, resolveMaterial, SHARED_EXTERIOR_MATERIALS } from './exterior/materials';
+import { glass } from './exterior/kit/glass';
 import { exteriorVisibility } from './exterior/visibility';
 import { useMaterials } from './materials';
 import { openingPose } from './opening';
@@ -33,7 +34,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
     const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^ETA /, '')}` });
     return {
       'caseback-engraving': new THREE.MeshPhysicalMaterial({ color: 0xd0d3d7, metalness: 1, roughness: 0.3, bumpMap: tex, bumpScale: 1.2, roughnessMap: tex, transparent: true }),
-      'caseback-glass': new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.6, ior: 1.77, transparent: true }),
+      'caseback-glass': glass(0.6),
     };
   }, [caliber]);
   const pick = useMemo<PickMaterial>(() => {
