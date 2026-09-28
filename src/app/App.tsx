@@ -1,12 +1,16 @@
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { i18n } from 'i18next';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
+import { caseRadii } from '../scene/caseGeometry';
 import { Exterior } from '../scene/Exterior';
+import { dialRadius } from '../scene/exterior/dial';
+import { watchHands } from '../scene/exterior/hands';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
@@ -25,6 +29,11 @@ import { TourBar } from '../ui/TourBar';
 export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i18n; webgl: boolean; watch?: Watch }) {
   const quality = useApp((s) => s.quality);
   const mode = useApp((s) => s.mode);
+  const handLayers = useMemo(() => {
+    if (!watch) return undefined;
+    const h = watchHands(watch.exterior, dialRadius(caseRadii(caliber.specs.diameterMm, watch.exterior)));
+    return { 'hour-hand': h.hour, 'minute-hand': h.minute };
+  }, [caliber, watch]);
   useThemeAttr();
   useI18nLang(i18n);
   useKeyboard();
@@ -41,7 +50,7 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
         <MaterialsProvider>
           <Studio />
           <group ref={(g) => { flipGroup.current = g; }}>
-          <Movement caliber={caliber} handStyle={watch ? { style: watch.exterior.hands.style, color: watch.exterior.hands.color } : undefined}>
+          <Movement caliber={caliber} handLayers={handLayers}>
             <FlowPaths caliber={caliber} />
             <Exterior caliber={caliber} watch={watch} />
           </Movement>

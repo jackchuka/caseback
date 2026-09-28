@@ -27,7 +27,7 @@ describe('exterior generators', () => {
       const layers = dialLayers(e, r);
       const b = bbox(layers);
       expect(b.max.x).toBeLessThan(r.inner);
-      const applied = layers.filter((l) => l.material === 'lume' || l.material === 'insert').length;
+      const applied = layers.filter((l) => l.material === 'lume').length;
       const expected = { 'diver-dots': 12, 'bars-minute': 0, 'arabic-24': 0 }[e.dial.indices];
       expect(applied).toBe(expected);
     });

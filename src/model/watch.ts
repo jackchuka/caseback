@@ -29,7 +29,8 @@ export const WatchExteriorSchema = z.object({
     lume: z.string().optional(),
     dateWindow: z.boolean(),
   }),
-  hands: z.object({ style: z.enum(['sword', 'pencil', 'baton']), color: z.enum(['white', 'silver', 'blued']), seconds: z.boolean() }),
+  // `color` is the metal (or paint) of the hand frames; the fill is the dial's lume. `secondsDot` is a diver's lume disc on the seconds hand.
+  hands: z.object({ style: z.enum(['syringe', 'sword', 'pencil', 'baton']), color: z.enum(['white', 'silver', 'blued']), seconds: z.boolean(), secondsDot: z.boolean().optional() }),
   strap: z.object({ kind: z.enum(['leather', 'bracelet', 'fabric']), color: z.string() }),
   caseback: z.enum(['solid', 'display']),
 });

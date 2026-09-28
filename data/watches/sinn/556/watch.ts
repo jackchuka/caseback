@@ -12,7 +12,7 @@ const watch: Watch = {
     crown: { diameterMm: 6, lengthMm: 3, tube: false, guards: false },
     crystal: { domeMm: 0.3 },
     dial: { color: '#141416', finish: 'matte', indices: 'bars-minute', indexColor: '#f2f2f2', lume: '#f2f2f2', dateWindow: false },
-    hands: { style: 'baton', color: 'white', seconds: true },
+    hands: { style: 'baton', color: 'silver', seconds: true },
     strap: { kind: 'bracelet', color: '#bfc2c6' },
     caseback: 'solid',
   },

@@ -46,18 +46,25 @@ export function dialLayers(e: WatchExterior, r: CaseRadii): Layer[] {
   disc.rotateX(Math.PI).translate(0, 0, DIAL_Z);
   const layers: Layer[] = [{ geometry: disc, material: 'dial' }];
   if (e.dial.indices === 'diver-dots') {
-    const ri = rad * 0.8;
+    // Applied indices as on the reference photos: lume in a polished metal surround, dots about 0.075 of the dial
+    // radius across, 3/6/9 bars about 0.3 long, a triangle at 12, all centred at 0.78 of the radius.
+    const ri = rad * 0.78;
+    const dot = rad * 0.075;
+    const bar = { w: rad * 0.09, l: rad * 0.3 };
+    const tri = rad * 0.13;
+    const rim = 0.18;
+    // The 12 o'clock triangle points toward the centre, as on divers' dials.
+    const shape = (h: number, grow: number, depth: number) =>
+      h === 0
+        ? new THREE.CylinderGeometry(tri + grow, tri + grow, depth, 3).rotateX(Math.PI / 2).rotateZ(Math.PI)
+        : h % 3 === 0
+          ? new THREE.BoxGeometry(bar.w + 2 * grow, bar.l + 2 * grow, depth)
+          : new THREE.CylinderGeometry(dot + grow, dot + grow, depth, 40).rotateX(Math.PI / 2);
     for (let h = 0; h < 12; h++) {
       const a = (h / 12) * Math.PI * 2;
-      const x = Math.sin(a) * ri;
-      const y = -Math.cos(a) * ri;
-      const g =
-        h === 0
-          ? new THREE.ConeGeometry(0.9, 0.2, 3).rotateX(Math.PI / 2)
-          : h % 3 === 0
-            ? new THREE.BoxGeometry(0.7, 2.0, 0.2).rotateZ(-a)
-            : new THREE.CylinderGeometry(0.55, 0.55, 0.2, 32).rotateX(Math.PI / 2);
-      layers.push({ geometry: g.translate(x, y, DIAL_Z - 0.12), material: 'lume' });
+      const at = (g: THREE.BufferGeometry, z: number) => g.rotateZ(-a).translate(Math.sin(a) * ri, -Math.cos(a) * ri, z);
+      layers.push({ geometry: at(shape(h, 0, 0.3), DIAL_Z - 0.18), material: 'lume' });
+      layers.push({ geometry: at(shape(h, rim, 0.24), DIAL_Z - 0.12), material: 'steel' });
     }
   }
   return layers;

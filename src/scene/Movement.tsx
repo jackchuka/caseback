@@ -1,3 +1,4 @@
+import type { Layer } from '../geometry/parts';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -34,15 +35,10 @@ function fadeTo(entry: RegistryEntry, target: number) {
   for (const child of entry.group.children) (child as THREE.Mesh).raycast = see ? THREE.Mesh.prototype.raycast : ignoreRaycast;
 }
 
-export type HandStyle = { style: 'sword' | 'pencil' | 'baton'; color: 'white' | 'silver' | 'blued' };
-const HAND_MATERIAL = { white: 'lume', silver: 'steel', blued: 'blued' } as const;
-
-export function Movement({ caliber, handStyle, children }: { caliber: Caliber; handStyle?: HandStyle; children?: ReactNode }) {
-  // A watch restyles the movement's own hour and minute hands; the kinematics keep driving them.
-  const parts = useMemo(
-    () => (handStyle ? caliber.parts.map((p) => (p.shape.kind === 'hand' ? { ...p, shape: { ...p.shape, style: handStyle.style } } : p)) : caliber.parts),
-    [caliber, handStyle],
-  );
+// A watch replaces the geometry of the movement's hour and minute hands (keyed by part id) with its own, sized to
+// its dial; the parts keep their arbors, so the kinematics still drive them.
+export function Movement({ caliber, handLayers, children }: { caliber: Caliber; handLayers?: Record<string, Layer[]>; children?: ReactNode }) {
+  const parts = caliber.parts;
   const solve = useMemo(() => buildSolver(caliber), [caliber]);
   const pick = useApp((s) => s.pick);
   const t = useRef(localSeconds(new Date()));
@@ -134,7 +130,7 @@ export function Movement({ caliber, handStyle, children }: { caliber: Caliber; h
   return (
     <group rotation={[MOVEMENT_ROTATION, 0, 0]}>
       {parts.map((p) => (
-        <PartMesh key={p.id} part={p} onPick={pick} materialOverride={handStyle && p.shape.kind === 'hand' ? HAND_MATERIAL[handStyle.color] : undefined} />
+        <PartMesh key={p.id} part={p} onPick={pick} layersOverride={handLayers?.[p.id]} />
       ))}
       {children}
     </group>

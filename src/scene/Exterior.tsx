@@ -10,11 +10,12 @@ import { useMaterials } from './materials';
 import { crownEuler, crownState } from './crown';
 import { caseRadii, casingRing, stemExtension } from './caseGeometry';
 import { openingPose } from './opening';
-import { buildShape, type Layer, type LayerMaterial, type MovementMaterial } from '../geometry/parts';
+import { type Layer, type LayerMaterial, type MovementMaterial } from '../geometry/parts';
 import { bezel as bezelLayers } from './exterior/bezel';
 import { crown as crownLayers } from './exterior/crown';
 import { crystal as crystalLayers } from './exterior/crystal';
-import { dialLayers } from './exterior/dial';
+import { dialLayers, dialRadius } from './exterior/dial';
+import { watchHands } from './exterior/hands';
 import { caseBody } from './exterior/caseBody';
 import { paintDial, paintInsert, paintStrap } from './exterior/paint';
 import { strap as strapLayers } from './exterior/strap';
@@ -73,8 +74,6 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       lume: new THREE.MeshPhysicalMaterial({ color: ext.dial.lume ?? '#f2eee2', roughness: 0.5, metalness: 0 }),
     };
     const pick = (l: Layer) => (l.material in mats ? mats[l.material as keyof typeof mats] : materials[l.material as MovementMaterial]);
-    const seconds = buildShape({ kind: 'hand', length: 10.5, width: 0.12, thickness: 0.06, style: 'baton' }, 'blued');
-    const secondsMat = materials[{ white: 'lume', silver: 'steel', blued: 'blued' }[ext.hands.color] as MovementMaterial];
     return {
       mats,
       pick,
@@ -84,8 +83,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       crystal: crystalLayers(ext, r),
       dial: dialLayers(ext, r),
       strap: strapLayers(ext, r),
-      seconds: ext.hands.seconds ? seconds : [],
-      secondsMat,
+      seconds: ext.hands.seconds ? watchHands(ext, dialRadius(r)).seconds : [],
     };
   }, [ext, inner, outer, height, bottom, materials, quality]);
   const backMat = useMemo(() => {
@@ -235,7 +233,7 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
           </group>
           <group ref={secondsGroup} name="seconds-hand" position-z={-3.5}>
             {watchParts.seconds.map((l, i) => (
-              <mesh key={i} geometry={l.geometry} material={watchParts.secondsMat} />
+              <mesh key={i} geometry={l.geometry} material={watchParts.pick(l)} />
             ))}
           </group>
         </>

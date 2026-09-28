@@ -13,11 +13,12 @@ const watch: Watch = {
     crown: { diameterMm: 6.5, lengthMm: 3.5, tube: false, guards: false },
     crystal: { domeMm: 0.6 },
     dial: { color: '#cfcfca', finish: 'sunburst', indices: 'arabic-24', indexColor: '#1a1a1a', lume: '#e8e2cf', dateWindow: true },
-    hands: { style: 'sword', color: 'white', seconds: true },
+    hands: { style: 'syringe', color: 'silver', seconds: true },
     strap: { kind: 'leather', color: '#6b4226' },
     caseback: 'display',
   },
   sources: [
+    { id: 'gnomon-h70455553', title: 'Khaki Field Automatic Silver 38 (luminous syringe hands) — Gnomon Watches', url: 'https://www.gnomonwatches.com/products/khaki-field-automatic-silver-38-brown-leather-ref-h70455553' },
     { id: 'watchreviewblog-h70455553', title: 'Hamilton Khaki Field Automatic 38mm review — WatchReviewBlog', url: 'https://www.watchreviewblog.com/hamilton-khaki-field-automatic-38mm-watch-review/' },
     { id: 'hamilton-h70455553', title: 'Khaki Field Auto H70455553 — Hamilton', url: 'https://www.hamiltonwatch.com/en-us/h70455553-khaki-field-auto.html' },
     { id: 'watchbase-h10', title: 'Hamilton caliber H-10 — WatchBase', url: 'https://watchbase.com/hamilton/caliber/h-10' },
