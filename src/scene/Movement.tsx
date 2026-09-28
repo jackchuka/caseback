@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { buildSolver, settleQuick } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { arborKey, focusKey } from '../model/validate';
-import { accumulateWinding, CROWN_WIND_RATIO, stepReserve, throttle, wristSwing } from '../kinematics/winding';
+import { CROWN_WIND_RATIO, stepReserve, throttle, wristSwing } from '../kinematics/winding';
 import { crownState } from './crown';
 import { appStore, useApp } from '../state/app';
 import { effectiveSpeed } from '../tour/engine';
@@ -50,9 +50,9 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
   const reserve = useRef(INITIAL_RESERVE * caliber.specs.powerReserveH);
   const prevRatchetTurns = useRef(0);
   const publish = useMemo(() => throttle(250), []);
-  const oneWayInput = useMemo(() => {
-    const ow = solve.info.oneWay;
-    return ow ? caliber.parts.find((p) => arborKey(p) === ow.inputKey)!.id : null;
+  const winderInput = useMemo(() => {
+    const w = solve.info.winder;
+    return w ? caliber.parts.find((p) => arborKey(p) === w.inputKey)!.id : null;
   }, [caliber, solve]);
 
   useFrame((state, dt) => {
@@ -85,9 +85,9 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
       quickRot: crownState.quick,
       setRot: crownState.set,
     });
-    if (oneWayInput && solve.info.oneWay) {
-      const input = transforms.get(oneWayInput)!.angle;
-      wound.current = accumulateWinding(wound.current, prevInput.current, input, solve.info.oneWay.ratio);
+    if (winderInput && solve.info.winder) {
+      const input = transforms.get(winderInput)!.angle;
+      wound.current += solve.info.winder.advance(prevInput.current, input);
       prevInput.current = input;
     }
     // Fast-forward demos drain at no more than real time so the reserve stays readable across chapters.
@@ -105,7 +105,11 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
       if (entry.part.axis === 'x') {
         entry.group.rotation.x = tr.angle;
         entry.group.position.x = entry.part.pos.x + tr.dx;
-      } else entry.group.rotation.z = (entry.part.rest ?? 0) + tr.angle;
+      } else {
+        entry.group.rotation.z = (entry.part.rest ?? 0) + tr.angle;
+        entry.group.position.x = entry.part.pos.x + tr.dx;
+        entry.group.position.y = entry.part.pos.y + tr.dy;
+      }
       entry.group.position.z = entry.part.pos.z + tr.dz;
       if (entry.part.shape.kind === 'hairspring') {
         const k = 1 + 0.02 * tr.angle;

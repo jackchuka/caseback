@@ -69,8 +69,17 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     case 'plate': {
       const s = new THREE.Shape();
       s.absarc(0, 0, shape.radius, 0, Math.PI * 2, false);
+      for (const slot of shape.slots ?? []) s.holes.push(stadium(slot.from, slot.to, slot.r));
       return [{ geometry: extrudeCentered(s, shape.thickness, 0.12), material }];
     }
+    case 'eccentric':
+      return [
+        { geometry: disc(shape.radius, shape.thickness, 40).translate(shape.throw, 0, 0), material },
+        // The arbor's own pivot, so the offset reads against it.
+        { geometry: disc(0.18, shape.thickness + 0.1, 16), material: 'ruby' },
+      ];
+    case 'pawl-lever':
+      return [{ geometry: extrudeCentered(pawlLever(shape), shape.thickness, 0.015), material }];
     case 'bridge':
       return bridge(shape, material);
     case 'stem':
@@ -95,6 +104,49 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     case 'date-ring':
       return dateRing(shape.teeth, shape.innerRadius, shape.outerRadius, shape.thickness);
   }
+}
+
+// A slot with round ends from `a` to `b`, wound clockwise so it cuts a hole.
+function stadium(a: { x: number; y: number }, b: { x: number; y: number }, r: number): THREE.Path {
+  const ang = Math.atan2(b.y - a.y, b.x - a.x);
+  const p = new THREE.Path();
+  p.absarc(b.x, b.y, r, ang + Math.PI / 2, ang - Math.PI / 2, true);
+  p.absarc(a.x, a.y, r, ang - Math.PI / 2, ang - (3 * Math.PI) / 2, true);
+  p.closePath();
+  return p;
+}
+
+type PawlLever = Extract<Shape, { kind: 'pawl-lever' }>;
+
+// A ring around the eccentric, a long arm along +X, then a fork whose two hooked claws meet the wheel at
+// (length, ±reach) from the far and near side.
+function pawlLever({ length, reach, hole, width }: PawlLever): THREE.Shape {
+  const w = width / 2;
+  const hub = hole + width * 0.9;
+  const split = length - reach * 2.2;
+  const claw = 0.28;
+  const s = new THREE.Shape();
+  const a = Math.asin(Math.min(0.95, w / hub));
+  s.absarc(0, 0, hub, a, 2 * Math.PI - a, false);
+  // Lower side: arm to the fork, out along the near arm to its claw, hooking back toward the wheel.
+  s.lineTo(split, -w);
+  s.lineTo(length - claw, -reach - claw - w);
+  s.lineTo(length + claw * 0.6, -reach - claw * 0.2);
+  s.lineTo(length, -reach + claw * 0.5);
+  s.lineTo(length - claw * 0.9, -reach - claw * 0.3);
+  s.lineTo(split + w, -w * 0.6);
+  // The gap between the arms, which the wheel sits in.
+  s.lineTo(split + w, w * 0.6);
+  s.lineTo(length - claw * 0.9, reach + claw * 0.3);
+  s.lineTo(length, reach - claw * 0.5);
+  s.lineTo(length + claw * 0.6, reach + claw * 0.2);
+  s.lineTo(length - claw, reach + claw + w);
+  s.lineTo(split, w);
+  s.lineTo(hub * Math.cos(a), hub * Math.sin(a));
+  const h = new THREE.Path();
+  h.absarc(0, 0, hole, 0, Math.PI * 2, true);
+  s.holes.push(h);
+  return s;
 }
 
 function escapeWheel(teeth: number, rOut: number, thickness: number): THREE.BufferGeometry {

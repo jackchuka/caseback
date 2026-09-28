@@ -2,6 +2,7 @@ import type { Caliber } from '../model/schema';
 import { arborKey, toothCount } from '../model/validate';
 import { escapementState } from './escapement';
 import { smoothstep } from './gearMath';
+import { accumulateWinding } from './winding';
 
 // Quick-set advances one date per crown turn and settles on whole dates in the second half of each turn.
 export const snapDates = (q: number) => Math.floor(q) + smoothstep((q - Math.floor(q) - 0.5) / 0.5);
@@ -13,7 +14,7 @@ export function settleQuick(quickRot: number, dt: number): number {
   return quickRot + Math.min(target - quickRot, dt * 4);
 }
 
-export type PartTransform = { angle: number; dz: number; dx: number };
+export type PartTransform = { angle: number; dz: number; dx: number; dy: number };
 export type KinematicsInput = {
   t: number;
   explode: number;
@@ -27,9 +28,22 @@ export type KinematicsInput = {
   setRot?: number;
 };
 export type OneWayInfo = { inputKey: string; outputKey: string; ratio: number };
+// The eccentric's centre sits `throw` off its arbor at angle `rest` + the arbor's angle; the lever runs along `axis`
+// (radians) from there to the driven wheel, whose claws meet it at pitch radius `radius`.
+export type PawlInfo = { inputKey: string; outputKey: string; throw: number; rest: number; axis: number; radius: number };
+// Whatever turns the rotor's back-and-forth into one-way winding: the input arbor's angle drives it, and it advances
+// the output arbor (and so the ratchet) by `advance(previous input angle, input angle)`, never backwards.
+export type Winder = { inputKey: string; outputKey: string; advance: (prev: number, next: number) => number };
 export type Solver = ((input: KinematicsInput) => Map<string, PartTransform>) & {
-  info: { oneWay: OneWayInfo | null; ratchetFactor: number };
+  info: { oneWay: OneWayInfo | null; pawl: PawlInfo | null; winder: Winder | null; ratchetFactor: number };
 };
+
+// How far the lever has been carried along its own axis by the eccentric.
+export const pawlStroke = (p: PawlInfo, inputAngle: number) => p.throw * Math.cos(p.rest + inputAngle - p.axis);
+
+// One claw pulls while the lever travels toward the eccentric, the other pushes on the way back, so every millimetre
+// of stroke either way advances the wheel by the same arc.
+export const pawlAdvance = (p: PawlInfo, prev: number, next: number) => Math.abs(pawlStroke(p, next) - pawlStroke(p, prev)) / p.radius;
 
 export function buildSolver(c: Caliber): Solver {
   const byId = new Map(c.parts.map((p) => [p.id, p]));
@@ -83,7 +97,32 @@ export function buildSolver(c: Caliber): Solver {
           ratio: toothCount(byId.get(oneWayCp.input)!.shape)! / toothCount(byId.get(oneWayCp.output)!.shape)!,
         }
       : null;
-  const woundFactor = oneWay ? bfs(oneWay.outputKey) : new Map<string, number>();
+  const pawlCp = c.couplings.find((cp) => cp.type === 'pawl');
+  let pawl: PawlInfo | null = null;
+  let lever: { key: string; pin0: { x: number; y: number }; wheel: { x: number; y: number }; center: { x: number; y: number } } | null = null;
+  if (pawlCp && pawlCp.type === 'pawl') {
+    const ecc = byId.get(pawlCp.eccentric)!;
+    const lv = byId.get(pawlCp.lever)!;
+    const wheel = byId.get(pawlCp.wheel)!;
+    if (ecc.shape.kind !== 'eccentric' || wheel.shape.kind !== 'wheel') throw new Error(`${c.id}: bad pawl coupling`);
+    const rest = ecc.rest ?? 0;
+    const pin0 = { x: ecc.pos.x + ecc.shape.throw * Math.cos(rest), y: ecc.pos.y + ecc.shape.throw * Math.sin(rest) };
+    pawl = {
+      inputKey: arborKey(ecc),
+      outputKey: arborKey(wheel),
+      throw: ecc.shape.throw,
+      rest,
+      axis: Math.atan2(wheel.pos.y - pin0.y, wheel.pos.x - pin0.x),
+      radius: (wheel.shape.teeth * wheel.shape.module) / 2,
+    };
+    lever = { key: arborKey(lv), pin0, wheel: wheel.pos, center: ecc.pos };
+  }
+  const winder: Winder | null = oneWay
+    ? { inputKey: oneWay.inputKey, outputKey: oneWay.outputKey, advance: (a, b) => accumulateWinding(0, a, b, oneWay.ratio) }
+    : pawl
+      ? { inputKey: pawl.inputKey, outputKey: pawl.outputKey, advance: (a, b) => pawlAdvance(pawl, a, b) }
+      : null;
+  const woundFactor = winder ? bfs(winder.outputKey) : new Map<string, number>();
   // The cannon side follows the center wheel through friction, so it is its own root: setting the hands moves it alone.
   const slipCp = c.couplings.find((cp) => cp.type === 'slip');
   const slip =
@@ -140,6 +179,15 @@ export function buildSolver(c: Caliber): Solver {
       byKey.set(im.drivenKey, sign * (dateBase + snapDates(quickRot / (Math.PI * 2)) + whole + step) * ((Math.PI * 2) / im.teeth));
     }
     const dx = new Map<string, number>();
+    const dy = new Map<string, number>();
+    if (pawl && lever) {
+      // The lever's hub rides the eccentric's centre and its claws stay on the wheel, so it slides and swings a little.
+      const psi = pawl.rest + (byKey.get(pawl.inputKey) ?? 0);
+      const pin = { x: lever.center.x + pawl.throw * Math.cos(psi), y: lever.center.y + pawl.throw * Math.sin(psi) };
+      dx.set(lever.key, pin.x - lever.pin0.x);
+      dy.set(lever.key, pin.y - lever.pin0.y);
+      byKey.set(lever.key, Math.atan2(lever.wheel.y - pin.y, lever.wheel.x - pin.x) - pawl.axis);
+    }
     if (keyless) {
       byKey.set(keyless.stemKey, crownRot);
       byKey.set(keyless.slidingKey, crownRot);
@@ -152,10 +200,10 @@ export function buildSolver(c: Caliber): Solver {
     const out = new Map<string, PartTransform>();
     for (const p of c.parts) {
       const angle = byKey.get(arborKey(p)) ?? 0;
-      out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e, dx: dx.get(arborKey(p)) ?? 0 });
+      out.set(p.id, { angle: angle === 0 ? 0 : angle, dz: p.explode.dz * e, dx: dx.get(arborKey(p)) ?? 0, dy: dy.get(arborKey(p)) ?? 0 });
     }
     return out;
   }) as Solver;
-  solver.info = { oneWay, ratchetFactor };
+  solver.info = { oneWay, pawl, winder, ratchetFactor };
   return solver;
 }

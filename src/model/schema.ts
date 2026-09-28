@@ -17,12 +17,17 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('pallet-fork'), span: pos, length: pos, thickness: pos }),
   z.object({ kind: z.literal('balance'), radius: pos, rimThickness: pos, arms: int, pin: z.object({ below: pos, above: pos }).optional() }),
   z.object({ kind: z.literal('hairspring'), turns: pos, innerRadius: pos, pitch: pos }),
-  z.object({ kind: z.literal('plate'), radius: pos, thickness: pos }),
+  // `slots`: stadium-shaped through-cuts, e.g. the pocket where a stem and its pinions run inside the plate.
+  z.object({ kind: z.literal('plate'), radius: pos, thickness: pos, slots: z.array(z.object({ from: Point, to: Point, r: pos })).optional() }),
   z.object({ kind: z.literal('stem'), radius: pos, length: pos }),
   z.object({ kind: z.literal('rotor'), radius: pos, hub: pos, thickness: pos }),
   z.object({ kind: z.literal('hand'), length: pos, width: pos, thickness: pos, style: z.enum(['leaf', 'sword', 'pencil', 'baton']).optional() }),
   z.object({ kind: z.literal('date-driver'), teeth: int, module: pos, thickness: pos, fingerLength: pos }),
   z.object({ kind: z.literal('date-ring'), teeth: int, innerRadius: pos, outerRadius: pos, thickness: pos }),
+  // A cam disc whose centre sits `throw` off its arbor along local +X.
+  z.object({ kind: z.literal('eccentric'), radius: pos, throw: pos, thickness: pos }),
+  // A lever whose hub (origin) rides an eccentric and whose two claws, at (length, ±reach), straddle a ratchet-toothed wheel.
+  z.object({ kind: z.literal('pawl-lever'), length: pos, reach: pos, hole: pos, width: pos, thickness: pos }),
   z.object({
     kind: z.literal('bridge'),
     lobes: z.array(Point.extend({ r: pos })).min(1),
@@ -60,6 +65,9 @@ export const CouplingSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('keyless'), stem: z.string(), slidingPinion: z.string(), windingPinion: z.string(), settingWheel: z.string(), pull: pos }),
   z.object({ type: z.literal('one-way'), input: z.string(), output: z.string() }),
   z.object({ type: z.literal('intermittent'), driver: z.string(), driven: z.string() }),
+  // Seiko's Magic Lever: the eccentric drives the lever to and fro; one claw pulls, the other pushes, so the wheel
+  // advances in one direction whichever way the eccentric turns.
+  z.object({ type: z.literal('pawl'), eccentric: z.string(), lever: z.string(), wheel: z.string() }),
 ]);
 
 export const StatSchema = z.object({ label: z.string(), value: z.string() });
@@ -94,7 +102,13 @@ export const CaliberSchema = z.object({
     sourceIds: z.array(z.string()),
   }),
   // Where the exterior meets the movement where no part says so: the case front and the seconds hand.
-  exterior: z.object({ frontZ: z.number(), secondsZ: z.number() }),
+  // dialZ and dateWindow, when given, are the maker's own figures and override what the frame would derive from parts.
+  exterior: z.object({
+    frontZ: z.number(),
+    secondsZ: z.number(),
+    dialZ: z.number().optional(),
+    dateWindow: z.object({ width: pos, height: pos }).optional(),
+  }),
   parts: z.array(PartSchema).min(1),
   couplings: z.array(CouplingSchema),
   chapters: z.array(ChapterSchema).min(1),

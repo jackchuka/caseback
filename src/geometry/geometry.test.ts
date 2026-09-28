@@ -72,3 +72,38 @@ describe('hand styles differ', () => {
     expect(outline('sword').getAttribute('position').count).not.toBe(leaf.getAttribute('position').count);
   });
 });
+
+describe('Magic Lever and plate shapes', () => {
+  const extent = (g: THREE.BufferGeometry) => {
+    g.computeBoundingBox();
+    return g.boundingBox!;
+  };
+  it('offsets the eccentric disc by its throw', () => {
+    const [cam, pivot] = buildShape({ kind: 'eccentric', radius: 0.4, throw: 0.3, thickness: 0.15 }, 'steel');
+    const b = extent(cam!.geometry);
+    expect((b.min.x + b.max.x) / 2).toBeCloseTo(0.3, 2);
+    expect(b.max.x - b.min.x).toBeCloseTo(0.8, 2);
+    expect(pivot!.material).toBe('ruby');
+  });
+  it('builds a lever that rings the eccentric and reaches past both sides of its wheel', () => {
+    const [lever] = buildShape({ kind: 'pawl-lever', length: 8, reach: 1.6, hole: 0.42, width: 0.4, thickness: 0.12 }, 'steel');
+    const b = extent(lever!.geometry);
+    expect(b.max.x).toBeGreaterThan(8);
+    expect(b.max.x).toBeLessThan(8.5);
+    expect(b.max.y).toBeGreaterThan(1.6);
+    expect(b.min.y).toBeLessThan(-1.6);
+    // Nothing of the lever sits between the claws, where the wheel turns.
+    const p = lever!.geometry.getAttribute('position');
+    for (let i = 0; i < p.count; i++) expect(Math.hypot(p.getX(i) - 8, p.getY(i)), `vertex ${i}`).toBeGreaterThan(1.6 - 0.35);
+    // The hub is open for the eccentric (less the edge bevel).
+    for (let i = 0; i < p.count; i++) expect(Math.hypot(p.getX(i), p.getY(i))).toBeGreaterThan(0.42 - 0.02);
+  });
+  it('cuts slots through the plate', () => {
+    const [plate] = buildShape({ kind: 'plate', radius: 13, thickness: 1, slots: [{ from: { x: 5, y: 0 }, to: { x: 11, y: 0 }, r: 1 }] }, 'plate');
+    const mesh = new THREE.Mesh(plate!.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+    const through = (x: number, y: number) => new THREE.Raycaster(new THREE.Vector3(x, y, -5), new THREE.Vector3(0, 0, 1)).intersectObject(mesh).length;
+    expect(through(8, 0)).toBe(0);
+    expect(through(8, 1.5)).toBeGreaterThan(0);
+    expect(through(-8, 0)).toBeGreaterThan(0);
+  });
+});

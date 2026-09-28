@@ -31,7 +31,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
   const movementMaterials = useMaterials();
   const own = useMemo(() => instantiate(build), [build]);
   const shared = useMemo((): Record<(typeof SHARED_EXTERIOR_MATERIALS)[number], THREE.Material> => {
-    const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^ETA /, '')}` });
+    const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^(ETA|Seiko) /, '')}` });
     return {
       'caseback-engraving': new THREE.MeshPhysicalMaterial({ color: 0xd0d3d7, metalness: 1, roughness: 0.3, bumpMap: tex, bumpScale: 1.2, roughnessMap: tex, transparent: true }),
       'caseback-glass': glass(0.6),
@@ -51,6 +51,8 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
     return extrudeCentered(s, 0.45, 0.06);
   }, [r]);
   const { crownX } = build.anchors;
+  const keyless = caliber.couplings.find((cp) => cp.type === 'keyless');
+  const pull = keyless?.type === 'keyless' ? keyless.pull : 0;
   const casing = casingRing(r, build.anchors.seatRadius);
   const span = casingSpan(frame, build.anchors.caseBackZ);
   // Seen from both the caseback and the dial side, so it needs both faces.
@@ -86,11 +88,11 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
       rotor.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.7) * 1.4 + Math.sin(state.clock.elapsedTime * 0.23) * 0.8;
     }
     if (crown.current) {
-      crown.current.position.x = crownX + s.crownPos * 0.7;
+      crown.current.position.x = crownX + s.crownPos * pull;
       crown.current.rotation.copy(crownEuler(crownState.rot));
     }
     if (stemTube.current) {
-      stemTube.current.position.x = s.crownPos * 0.7;
+      stemTube.current.position.x = s.crownPos * pull;
       stemTube.current.rotation.x = crownState.rot;
     }
     const step = caliber.tour[s.stepIndex];

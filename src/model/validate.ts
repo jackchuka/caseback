@@ -63,6 +63,16 @@ export function validateCaliber(c: Caliber): string[] {
       ref('intermittent', cp.driven);
       const d = byId.get(cp.driven);
       if (d && toothCount(d.shape) === null) errors.push(`intermittent: ${cp.driven} has no teeth`);
+    } else if (cp.type === 'pawl') {
+      const kinds: Array<[string, string]> = [[cp.eccentric, 'eccentric'], [cp.lever, 'pawl-lever']];
+      for (const [id, kind] of kinds) {
+        ref('pawl', id);
+        const p = byId.get(id);
+        if (p && p.shape.kind !== kind) errors.push(`pawl: ${id} is not a ${kind}`);
+      }
+      ref('pawl', cp.wheel);
+      const w = byId.get(cp.wheel);
+      if (w && (w.shape.kind !== 'wheel')) errors.push(`pawl: ${cp.wheel} is not a wheel`);
     } else {
       ref('escapement', cp.balance);
       ref('escapement', cp.fork);
@@ -71,6 +81,9 @@ export function validateCaliber(c: Caliber): string[] {
   }
   if (c.couplings.filter((x) => x.type === 'escapement').length !== 1) {
     errors.push('exactly one escapement coupling required');
+  }
+  if (c.couplings.filter((x) => x.type === 'one-way' || x.type === 'pawl').length > 1) {
+    errors.push('at most one winding rectifier (one-way or pawl) allowed');
   }
 
   const chapters = new Set(c.chapters.map((ch) => ch.id));
