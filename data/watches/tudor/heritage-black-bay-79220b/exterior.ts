@@ -10,6 +10,9 @@ import { tudorHands } from './hands';
 import { tudorMaterials } from './materials';
 import { T } from './params';
 
+// The kit caseback is 1 mm thick; its inner face sits flush on the case middle's back.
+const CASEBACK = 1;
+
 // Tudor Heritage Black Bay 79220B, built from reference photos (see shots.ts); dimensions and their sources in params.ts.
 const tudor79220b: ExteriorBuilder = ({ movement: m, quality }) => ({
   parts: {
@@ -18,7 +21,7 @@ const tudor79220b: ExteriorBuilder = ({ movement: m, quality }) => ({
     dial: tudorDial(m),
     crystal: tudorCrystal(m),
     strap: tudorBracelet(m),
-    caseback: caseback(T.caseRadius, false, caseShape(m).back + 0.6),
+    caseback: caseback(T.caseRadius, false, caseShape(m).back + CASEBACK / 2),
     crown: tudorCrown(),
     hands: tudorHands(T.dialRadius),
   },

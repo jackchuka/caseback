@@ -6,6 +6,10 @@ import { T } from './params';
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 
+// The case middle's front face (the bezel seat). It stands proud of the movement's own front so the crown, which must
+// stay on the stem axis, sits lower on the flank; bezel, crystal, flange and caseback all hang off this one plane.
+export const caseFront = (m: MovementFrame) => m.frontZ - T.caseFrontOffset;
+
 // The Black Bay's case middle: a 41 mm drum whose lugs are wedges drawn tangent to it, so the case edge runs
 // straight out to each lug tip; slab-sided flanks; a brushed top that curves down toward the wrist from the bezel
 // edge to the lug tips; and one polished bevel running along the whole top edge.
@@ -13,7 +17,8 @@ export function caseShape(m: MovementFrame) {
   const R = T.caseRadius;
   const lw = T.lugGap / 2;
   const tip = T.lugToLug / 2;
-  const back = m.frontZ + T.caseHeight;
+  const F = caseFront(m);
+  const back = F + T.caseHeight;
   const xo = lw + T.lugWidth;
   // The lug's outer edge leaves the drum on its tangent through the tip's outer corner.
   const phi = Math.atan2(tip, xo) - Math.acos(R / Math.hypot(xo, tip));
@@ -35,7 +40,7 @@ export function caseShape(m: MovementFrame) {
     const edge = Math.sqrt(Math.max(R * R - x * x, 0));
     return clamp01((Math.abs(y) - edge) / (tip - edge));
   };
-  const front = (x: number, y: number) => m.frontZ + T.lugDrop * run(x, y) ** T.lugCurve;
+  const front = (x: number, y: number) => F + T.lugDrop * run(x, y) ** T.lugCurve;
   // The underside lifts only at the very tip, rounding the lug's heel.
   const underside = (y: number) => back - T.lugHeel * clamp01((Math.abs(y) - tip + T.lugHeelRun) / T.lugHeelRun) ** 2;
   const hole = { y: tip - T.holeInset, z: (front(lw + T.lugWidth / 2, tip - T.holeInset) + underside(tip - T.holeInset)) / 2 };
@@ -54,8 +59,12 @@ export function caseShape(m: MovementFrame) {
     // Columns well outside the outline or inside the bore need no detail; most of the grid is one of these.
     if (cPlan > 1) return cPlan;
     if (cBore > 1) return cBore;
-    const solid = extrudeProfile(cPlan, cFront - z, z - cBack, opts);
-    return Math.max(smax(solid, cBore, T.edge), drill(x, y, z));
+    // Likewise voxels well in front of or behind the column's faces.
+    if (cFront - z > 1) return cFront - z;
+    if (z - cBack > 1) return z - cBack;
+    const solid = smax(extrudeProfile(cPlan, cFront - z, z - cBack, opts), cBore, T.edge);
+    // Only the lug-tip rows can meet the hole.
+    return Math.abs(Math.abs(y) - hole.y) > T.holeRadius + 1 ? solid : Math.max(solid, drill(x, y, z));
   };
   // 0 brushed … 1 polished. Each face's finish is weighted by how close its term is to bounding the solid, so the
   // finishes meet along the true crease rather than along grid triangles.
@@ -74,7 +83,7 @@ export function caseShape(m: MovementFrame) {
     }
     return sum / weight;
   };
-  return { sdf, polish, front, back, hole, bounds: { x: R + 0.5, y: tip + 0.5, z: [m.frontZ - 0.5, back + 0.5] as [number, number] } };
+  return { sdf, polish, front, back, hole, bounds: { x: R + 0.5, y: tip + 0.5, z: [F - 0.5, back + 0.5] as [number, number] } };
 }
 
 export function tudorCase(m: MovementFrame, step: number): ExteriorLayer[] {

@@ -3,6 +3,7 @@ import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterio
 import { canvasTexture } from '../../../../src/scene/exterior/kit/canvas';
 import { cutFlutes } from '../../../../src/scene/exterior/kit/flutes';
 import { lathe } from '../../../../src/scene/exterior/kit/lathe';
+import { caseFront } from './case';
 import { T } from './params';
 
 export type BezelMark = { minute: number; kind: 'triangle' | 'tick' | 'bar' | 'numeral'; text?: string; flipped: boolean };
@@ -18,10 +19,10 @@ export function bezelMarks(): BezelMark[] {
   }).filter((x): x is BezelMark => x !== null);
 }
 
-export const bezelTop = (m: MovementFrame) => m.frontZ - T.bezelHeight;
+export const bezelTop = (m: MovementFrame) => caseFront(m) - T.bezelHeight;
 
 export function tudorBezel(m: MovementFrame): ExteriorLayer[] {
-  const b = m.frontZ;
+  const b = caseFront(m);
   const top = bezelTop(m);
   const seat = top + 0.15;
   // (radius, z), front is −Z: inner lip, recessed insert seat, flat outer rim, coin-edged wall.
@@ -35,8 +36,11 @@ export function tudorBezel(m: MovementFrame): ExteriorLayer[] {
   const pipAt = -T.pipAt;
   const cup = new THREE.CylinderGeometry(T.pipRadius + 0.18, T.pipRadius + 0.18, 0.3, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.15);
   const pip = new THREE.CylinderGeometry(T.pipRadius, T.pipRadius, 0.1, 40).rotateX(Math.PI / 2).translate(0, pipAt, seat - 0.32);
+  // The flange (rehaut) closes the wall between the dial's edge and the case front, which stands proud of the dial.
+  const flange = new THREE.LatheGeometry([new THREE.Vector2(T.dialRadius, m.dialZ - 0.01), new THREE.Vector2(T.bezelInner, b)], 180).rotateX(Math.PI / 2);
   return [
     { geometry: body, material: 'polished' },
+    { geometry: flange, material: 'polished', name: 'flange' },
     { geometry: insert, material: 'insert' },
     { geometry: cup, material: 'polished' },
     { geometry: pip, material: 'lume' },

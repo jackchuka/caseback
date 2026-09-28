@@ -3,7 +3,10 @@
 export const T = {
   caseRadius: 20.5, // spec: 41 mm
   totalThickness: 13, // spec: caseback to crystal apex
-  caseHeight: 8.2, // est: case middle, front face to caseback seat
+  // The crown sits 4.4 mm behind the case front in crown-low, but the movement model is 7.4 mm deep (rotor back at
+  // z 4.75), so pushing the case front further forward would either break 13 mm or let the rotor through the back.
+  caseFrontOffset: 1.0, // photo:crown-low (capped by the movement): case front ahead of the movement's frontZ
+  caseHeight: 8.55, // est: case middle, front face to caseback seat; its back clears the rotor
   lugToLug: 50, // spec: 50 mm (aBlogtoWatch, Millenary)
   lugGap: 22, // spec: lug width
   lugWidth: 2.9, // photo:front: lug top at the tip, gap edge to outer edge (bobs-126699.jpg agrees)

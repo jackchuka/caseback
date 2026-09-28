@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { bezelMarks, bezelTop, tudorBezel } from './bezel';
+import { caseFront } from './case';
 import { T } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
@@ -25,10 +26,10 @@ describe('Tudor 79220B bezel', () => {
   });
   const layers = tudorBezel(m);
   it('is as wide as the case and sits on its front', () => {
-    const b = box(layers.filter((l) => l.material === 'polished'));
+    const b = box(layers.filter((l) => l.material === 'polished' && l.name !== 'flange'));
     expect(b.max.x).toBeCloseTo(T.bezelOuter, 1);
-    expect(b.max.z).toBeLessThanOrEqual(m.frontZ + 0.01);
-    expect(bezelTop(m)).toBeCloseTo(m.frontZ - T.bezelHeight, 5);
+    expect(b.max.z).toBeLessThanOrEqual(caseFront(m) + 0.01);
+    expect(bezelTop(m)).toBeCloseTo(caseFront(m) - T.bezelHeight, 5);
   });
   it('cuts a coin edge', () => {
     const body = layers[0]!.geometry.getAttribute('position');
@@ -45,5 +46,14 @@ describe('Tudor 79220B bezel', () => {
     expect(pip.getCenter(new THREE.Vector3()).y).toBeLessThan(-T.insertInner);
     expect(Math.abs(pip.getCenter(new THREE.Vector3()).x)).toBeLessThan(0.01);
     expect(pip.min.z).toBeLessThan(insert.min.z);
+  });
+  it('closes the gap between the dial edge and the case front with a flange facing the centre', () => {
+    const g = layers.find((l) => l.name === 'flange')!.geometry;
+    const b = box([{ geometry: g }]);
+    expect(b.max.z).toBeCloseTo(m.dialZ, 1);
+    expect(b.min.z).toBeCloseTo(caseFront(m), 1);
+    g.computeVertexNormals();
+    const p = g.getAttribute('position'), n = g.getAttribute('normal');
+    for (let i = 0; i < p.count; i += 17) expect(p.getX(i) * n.getX(i) + p.getY(i) * n.getY(i)).toBeLessThan(0);
   });
 });
