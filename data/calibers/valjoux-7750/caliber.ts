@@ -59,7 +59,7 @@ const hourHammerOutline = lever(hourHammerPivot, [[3.7, 4.7], [3.9, 5.5], [1.9, 
 // dial disc), so its names run out along its radius into the window.
 const dateDriver = place(center, centerDistance(mHour, MW.hourWheel, MW.dateDriver), -60);
 const dayDriver = place(center, centerDistance(mHour, MW.hourWheel, MW.dateDriver), 30);
-const dayDisc: P2 = { x: 4.6, y: 0 };
+const dayDisc: P2 = { x: 1.6, y: 0 };
 // Fingers (+Y) out toward the date ring's teeth and across to the day star, each in the middle of the change window
 // (95 % of a turn); the drivers turn clockwise in local coordinates.
 const WINDOW_AT = 0.95 * Math.PI * 2;
@@ -335,7 +335,7 @@ const parts: Part[] = [
   { id: 'day-driver', arbor: 'day-driver', rest: dayDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dayDriver, H.dayDriver), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.14, fingerLength: 2.5 }, provenance: estimated(MOTION, 'bobinchak-calendar') },
   // rest π/2 turns today's date and day from 12 o'clock to the windows at 3.
   { id: 'date-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(center, H.dateRing), explode: { dz: -1.6 }, material: 'plate', shape: { kind: 'date-ring', teeth: 31, innerRadius: 9.0, outerRadius: 12.3, thickness: 0.15 }, provenance: estimated('The date disc outside the sub-dial arbors; its band is centred under the Sinn 103\'s date window, 10.65 mm out.', 'bobinchak-calendar', 'eta-tc') },
-  { id: 'day-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(dayDisc, H.dayRing), explode: { dz: -1.2 }, material: 'plate', shape: { kind: 'day-ring', teeth: 14, innerRadius: 0.9, outerRadius: 4.0, thickness: 0.1 }, provenance: estimated('A small disc printed twice round with the days, on its own 14-tooth star (ETA part 2561/1); size and place fitted to the Sinn 103\'s day window.', 'gleave-day-disc', 'eta-tc') },
+  { id: 'day-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(dayDisc, H.dayRing), explode: { dz: -1.2 }, material: 'plate', shape: { kind: 'day-ring', teeth: 14, innerRadius: 2.2, outerRadius: 7.2, thickness: 0.1 }, provenance: estimated('A disc printed twice round with the days, on its own 14-tooth star (ETA part 2561/1), its big hole round the centre; size and place fitted to the Sinn 103\'s day window.', 'gleave-day-disc', 'eta-tc') },
   // Hands
   { id: 'hour-hand', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, HAND.hour), explode: { dz: -6.2 }, material: 'blued', shape: { kind: 'hand', length: 7.2, width: 0.45, thickness: 0.12, style: 'baton' }, provenance: estimated(HANDS) },
   { id: 'minute-hand', arbor: 'cannon', mechanism: 'motion-works', side: 'dial', pos: at(center, HAND.minute), explode: { dz: -7.2 }, material: 'blued', shape: { kind: 'hand', length: 11.5, width: 0.36, thickness: 0.12, style: 'baton' }, provenance: estimated(HANDS) },
@@ -384,8 +384,9 @@ const caliber: Caliber = {
     frontZ: FRONT, secondsZ: HAND.chrono, dialZ: DIAL - DIAL_THICKNESS / 2,
     dateWindow: { width: 2.4, height: 2.0 },
     dayWindow: { width: 4.4, height: 2.0 },
-    // At 2 and 4 o'clock, a little behind the stem, where the operating lever and the hammer's lever reach the edge.
-    pushers: [{ action: 'start-stop', hour: 2, z: STEM_Z + 0.9 }, { action: 'reset', hour: 4, z: STEM_Z + 0.9 }],
+    // At 2 and 4 o'clock, a little behind the stem (the Sinn 103's side photo), where the operating lever and the
+    // hammer's lever reach the edge.
+    pushers: [{ action: 'start-stop', hour: 2, z: STEM_Z + 0.35 }, { action: 'reset', hour: 4, z: STEM_Z + 0.35 }],
   },
   parts,
   couplings: [

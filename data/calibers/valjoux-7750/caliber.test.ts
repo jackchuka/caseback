@@ -279,7 +279,8 @@ describe('Valjoux 7750 depth', () => {
     expect(part('day-driver').pos.z - 0.3 - 0.09).toBeGreaterThan(top('day-ring'));
     // The day disc turns clear of the centre's pipes and the sub-dial arbors.
     const day = part('day-ring');
-    expect(Math.hypot(day.pos.x, day.pos.y) - (day.shape as { outerRadius: number }).outerRadius).toBeGreaterThan(0.5);
+    // The centre's pipes pass through its hole.
+    expect(Math.hypot(day.pos.x, day.pos.y) + 0.5).toBeLessThan((day.shape as { innerRadius: number }).innerRadius);
     for (const h of ['seconds-hand', 'minute-counter-hand', 'hour-counter-hand']) expect(Math.hypot(part(h).pos.x - day.pos.x, part(h).pos.y - day.pos.y) - (day.shape as { outerRadius: number }).outerRadius, h).toBeGreaterThan(0.5);
     expect(top('date-ring')).toBeLessThan(bottom('date-driver'));
     expect(top('hour-counting-wheel')).toBeLessThan(bottom('hour-heart'));

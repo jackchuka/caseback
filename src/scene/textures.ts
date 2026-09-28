@@ -157,5 +157,5 @@ export const dateNumbers = (count = 31) => ringLabels(Array.from({ length: count
 // Monday first, as the day ring's base index counts; twice round, as on a 14-tooth day star.
 export const dayNames = () => {
   const week = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  return ringLabels([...week, ...week], 0.17, DAY_LABEL_AT);
+  return ringLabels([...week, ...week], 0.11, DAY_LABEL_AT);
 };

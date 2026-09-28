@@ -9,7 +9,7 @@ export type MovementMaterial = MaterialKey | (typeof EXTRA_MOVEMENT_MATERIALS)[n
 export type WatchMaterial = 'case' | 'polished' | 'crystal' | 'dial' | 'insert' | 'strap' | 'tube';
 export type LayerMaterial = MovementMaterial | WatchMaterial;
 // A day ring's names are printed centred this far out along its radius (see textures.dayNames), where its window goes.
-export const DAY_LABEL_AT = 0.6;
+export const DAY_LABEL_AT = 0.72;
 export type Layer = { geometry: THREE.BufferGeometry; material: LayerMaterial };
 
 type Bridge = Extract<Shape, { kind: 'bridge' }>;

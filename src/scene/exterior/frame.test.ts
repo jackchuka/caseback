@@ -40,7 +40,7 @@ describe('movementFrame', () => {
   });
   it('reads a chronograph\'s day window, sub-dial and chronograph hands and pushers', () => {
     const f = movementFrame(calibers['valjoux-7750']!);
-    expect(f.dayWindow!.x).toBeCloseTo(4.6 + 0.6 * 4.0, 6);
+    expect(f.dayWindow!.x).toBeCloseTo(1.6 + 0.72 * 7.2, 6);
     expect(f.dayWindow!.x + f.dayWindow!.width / 2).toBeLessThan(f.dateWindow!.x - f.dateWindow!.width / 2);
     expect(f.extraHands.map((h) => h.id).sort()).toEqual(['chrono-seconds-hand', 'hour-counter-hand', 'minute-counter-hand', 'seconds-hand']);
     expect(f.extraHands.find((h) => h.id === 'seconds-hand')).toMatchObject({ x: -8.2, y: 0 });
