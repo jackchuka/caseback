@@ -176,3 +176,48 @@ describe('ETA 2824-2 depth', () => {
     expect(drumTop).toBeLessThan(bottom('barrel-bridge'));
   });
 });
+
+import { buildShape } from '../../../src/geometry/parts';
+describe('ETA 2824-2 back-side geometry', () => {
+  // World-space vertices of a part's rendered layers (parts only turn about their own axis, which doesn't move them radially).
+  const verts = (id: string) => {
+    const p = c.parts.find((q) => q.id === id)!;
+    return buildShape(p.shape, p.material).flatMap((l) => {
+      const a = l.geometry.getAttribute('position');
+      return Array.from({ length: a.count }, (_, i) => ({ x: a.getX(i) + p.pos.x, y: a.getY(i) + p.pos.y, z: a.getZ(i) + p.pos.z }));
+    });
+  };
+  const rotor = verts('rotor');
+  const rotorPart = c.parts.find((p) => p.id === 'rotor')!;
+  const shape = rotorPart.shape.kind === 'rotor' ? rotorPart.shape : null;
+  const reach = shape?.radius ?? 0;
+  // The rotor is a half disc from its hub hole out to its radius, plus a smaller steel hub boss at the centre.
+  const hole = shape?.hub ?? 0;
+  // The disc's bevelled inner edge reaches a little inside the hole, so look for the boss well inside it.
+  const boss = Math.max(...rotor.filter((v) => Math.hypot(v.x, v.y) < hole * 0.85).map((v) => Math.hypot(v.x, v.y)));
+  const discInner = Math.min(...rotor.map((v) => Math.hypot(v.x, v.y)).filter((r) => r > boss + 0.01));
+  const discBottom = Math.min(...rotor.filter((v) => Math.hypot(v.x, v.y) >= discInner).map((v) => v.z));
+  const hubBottom = Math.min(...rotor.filter((v) => Math.hypot(v.x, v.y) <= boss + 0.01).map((v) => v.z));
+
+  it('keeps every other back-side part, pins and screws included, under the rotor it sweeps beneath', () => {
+    const others = c.parts.filter((p) => p.side === 'back' && p.arbor !== 'rotor');
+    for (const p of others)
+      for (const v of verts(p.id)) {
+        const r = Math.hypot(v.x, v.y);
+        // Between the boss and the disc's inner edge there is no rotor to hit.
+        if (r > reach || (r > boss && r < discInner)) continue;
+        expect(v.z, `${p.id} at r=${r.toFixed(2)}`).toBeLessThan((r <= boss ? hubBottom : discBottom) - 0.02);
+      }
+  });
+  it('keeps the automatic wheels clear of the bridges, their screws and jewels', () => {
+    const bridges = ['train-bridge', 'barrel-bridge', 'balance-cock'].flatMap(verts);
+    for (const id of ['reverser-a', 'reverser-b', 'reduction-wheel']) {
+      const p = c.parts.find((q) => q.id === id)!;
+      const own = verts(id);
+      const radius = Math.max(...own.map((v) => Math.hypot(v.x - p.pos.x, v.y - p.pos.y)));
+      const bottom = Math.min(...own.map((v) => v.z));
+      const under = bridges.filter((v) => Math.hypot(v.x - p.pos.x, v.y - p.pos.y) < radius);
+      expect(Math.max(...under.map((v) => v.z)), id).toBeLessThan(bottom - 0.02);
+    }
+  });
+});

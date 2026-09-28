@@ -60,9 +60,13 @@ const H = {
   ratchet: back(3.95),
   reductionPinion: back(3.95),
   automatic: back(4.1),
-  // Compression alone would close the rotor's 0.045 mm gap over the reversers (their thickness doesn't shrink).
-  rotor: back(4.45) + 0.07,
+  // Compression alone would close the rotor's gap over the reversers (their thickness doesn't shrink), so the rotor
+  // sits a fixed step above the automatic works: half of each, the rotor's bevelled edge, and a hair of clearance.
+  rotor: back(4.1) + 0.435,
 };
+const BRIDGE_HALF = 0.275;
+// Arbor pins run from the plate to the top of the bridge that holds them, not a fixed length.
+const pinSpan = (z: number, bridgeZ: number) => ({ below: z - PLATE_BACK, above: bridgeZ + BRIDGE_HALF - z });
 const stemIn = 4.4;
 const stemOut = 12.8 + 3.3;
 const KEYLESS = 'Keyless layout is illustrative; the real 2824-2 stem, pinions and setting wheel are not modelled to scale.';
@@ -93,7 +97,7 @@ const parts: Part[] = [
   },
   {
     id: 'center-wheel', arbor: 'center', mechanism: 'going-train', side: 'back', pos: at(center, H.centerWheel), explode: { dz: 4.4 }, material: 'gilt',
-    shape: { kind: 'wheel', teeth: Z.center, module: M.center, thickness: 0.28, spokes: 4 }, provenance: sourced('firgelli-train'),
+    shape: { kind: 'wheel', teeth: Z.center, module: M.center, thickness: 0.28, spokes: 4, pin: pinSpan(H.centerWheel, H.trainBridge) }, provenance: sourced('firgelli-train'),
   },
   {
     id: 'third-pinion', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, H.thirdPinion), explode: { dz: 5.2 }, material: 'steel',
@@ -101,7 +105,7 @@ const parts: Part[] = [
   },
   {
     id: 'third-wheel', arbor: 'third', mechanism: 'going-train', side: 'back', pos: at(third, H.thirdWheel), explode: { dz: 5.2 }, material: 'gilt',
-    shape: { kind: 'wheel', teeth: Z.third, module: M.third, thickness: 0.24, spokes: 5 }, provenance: sourced('firgelli-train'),
+    shape: { kind: 'wheel', teeth: Z.third, module: M.third, thickness: 0.24, spokes: 5, pin: pinSpan(H.thirdWheel, H.trainBridge) }, provenance: sourced('firgelli-train'),
   },
   {
     id: 'fourth-pinion', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, H.fourthPinion), explode: { dz: 6.0 }, material: 'steel',
@@ -109,7 +113,7 @@ const parts: Part[] = [
   },
   {
     id: 'fourth-wheel', arbor: 'fourth', mechanism: 'going-train', side: 'back', pos: at(fourth, H.fourthWheel), explode: { dz: 6.0 }, material: 'gilt',
-    shape: { kind: 'wheel', teeth: Z.fourth, module: M.fourth, thickness: 0.22, spokes: 5 },
+    shape: { kind: 'wheel', teeth: Z.fourth, module: M.fourth, thickness: 0.22, spokes: 5, pin: pinSpan(H.fourthWheel, H.trainBridge) },
     provenance: estimated('84 teeth derived from 28,800 vph with a 20-tooth escape wheel and a 7-leaf pinion; FIRGELLI lists 70.'),
   },
   {
@@ -126,7 +130,7 @@ const parts: Part[] = [
   },
   {
     id: 'balance-wheel', arbor: 'balance', rest: balanceRest, mechanism: 'regulator', side: 'back', pos: at(balance, H.balance), explode: { dz: 9.0 }, material: 'balance',
-    shape: { kind: 'balance', radius: 4.1, rimThickness: 0.22, arms: 2 }, provenance: estimated(LAYOUT),
+    shape: { kind: 'balance', radius: 4.1, rimThickness: 0.22, arms: 2, pin: pinSpan(H.balance, H.balanceCock) }, provenance: estimated(LAYOUT),
   },
   {
     id: 'hairspring', arbor: 'balance', mechanism: 'regulator', side: 'back', pos: at(balance, H.hairspring), explode: { dz: 9.0 }, material: 'steel',
@@ -149,9 +153,10 @@ const parts: Part[] = [
     id: 'barrel-bridge', mechanism: 'frame', side: 'back', pos: at(center, H.barrelBridge), explode: { dz: 9.5 }, material: 'rhodium',
     shape: {
       kind: 'bridge', thickness: 0.55,
-      lobes: [{ ...barrel, r: 4.6 }, { ...offset(barrel, -3.2, 2.6), r: 0.9 }, { ...offset(barrel, 2.7, -3.3), r: 0.9 }],
+      lobes: [{ ...barrel, r: 4.6 }, { ...offset(barrel, -3.2, 2.6), r: 0.9 }, { ...offset(barrel, 3.5, -3.6), r: 0.9 }],
       jewels: [barrel],
-      screws: [offset(barrel, -3.2, 2.6), offset(barrel, 2.7, -3.3)],
+      // The second screw sits clear of reverser-b, which turns just above the bridge.
+      screws: [offset(barrel, -3.2, 2.6), offset(barrel, 3.5, -3.6)],
     },
     provenance: estimated(LAYOUT),
   },

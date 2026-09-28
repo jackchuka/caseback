@@ -52,8 +52,9 @@ export type ExteriorBuild = {
   };
   // Built lazily so geometry tests never touch a canvas.
   materials: Record<string, () => THREE.Material>;
-  // seatRadius: the round movement seat's radius, which drives the casing ring in Exterior.tsx.
-  anchors: { seatRadius: number; crownX: number };
+  // seatRadius: the round movement seat's radius, which drives the casing ring in Exterior.tsx. caseBackZ: the case
+  // middle's back face (the caseback's seat), where the casing ring must stop.
+  anchors: { seatRadius: number; crownX: number; caseBackZ: number };
 };
 
 export type ExteriorBuilder = (ctx: ExteriorContext) => ExteriorBuild;

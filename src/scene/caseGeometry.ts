@@ -7,7 +7,8 @@ export function stemExtension(stemEnd: number, crownX: number, crownLength: numb
   return { from: stemEnd, to: Math.max(stemEnd, crownX - crownLength / 2) };
 }
 
-// The casing ring fills the gap between a small movement and the case wall over the movement's whole depth.
-export function casingSpan(f: { plateFrontZ: number; rotorBackZ: number }) {
-  return { from: f.plateFrontZ, to: f.rotorBackZ };
+// The casing ring fills the gap between a small movement and the case wall over the movement's depth, but never past
+// the case middle's back face, where it would stand proud once the caseback lifts off.
+export function casingSpan(f: { plateFrontZ: number; rotorBackZ: number }, caseBackZ: number) {
+  return { from: f.plateFrontZ, to: Math.min(f.rotorBackZ, caseBackZ) };
 }

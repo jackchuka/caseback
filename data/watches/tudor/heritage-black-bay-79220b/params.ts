@@ -5,7 +5,7 @@ export const T = {
   totalThickness: 13, // spec: caseback to crystal apex
   caseFrontOffset: 3.1, // photo:crown-low: puts the crown centre 4.4 mm behind the case front
   caseHeight: 8.55, // photo:crown-low: case middle, front face to caseback seat; the crown spans most of it
-  casebackThickness: 1.03, // est: the rest of the published 13 mm behind the case middle; still clears the rotor
+  casebackThickness: 1.14, // est: the rest of the published 13 mm behind the case middle; still clears the rotor
   casebackPlate: 0.05, // est: hidden; the pocket in front of it keeps the rotor clear
   casebackPocketClearance: 0.5, // est: hidden; the pocket's radius over the movement's
   lugToLug: 50, // spec: 50 mm (aBlogtoWatch, Millenary)
@@ -38,7 +38,7 @@ export const T = {
 
   crystalRadius: 15.25, // photo:front: just inside the bezel lip
   crystalWall: 0.4, // est: box wall above the bezel top, trimmed to keep the thickness with the taller bezel
-  crystalDome: 1.2, // est: dome above the wall
+  crystalDome: 1.1, // est: dome above the wall; within the photos' uncertainty, trimmed to keep 13 mm over the rotor
 
   dialRadius: 15.2, // photo:front: dial edge inside the rehaut
   indexRing: 0.81, // photo:front: outer edge of every index's lume / dial radius

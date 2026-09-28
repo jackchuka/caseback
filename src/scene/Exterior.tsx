@@ -49,7 +49,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
   }, [r]);
   const { crownX } = build.anchors;
   const casing = casingRing(r, build.anchors.seatRadius);
-  const span = casingSpan(frame);
+  const span = casingSpan(frame, build.anchors.caseBackZ);
   // Seen from both the caseback and the dial side, so it needs both faces.
   const casingMat = useMemo(() => Object.assign(movementMaterials.plate.clone(), { side: THREE.DoubleSide }), [movementMaterials]);
   // The stem runs on into the crown's centre, where the crown hides its end.

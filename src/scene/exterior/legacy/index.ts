@@ -30,7 +30,7 @@ export function legacyRound(config: LegacyConfig): ExteriorBuilder {
         hands: { hour: hands.hour, minute: hands.minute, seconds: e.hands.seconds ? hands.seconds : [] },
       },
       materials: legacyMaterials(e),
-      anchors: { seatRadius: r.inner, crownX: crownX(e, r) },
+      anchors: { seatRadius: r.inner, crownX: crownX(e, r), caseBackZ: r.bottom + r.height },
     };
   };
 }

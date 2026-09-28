@@ -8,13 +8,14 @@ export const Vec3Schema = z.object({ x: z.number(), y: z.number(), z: z.number()
 export const MaterialKeySchema = z.enum(['gilt', 'steel', 'rhodium', 'plate', 'balance', 'ruby', 'blued']);
 
 export const ShapeSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('wheel'), teeth: int, module: pos, thickness: pos, spokes: z.number().int().min(0) }),
+  // `pin`: how far the visible arbor pin runs below and above the wheel's centre (plate to bridge); default ±2.1.
+  z.object({ kind: z.literal('wheel'), teeth: int, module: pos, thickness: pos, spokes: z.number().int().min(0), pin: z.object({ below: pos, above: pos }).optional() }),
   z.object({ kind: z.literal('pinion'), leaves: int, module: pos, length: pos }),
   z.object({ kind: z.literal('barrel'), teeth: int, module: pos, thickness: pos, drumHeight: pos }),
   z.object({ kind: z.literal('ratchet'), teeth: int, module: pos, thickness: pos }),
   z.object({ kind: z.literal('escape-wheel'), teeth: int, outerRadius: pos, thickness: pos }),
   z.object({ kind: z.literal('pallet-fork'), span: pos, length: pos, thickness: pos }),
-  z.object({ kind: z.literal('balance'), radius: pos, rimThickness: pos, arms: int }),
+  z.object({ kind: z.literal('balance'), radius: pos, rimThickness: pos, arms: int, pin: z.object({ below: pos, above: pos }).optional() }),
   z.object({ kind: z.literal('hairspring'), turns: pos, innerRadius: pos, pitch: pos }),
   z.object({ kind: z.literal('plate'), radius: pos, thickness: pos }),
   z.object({ kind: z.literal('stem'), radius: pos, length: pos }),

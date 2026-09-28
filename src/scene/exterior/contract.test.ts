@@ -5,9 +5,17 @@ import { watches } from '../../../data/watches';
 import type { ExteriorBuild, ExteriorBuilder, ExteriorLayer } from './contract';
 import { movementFrame } from './frame';
 import { genericCase } from './generic';
+import { buildShape } from '../../geometry/parts';
+import { casingSpan } from '../caseGeometry';
 import { MOVEMENT_MATERIAL_KEYS, SHARED_EXTERIOR_MATERIALS, materialKeys } from './materials';
 
 const FRAME = movementFrame(calibers['eta-2824-2']!);
+// The deepest point any back-side movement part actually renders to (pins, bosses and bevels included), not its nominal size.
+const MOVEMENT_BACK = Math.max(
+  ...calibers['eta-2824-2']!.parts
+    .filter((p) => p.side === 'back')
+    .flatMap((p) => buildShape(p.shape, p.material).map((l) => { l.geometry.computeBoundingBox(); return l.geometry.boundingBox!.max.z + p.pos.z; })),
+);
 const ctx = { movement: FRAME, quality: 'low' as const };
 
 const vertices = (layers: ExteriorLayer[]) =>
@@ -35,7 +43,12 @@ describe('exterior contract', () => {
 
       it('closes the case and caseback over the rotor', () => {
         const enclosure = Math.max(box(p.caseback).max.z, box(p.case).max.z);
-        expect(enclosure - FRAME.rotorBackZ).toBeGreaterThanOrEqual(0.05);
+        expect(enclosure - MOVEMENT_BACK).toBeGreaterThanOrEqual(0.05);
+      });
+
+      it('ends the casing ring at the case middle\'s back face', () => {
+        expect(casingSpan(FRAME, b.anchors.caseBackZ).to).toBeLessThanOrEqual(b.anchors.caseBackZ + 1e-9);
+        expect(b.anchors.caseBackZ).toBeCloseTo(Math.max(...vertices(p.case).map((v) => v.z)), 0);
       });
 
       it('every vertex is finite', () => {

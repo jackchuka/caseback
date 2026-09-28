@@ -29,6 +29,11 @@ function disc(radius: number, height: number, segments = 48): THREE.BufferGeomet
   return new THREE.CylinderGeometry(radius, radius, height, segments).rotateX(Math.PI / 2);
 }
 
+// An arbor pin or staff from `below` under the part's centre to `above` over it.
+function staff(radius: number, span: { below: number; above: number }, segments: number) {
+  return disc(radius, span.below + span.above, segments).translate(0, 0, (span.above - span.below) / 2);
+}
+
 function build(shape: Shape, material: MaterialKey): Layer[] {
   switch (shape.kind) {
     case 'wheel': {
@@ -37,7 +42,7 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
       if (shape.spokes > 0) addSpokes(s, Math.max(0.6, rf * 0.28), rf * 0.8, shape.spokes, Math.max(0.28, rf * 0.09));
       const body: Layer = { geometry: extrudeCentered(s, shape.thickness, 0.03), material };
       // Spoked train wheels show their arbor pin between plate and bridge; solid wheels sit on pinions and need none.
-      return shape.spokes > 0 ? [body, { geometry: disc(0.12, 4.2, 16), material: 'steel' }] : [body];
+      return shape.spokes > 0 ? [body, { geometry: staff(0.12, shape.pin ?? { below: 2.1, above: 2.1 }, 16), material: 'steel' }] : [body];
     }
     case 'pinion':
       return [{ geometry: extrudeCentered(gearOutline(shape.leaves, shape.module, PINION), shape.length, 0.01), material }];
@@ -50,14 +55,15 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     case 'ratchet':
       return [
         { geometry: extrudeCentered(gearOutline(shape.teeth, shape.module), shape.thickness, 0.02), material },
-        { geometry: disc(0.6, 0.3, 32).translate(0, 0, 0.2), material: 'blued' },
+        // A low screw head: the rotor sweeps close over the ratchet.
+        { geometry: disc(0.6, 0.16, 32).translate(0, 0, 0.1), material: 'blued' },
       ];
     case 'escape-wheel':
       return [{ geometry: escapeWheel(shape.teeth, shape.outerRadius, shape.thickness), material }];
     case 'pallet-fork':
       return palletFork(shape.span, shape.length, shape.thickness, material);
     case 'balance':
-      return balanceWheel(shape.radius, shape.rimThickness, shape.arms, material);
+      return balanceWheel(shape.radius, shape.rimThickness, shape.arms, material, shape.pin);
     case 'hairspring':
       return [{ geometry: hairspring(shape.turns, shape.innerRadius, shape.pitch), material }];
     case 'plate': {
@@ -70,10 +76,11 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     case 'stem':
       return [{ geometry: disc(shape.radius, shape.length, 24).rotateY(Math.PI / 2), material }];
     case 'rotor': {
+      // The hub boss stands proud on the outer (back) face only; underneath it stays flush so the reversers pass close.
       const s = new THREE.Shape();
       s.absarc(0, 0, shape.radius, 0, Math.PI, false);
       s.absarc(0, 0, shape.hub, Math.PI, 0, true);
-      return [{ geometry: extrudeCentered(s, shape.thickness, 0.06), material }, { geometry: disc(shape.hub * 0.75, shape.thickness + 0.15, 48), material: 'steel' }];
+      return [{ geometry: extrudeCentered(s, shape.thickness, 0.06), material }, { geometry: disc(shape.hub * 0.75, shape.thickness + 0.075, 48).translate(0, 0, 0.0375), material: 'steel' }];
     }
     case 'hand':
       return hand(shape.length, shape.width, shape.thickness, material, shape.style ?? 'leaf');
@@ -132,7 +139,7 @@ function palletFork(span: number, length: number, thickness: number, material: M
   ];
 }
 
-function balanceWheel(radius: number, rim: number, arms: number, material: MaterialKey): Layer[] {
+function balanceWheel(radius: number, rim: number, arms: number, material: MaterialKey, pin = { below: 1.7, above: 1.7 }): Layer[] {
   const layers: Layer[] = [{ geometry: new THREE.TorusGeometry(radius, rim, 24, 160), material }];
   for (let i = 0; i < arms; i++) {
     layers.push({ geometry: new THREE.BoxGeometry(radius * 2, rim * 1.6, rim).rotateZ((i * Math.PI) / arms + 0.3), material });
@@ -141,7 +148,7 @@ function balanceWheel(radius: number, rim: number, arms: number, material: Mater
     const a = (i * Math.PI) / 2 + 0.3 + Math.PI / 4;
     layers.push({ geometry: disc(0.2, 0.34, 20).translate((radius + 0.25) * Math.cos(a), (radius + 0.25) * Math.sin(a), 0), material });
   }
-  layers.push({ geometry: disc(0.45, 0.4, 32), material }, { geometry: disc(0.1, 3.4, 16), material: 'steel' });
+  layers.push({ geometry: disc(0.45, 0.4, 32), material }, { geometry: staff(0.1, pin, 16), material: 'steel' });
   layers.push({ geometry: disc(0.07, 0.5, 12).translate(0.9, 0, -0.5), material: 'ruby' });
   return layers;
 }
@@ -190,8 +197,9 @@ function bridge(shape: Bridge, material: MaterialKey): Layer[] {
     layers.push({ geometry: new THREE.TorusGeometry(0.42, 0.06, 12, 48).translate(j.x, j.y, top + 0.03), material: 'steel' });
   }
   for (const sc of shape.screws) {
-    layers.push({ geometry: disc(0.42, 0.28).translate(sc.x, sc.y, top + 0.1), material: 'blued' });
-    layers.push({ geometry: new THREE.BoxGeometry(0.85, 0.09, 0.12).rotateZ(sc.x).translate(sc.x, sc.y, top + 0.22), material: 'slot' });
+    // Screw heads stand just proud of the bridge; the automatic works sweep close over them.
+    layers.push({ geometry: disc(0.42, 0.28).translate(sc.x, sc.y, top + 0.05), material: 'blued' });
+    layers.push({ geometry: new THREE.BoxGeometry(0.85, 0.09, 0.12).rotateZ(sc.x).translate(sc.x, sc.y, top + 0.17), material: 'slot' });
   }
   return layers;
 }
