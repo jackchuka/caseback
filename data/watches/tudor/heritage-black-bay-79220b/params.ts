@@ -6,17 +6,20 @@ export const T = {
   caseHeight: 8.2, // est: case middle, front face to caseback seat
   lugToLug: 50, // est: reviews quote ~50 mm; photo:front
   lugGap: 22, // spec: lug width
-  lugWidth: 2.6, // est: photo:front
+  lugWidth: 2.9, // photo:front: lug top at the tip, gap edge to outer edge (bobs-126699.jpg agrees)
   lugTipRound: 0.6, // est
-  lugFillet: 2.2, // est: concave blend lug → case, photo:front
-  lugDrop: 1.4, // est: lug tip dip toward the wrist, photo:three-quarter
-  lugDropRun: 5, // est: length over which the lug dips
+  lugFillet: 0.6, // photo:front: only the inner corner where the gap meets the drum, under the end link
+  lugDrop: 1.8, // photo:crown-low: lug tip dip toward the wrist
+  lugCurve: 1.6, // photo:crown-low: the dip starts at the bezel edge and steepens toward the tip
+  lugHeel: 1.2, // photo:crown-low: the underside rounds up at the tip
+  lugHeelRun: 4, // photo:crown-low
   bevel: 0.9, // est: polished top-edge bevel, photo:crown-low
   backChamfer: 0.3, // est
   edge: 0.25, // softening of every crease
   bore: 16.2, // est: inner radius of the case middle (movement seat)
   holeRadius: 0.55, // est: spring-bar hole
   holeInset: 1.7, // est: hole centre from lug tip
+  holeDepth: 1.5, // est: blind hole, drilled from the inner face only
 
   bezelOuter: 20.5, // spec: same as the case
   bezelInner: 16.3, // est: inner lip, photo:front

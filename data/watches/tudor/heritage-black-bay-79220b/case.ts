@@ -6,46 +6,64 @@ import { T } from './params';
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 
-// The Black Bay's case middle: a 41 mm drum with four straight, untapered lugs fused on, slab-sided flanks, a flat
-// brushed top that dips toward the wrist only at the lug tips, and one polished bevel running along the whole top edge.
+// The Black Bay's case middle: a 41 mm drum whose lugs are wedges drawn tangent to it, so the case edge runs
+// straight out to each lug tip; slab-sided flanks; a brushed top that curves down toward the wrist from the bezel
+// edge to the lug tips; and one polished bevel running along the whole top edge.
 export function caseShape(m: MovementFrame) {
   const R = T.caseRadius;
   const lw = T.lugGap / 2;
   const tip = T.lugToLug / 2;
   const back = m.frontZ + T.caseHeight;
-  const lug = roundedConvex([[lw, 0], [lw + T.lugWidth, 0], [lw + T.lugWidth, tip], [lw, tip]], T.lugTipRound);
+  const xo = lw + T.lugWidth;
+  // The lug's outer edge leaves the drum on its tangent through the tip's outer corner.
+  const phi = Math.atan2(tip, xo) - Math.acos(R / Math.hypot(xo, tip));
+  const tx = R * Math.cos(phi), ty = R * Math.sin(phi);
+  const lug = roundedConvex([[lw, 0], [tx, ty], [xo, tip], [lw, tip]], T.lugTipRound);
   const plan = (x: number, y: number) => {
     const disc = Math.hypot(x, y) - R;
+    // Deep inside the drum only the sign matters.
+    if (disc < -2) return disc;
     const ax = Math.abs(x), ay = Math.abs(y);
-    // The lug's bounding box bounds its distance; beyond the blend it cannot change the result.
-    const bx = Math.max(lw - ax, ax - lw - T.lugWidth, 0), by = Math.max(ay - tip, 0);
-    return Math.hypot(bx, by) >= disc + T.lugFillet ? disc : smin(disc, lug(ax, ay), T.lugFillet);
+    // Outside the lug's bounding box its distance is at least the distance to the box; beyond the blend it cannot
+    // change the result.
+    const bx = Math.max(lw - ax, ax - tx, 0), by = Math.max(ay - tip, 0);
+    const box = Math.hypot(bx, by);
+    return box > 0 && box >= disc + T.lugFillet ? disc : smin(disc, lug(ax, ay), T.lugFillet);
   };
-  const front = (y: number) => m.frontZ + T.lugDrop * clamp01((Math.abs(y) - (tip - T.lugDropRun)) / T.lugDropRun) ** 2;
-  const hole = { y: tip - T.holeInset, z: (front(tip - T.holeInset) + back) / 2 };
+  // 0 at the bezel's edge, 1 at the lug tip, measured along the lug.
+  const run = (x: number, y: number) => {
+    const edge = Math.sqrt(Math.max(R * R - x * x, 0));
+    return clamp01((Math.abs(y) - edge) / (tip - edge));
+  };
+  const front = (x: number, y: number) => m.frontZ + T.lugDrop * run(x, y) ** T.lugCurve;
+  // The underside lifts only at the very tip, rounding the lug's heel.
+  const underside = (y: number) => back - T.lugHeel * clamp01((Math.abs(y) - tip + T.lugHeelRun) / T.lugHeelRun) ** 2;
+  const hole = { y: tip - T.holeInset, z: (front(lw + T.lugWidth / 2, tip - T.holeInset) + underside(tip - T.holeInset)) / 2 };
   const opts = { chamfer: T.bevel, backChamfer: T.backChamfer, edge: T.edge };
 
-  let cx = NaN, cy = NaN, cPlan = 0, cFront = 0, cBore = 0;
+  let cx = NaN, cy = NaN, cPlan = 0, cFront = 0, cBack = 0, cBore = 0;
   const column = (x: number, y: number) => {
     if (x === cx && y === cy) return;
-    cx = x; cy = y; cPlan = plan(x, y); cFront = front(y); cBore = T.bore - Math.hypot(x, y);
+    cx = x; cy = y; cPlan = plan(x, y); cFront = front(x, y); cBack = underside(y); cBore = T.bore - Math.hypot(x, y);
   };
-  const drill = (y: number, z: number) => T.holeRadius - Math.hypot(Math.abs(y) - hole.y, z - hole.z);
+  // Blind: the photos show plain outer lug flanks.
+  const drill = (x: number, y: number, z: number) =>
+    Math.min(T.holeRadius - Math.hypot(Math.abs(y) - hole.y, z - hole.z), lw + T.holeDepth - Math.abs(x));
   const sdf = (x: number, y: number, z: number) => {
     column(x, y);
     // Columns well outside the outline or inside the bore need no detail; most of the grid is one of these.
     if (cPlan > 1) return cPlan;
     if (cBore > 1) return cBore;
-    const solid = extrudeProfile(cPlan, cFront - z, z - back, opts);
-    return Math.max(smax(solid, cBore, T.edge), drill(y, z));
+    const solid = extrudeProfile(cPlan, cFront - z, z - cBack, opts);
+    return Math.max(smax(solid, cBore, T.edge), drill(x, y, z));
   };
   // 0 brushed … 1 polished. Each face's finish is weighted by how close its term is to bounding the solid, so the
   // finishes meet along the true crease rather than along grid triangles.
   const polish = (x: number, y: number, z: number) => {
     column(x, y);
-    const vf = cFront - z, vb = z - back;
+    const vf = cFront - z, vb = z - cBack;
     const k: Array<[number, number]> = [
-      [0, vf], [0, cBore], [1, cPlan], [1, vb], [1, (cPlan + vf + T.bevel) / Math.SQRT2], [1, (cPlan + vb + T.backChamfer) / Math.SQRT2], [1, drill(y, z)],
+      [0, vf], [0, cBore], [1, cPlan], [1, vb], [1, (cPlan + vf + T.bevel) / Math.SQRT2], [1, (cPlan + vb + T.backChamfer) / Math.SQRT2], [1, drill(x, y, z)],
     ];
     const top = Math.max(...k.map(([, t]) => t));
     let sum = 0, weight = 0;
