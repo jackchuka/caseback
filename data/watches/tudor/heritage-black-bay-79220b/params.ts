@@ -41,9 +41,21 @@ export const T = {
   triangle: 0.14, // est: / dial radius
   surround: 0.16, // est: polished rim around each index
 
-  hour: 0.62, minute: 0.9, seconds: 0.94, secondsTail: 0.26, // est: / dial radius, photo:front
-  snowflake: 1.55, // est: half-diagonal of the hour hand's lume plate
-  secondsPlate: 0.5, // est: half-side of the seconds hand's square plate
+  // Hands, measured on the front shot and on bobs-126699.jpg (same pose, 3× the resolution).
+  hour: 0.625, minute: 0.92, seconds: 0.96, secondsTail: 0.3, // photo:front: / dial radius
+  snowflake: 2.3, // photo:front: half-width of the hour hand's diamond plate (lume 3.7 mm across + frame)
+  secondsPlate: 0.95, // photo:front: half-diagonal of the seconds hand's diamond plate
+  hands: {
+    snowflakeAt: 0.435, // photo:front: diamond centre / dial radius
+    snowflakeLength: 1.95, // photo:front: half-diagonal of the diamond along the hand
+    hourShaft: 0.73, hourTip: 0.72, // photo:front: half-widths; the lume runs up the shaft and into the tip
+    minuteWidth: 1.45, // photo:front: a straight sword, lume 0.8 mm wide
+    secondsShaft: 0.34, counterweight: 0.3, // photo:front
+    secondsPlateAt: 0.62, // photo:front: / dial radius
+    lumeFrom: 1.8, // photo:front: lume starts this far from the pivot
+    frame: 0.3, // photo:front: steel rim around the lume
+    bevel: 0.07, // photo:front: the thin bright line along each frame edge
+  },
 
   crownDiameter: 8, // est: big crown, photo:front
   crownLength: 4, // est
