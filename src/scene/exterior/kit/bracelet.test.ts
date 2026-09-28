@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { bracelet, plateProfile, type BraceletSpec } from './bracelet';
+import { bracelet, hLinkBracelet, plateProfile, type BraceletSpec } from './bracelet';
 
 const spec: BraceletSpec = {
   startWidth: 21.6, endWidth: 18, pitch: 6, centerRatio: 0.55, thickness: 2.4, links: 5, gap: 0.15, wristRadius: 26,
@@ -96,5 +96,29 @@ describe('plateProfile', () => {
     const flat = plateProfile(width, thickness, chamfer, 0, 6);
     const zs = flat.slice(2, flat.length - 2).map(([, z]) => z);
     for (const z of zs) expect(z).toBeCloseTo(-thickness / 2, 9);
+  });
+});
+
+describe('H-link bracelet', () => {
+  const h = { ...spec, startWidth: 19.6, endWidth: 18, pitch: 10, centerRatio: 0.5, bar: 2.4, links: 4, centerRaise: 0 };
+  const layers = hLinkBracelet(h, { y: 24, z: 2 }, { center: 'bracelet', outer: 'bracelet' });
+  const first = layers.slice(0, 4);
+  it('makes two rails, a crossbar and a centre link per pitch on both sides', () => {
+    expect(layers).toHaveLength(h.links * 4 * 2);
+    expect(layers.filter((l) => l.name === 'bracelet-center')).toHaveLength(h.links * 2);
+  });
+  it('fills the opening between the rails with the centre link, clear of the crossbar', () => {
+    // Flat, so the wrist curve doesn't tilt the pieces' bounds into each other.
+    const flat = hLinkBracelet({ ...h, wristRadius: 1e6 }, { y: 24, z: 2 }, { center: 'bracelet', outer: 'bracelet' });
+    const [left, right, bar, center] = flat.slice(0, 4).map((l) => box([l]));
+    expect(center!.min.x).toBeGreaterThan(left!.max.x);
+    expect(center!.max.x).toBeLessThan(right!.min.x);
+    expect(bar!.min.y).toBeGreaterThan(center!.max.y);
+    expect(right!.max.x - left!.min.x).toBeCloseTo(h.startWidth, 1);
+    expect((center!.max.x - center!.min.x) / h.startWidth).toBeCloseTo(h.centerRatio, 1);
+  });
+  it('starts at the given point and curves toward the wrist', () => {
+    expect(Math.min(...first.map((l) => box([l]).min.y))).toBeCloseTo(24, 1);
+    expect(box(layers).max.z).toBeGreaterThan(6);
   });
 });

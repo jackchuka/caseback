@@ -78,3 +78,33 @@ export function bracelet(s: BraceletSpec, start: { y: number; z: number }, mater
   }
   return layers;
 }
+
+// An H-link bracelet: in every pitch the outer rails run the full length and a crossbar joins them, flush, at the far
+// end; the near end leaves an opening that a separate centre link fills. `bar` is the crossbar's length along the
+// bracelet; `centerRaise` lifts the centre link above the H (0: flush).
+export type HLinkSpec = Omit<BraceletSpec, 'centerRatio'> & { centerRatio: number; bar: number };
+
+export function hLinkBracelet(s: HLinkSpec, start: { y: number; z: number }, material: { center: string; outer: string }): ExteriorLayer[] {
+  const layers: ExteriorLayer[] = [];
+  for (const dir of [1, -1] as const) {
+    for (let i = 0; i < s.links; i++) {
+      const w = s.startWidth + ((s.endWidth - s.startWidth) * i) / Math.max(1, s.links - 1);
+      const cw = w * s.centerRatio;
+      const ow = (w - cw) / 2;
+      const y0 = start.y + i * s.pitch;
+      const link = s.pitch - s.bar - 2 * s.gap;
+      const piece = (width: number, x: number, from: number, len: number, dz: number, name: string, mat: string) => {
+        let g: THREE.BufferGeometry = extrudePlate(plateProfile(width, s.thickness, s.chamfer, s.crown), len).translate(x, from + len / 2, start.z + dz);
+        if (dir < 0) g = flipWinding(g.scale(1, -1, 1));
+        layers.push({ geometry: bend(g, s.wristRadius, start.y, dir), material: mat, name });
+      };
+      const rail = s.pitch - s.gap;
+      piece(ow, -(cw + ow) / 2, y0, rail, 0, 'bracelet-outer', material.outer);
+      piece(ow, (cw + ow) / 2, y0, rail, 0, 'bracelet-outer', material.outer);
+      // Overlaps the rails a little so the H reads as one piece.
+      piece(cw + 0.2, 0, y0 + link + s.gap, s.bar, 0.01, 'bracelet-bar', material.outer);
+      piece(cw - 2 * s.gap, 0, y0, link, -s.centerRaise, 'bracelet-center', material.center);
+    }
+  }
+  return layers;
+}
