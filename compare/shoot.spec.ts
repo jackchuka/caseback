@@ -22,8 +22,8 @@ test('renders every compare view without errors', async ({ page }) => {
     for (const view of ['front', 'side', 'three-quarter']) await shoot(page, `/dev/compare/${id}?view=${view}&mode=model`, `${slug(id)}-${view}-model`);
     const shots = await page.evaluate(() => (window as Hook).__compare?.shots ?? []);
     for (const s of shots.filter((x) => !process.env.SHOT || x === process.env.SHOT)) {
-      await shoot(page, `/dev/compare/${id}?shot=${s}&mode=model`, `${slug(id)}-${s}-model`);
-      await shoot(page, `/dev/compare/${id}?shot=${s}&mode=overlay`, `${slug(id)}-${s}-overlay`);
+      await shoot(page, `/dev/compare/${id}?shot=${s}&mode=model`, `${slug(id)}-shot-${s}-model`);
+      await shoot(page, `/dev/compare/${id}?shot=${s}&mode=overlay`, `${slug(id)}-shot-${s}-overlay`);
     }
   }
   expect(errors).toEqual([]);
