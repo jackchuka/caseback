@@ -9,6 +9,8 @@ import type { MovementMaterial } from '../../geometry/parts';
 //   caseback-glass), then movement materials, in that order; an unknown key throws;
 // - hands use movement materials only, never the build's own;
 // - every instantiated crystal material is transparent;
+// - own materials named after the movement's calendar discs (DISC_MATERIALS) dress those discs instead of the
+//   movement's own print, so a watch can show white-on-black dates;
 // - the caseback is placed at its closed position; the opening animation only adds lift, and turn if it screws down;
 // - a new builder adds its own closed-case mesh test.
 
@@ -70,6 +72,8 @@ export type ExteriorGeometry = {
   // unscrews as it lifts; a back held by screws (any non-round one) lifts straight off.
   anchors: { seatRadius: number; crownX: number; caseBackZ: number; casebackTurns: boolean };
 };
+
+export const DISC_MATERIALS = ['date', 'day'] as const;
 
 // Built lazily so geometry tests never touch a canvas.
 export type ExteriorMaterials = Record<string, () => THREE.Material>;

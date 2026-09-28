@@ -1,4 +1,4 @@
-import type { Layer } from '../geometry/parts';
+import type { Layer, MovementMaterial } from '../geometry/parts';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -38,7 +38,7 @@ function fadeTo(entry: RegistryEntry, target: number) {
 
 // A watch replaces the geometry of the movement's hour and minute hands (keyed by part id) with its own, sized to
 // its dial; the parts keep their arbors, so the kinematics still drive them.
-export function Movement({ caliber, handLayers, timeOverride, children }: { caliber: Caliber; handLayers?: Record<string, Layer[]>; timeOverride?: number; children?: ReactNode }) {
+export function Movement({ caliber, handLayers, discMaterials, timeOverride, children }: { caliber: Caliber; handLayers?: Record<string, Layer[]>; discMaterials?: Partial<Record<MovementMaterial, THREE.MeshPhysicalMaterial>>; timeOverride?: number; children?: ReactNode }) {
   const parts = caliber.parts;
   const solve = useMemo(() => buildSolver(caliber), [caliber]);
   const pick = useApp((s) => s.pick);
@@ -155,7 +155,7 @@ export function Movement({ caliber, handLayers, timeOverride, children }: { cali
   return (
     <group rotation={[MOVEMENT_ROTATION, 0, 0]}>
       {parts.map((p) => (
-        <PartMesh key={p.id} part={p} onPick={pick} layersOverride={handLayers?.[p.id]} />
+        <PartMesh key={p.id} part={p} onPick={pick} layersOverride={handLayers?.[p.id]} materialsOverride={discMaterials} />
       ))}
       {children}
     </group>

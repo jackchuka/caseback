@@ -9,6 +9,7 @@ import { CameraRig } from '../scene/CameraRig';
 import { Effects } from '../scene/Effects';
 import { Exterior } from '../scene/Exterior';
 import type { ExteriorBuild } from '../scene/exterior/contract';
+import { discMaterials } from '../scene/exterior/discMaterials';
 import { movementFrame } from '../scene/exterior/frame';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
@@ -72,10 +73,11 @@ function Scene({ caliber, watch, exterior }: { caliber: Caliber; watch?: Watch; 
     () => (build.parts.hands.hour.length > 0 ? { 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute, ...build.parts.hands.extra } : undefined),
     [build],
   );
+  const discs = useMemo(() => discMaterials(build.materials), [build]);
   return (
     <>
       <group ref={(g) => { flipGroup.current = g; }}>
-        <Movement caliber={caliber} handLayers={handLayers}>
+        <Movement caliber={caliber} handLayers={handLayers} discMaterials={discs}>
           <FlowPaths caliber={caliber} />
           <Exterior caliber={caliber} watch={watch} build={build} frame={frame} watchFront={watchFront} />
         </Movement>

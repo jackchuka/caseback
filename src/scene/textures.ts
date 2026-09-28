@@ -130,14 +130,18 @@ export function flowStripe() {
 }
 
 // Labels around a circle at 0.87 of the texture radius, mirrored vertically so they read correctly from the dial side.
-function ringLabels(labels: string[], fontScale: number, at = 0.87) {
+// `size` scales the lettering, for a watch whose window shows bigger figures.
+export type Print = { ground: string; ink: string; size?: number };
+const BLACK_ON_WHITE: Print = { ground: '#f3f0e8', ink: '#1a1a1a' };
+
+function ringLabels(labels: string[], fontScale: number, at = 0.87, print = BLACK_ON_WHITE) {
   return canvasTexture(2048, (g, s) => {
-    g.fillStyle = '#f3f0e8';
+    g.fillStyle = print.ground;
     g.fillRect(0, 0, s, s);
     g.translate(s / 2, s / 2);
     g.scale(1, -1);
-    g.fillStyle = '#1a1a1a';
-    g.font = `600 ${s * fontScale}px Inter, sans-serif`;
+    g.fillStyle = print.ink;
+    g.font = `600 ${s * fontScale * (print.size ?? 1)}px Inter, sans-serif`;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     labels.forEach((label, i) => {
@@ -152,10 +156,10 @@ function ringLabels(labels: string[], fontScale: number, at = 0.87) {
   }, true);
 }
 
-export const dateNumbers = (count = 31) => ringLabels(Array.from({ length: count }, (_, i) => String(i + 1)), 0.05);
+export const dateNumbers = (count = 31, print?: Print) => ringLabels(Array.from({ length: count }, (_, i) => String(i + 1)), 0.05, 0.87, print);
 
 // Monday first, as the day ring's base index counts; twice round, as on a 14-tooth day star.
-export const dayNames = () => {
+export const dayNames = (print?: Print) => {
   const week = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  return ringLabels([...week, ...week], 0.11, DAY_LABEL_AT);
+  return ringLabels([...week, ...week], 0.11, DAY_LABEL_AT, print);
 };

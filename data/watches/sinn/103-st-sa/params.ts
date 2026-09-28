@@ -50,7 +50,7 @@ export const P = {
   subdials: [{ id: 'seconds-hand', x: -8.2, y: 0 }, { id: 'minute-counter-hand', x: 0, y: -8.2 }, { id: 'hour-counter-hand', x: 0, y: 8.2 }],
   subdial: { outer: 4.2, tickLength: 0.6, numeral: 2.75, numeralHeight: 0.95 }, // photo:front
   // photo:front: the white frame around the day and date openings at 3 o'clock
-  window: { day: [5.0, 8.6], date: [9.1, 12.2], halfHeight: 0.95, frame: 0.35, divider: 0.25 },
+  window: { day: [5.0, 8.6], date: [9.1, 12.2], halfHeight: 0.95, frame: 0.22 },
 
   // Hands, from the front photo; lengths from the pivot.
   hands: {

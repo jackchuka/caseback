@@ -5,6 +5,7 @@ import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { Exterior } from '../scene/Exterior';
 import { buildExterior } from '../scene/exterior/contract';
+import { discMaterials } from '../scene/exterior/discMaterials';
 import { movementFrame } from '../scene/exterior/frame';
 import { MaterialsProvider } from '../scene/materials';
 import { Movement } from '../scene/Movement';
@@ -65,6 +66,7 @@ export function Compare({ caliber, watch, shots, shotId, view, mode: initialMode
   const frame = useMemo(() => movementFrame(caliber), [caliber]);
   const build = useMemo(() => buildExterior(watch.exterior, { movement: frame, quality: 'high' }), [watch, frame]);
   const hands = useMemo(() => ({ 'hour-hand': build.parts.hands.hour, 'minute-hand': build.parts.hands.minute, ...build.parts.hands.extra }), [build]);
+  const discs = useMemo(() => discMaterials(build.materials), [build]);
   const time = parseTime(shot?.time ?? DEFAULT_TIME);
 
   useEffect(() => { window.__compare = { shots: shots.map((s) => s.id) }; }, [shots]);
@@ -109,7 +111,7 @@ export function Compare({ caliber, watch, shots, shotId, view, mode: initialMode
           <group rotation={cam.rotation}>
             {/* Undo the movement's own turn so the watch frame is the movement's local frame. */}
             <group rotation-x={Math.PI / 2}>
-              <Movement caliber={caliber} handLayers={build.parts.hands.hour.length ? hands : undefined} timeOverride={time}>
+              <Movement caliber={caliber} handLayers={build.parts.hands.hour.length ? hands : undefined} discMaterials={discs} timeOverride={time}>
                 <Exterior caliber={caliber} watch={watch} build={build} frame={frame} watchFront />
               </Movement>
             </group>
