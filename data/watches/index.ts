@@ -5,6 +5,11 @@ import { validateWatch, WatchSchema, type Watch, type WatchMeta } from '../../sr
 const metas = import.meta.glob<WatchMeta>('./*/*/watch.ts', { eager: true, import: 'default' });
 const exteriors = import.meta.glob<ExteriorBuilder>('./*/*/exterior.ts', { eager: true, import: 'default' });
 
+for (const path of Object.keys(exteriors)) {
+  const metaPath = path.replace(/exterior\.ts$/, 'watch.ts');
+  if (!(metaPath in metas)) throw new Error(`${path}: no watch.ts beside it`);
+}
+
 export const watches: Record<string, Watch> = {};
 for (const [path, raw] of Object.entries(metas)) {
   const w = WatchSchema.parse(raw);

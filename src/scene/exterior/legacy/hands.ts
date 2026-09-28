@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { LegacyConfig } from './config';
-import type { Layer, MovementMaterial } from '../../../geometry/parts';
+import type { MovementMaterial } from '../../../geometry/parts';
+import type { HandLayer } from '../contract';
 
 type P = [number, number];
 type Outline = { frame: P[]; lume: P[] | null };
@@ -56,7 +57,7 @@ function plate(pts: P[], thickness: number, z: number) {
 
 const hub = (r: number, z: number) => new THREE.CylinderGeometry(r, r, 0.2, 40).rotateX(Math.PI / 2).translate(0, 0, z);
 
-export type HandLayers = { hour: Layer[]; minute: Layer[]; seconds: Layer[] };
+export type HandLayers = { hour: HandLayer[]; minute: HandLayer[]; seconds: HandLayer[] };
 
 export function frameMaterial(e: LegacyConfig): MovementMaterial {
   return ({ white: 'lume', silver: 'steel', blued: 'blued' } as const)[e.hands.color];
@@ -65,15 +66,15 @@ export function frameMaterial(e: LegacyConfig): MovementMaterial {
 export function watchHands(e: LegacyConfig, dialRadius: number): HandLayers {
   const metal = frameMaterial(e);
   const [hw, mw] = WIDTH[e.hands.style];
-  const one = (L: number, w: number): Layer[] => {
+  const one = (L: number, w: number): HandLayer[] => {
     const o = outline(e.hands.style, L, w);
-    const layers: Layer[] = [{ geometry: plate(o.frame, 0.12, 0), material: metal }, { geometry: hub(w * 0.55, -0.1), material: metal }];
+    const layers: HandLayer[] = [{ geometry: plate(o.frame, 0.12, 0), material: metal }, { geometry: hub(w * 0.55, -0.1), material: metal }];
     if (o.lume) layers.push({ geometry: plate(o.lume, 0.08, -0.12), material: 'lume' });
     return layers;
   };
   const sL = SECONDS * dialRadius;
   const tail = SECONDS_TAIL * dialRadius;
-  const seconds: Layer[] = [
+  const seconds: HandLayer[] = [
     { geometry: plate([[-0.3, tail], [0.3, tail], [0.14, -0.2 * sL], [0.05, -sL], [-0.05, -sL], [-0.14, -0.2 * sL]], 0.08, 0), material: metal },
     { geometry: hub(0.7, -0.1), material: metal },
   ];

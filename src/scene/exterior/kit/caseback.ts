@@ -8,7 +8,7 @@ export function caseback(outer: number, display: boolean, z: number): ExteriorLa
   if (display) {
     return [
       { geometry: place(new THREE.CylinderGeometry(outer - 1.1, outer - 0.8, 1.0, 160, 1, true)), material: 'caseback-metal' },
-      { geometry: place(new THREE.CylinderGeometry(outer - 1.15, outer - 1.15, 0.6, 160)), material: 'caseback-glass', name: 'caseback-glass' },
+      { geometry: place(new THREE.CylinderGeometry(outer - 1.15, outer - 1.15, 0.6, 160)), material: 'caseback-glass', name: 'caseback-glass', castShadow: false },
     ];
   }
   return [{ geometry: place(new THREE.CylinderGeometry(outer - 1.1, outer - 0.8, 1.0, 160)), material: ['caseback-metal', 'caseback-engraving', 'caseback-metal'], name: 'caseback-solid' }];

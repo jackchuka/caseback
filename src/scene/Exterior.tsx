@@ -7,7 +7,7 @@ import { appStore } from '../state/app';
 import { casingRing, stemExtension } from './caseGeometry';
 import { crownEuler, crownState } from './crown';
 import type { ExteriorBuild, ExteriorLayer, MovementFrame } from './exterior/contract';
-import { instantiate, materialKeys, resolveMaterial } from './exterior/materials';
+import { instantiate, materialKeys, resolveMaterial, SHARED_EXTERIOR_MATERIALS } from './exterior/materials';
 import { exteriorVisibility } from './exterior/visibility';
 import { useMaterials } from './materials';
 import { openingPose } from './opening';
@@ -24,7 +24,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
   const r = frame.diameterMm / 2;
   const movementMaterials = useMaterials();
   const own = useMemo(() => instantiate(build), [build]);
-  const shared = useMemo(() => {
+  const shared = useMemo((): Record<(typeof SHARED_EXTERIOR_MATERIALS)[number], THREE.Material> => {
     const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^ETA /, '')}` });
     return {
       'caseback-engraving': new THREE.MeshPhysicalMaterial({ color: 0xd0d3d7, metalness: 1, roughness: 0.3, bumpMap: tex, bumpScale: 1.2, roughnessMap: tex, transparent: true }),
@@ -45,7 +45,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
     return extrudeCentered(s, 0.45, 0.06);
   }, [r]);
   const { crownX } = build.anchors;
-  const casing = casingRing(r, build.anchors.boreRadius);
+  const casing = casingRing(r, build.anchors.seatRadius);
   // Seen from both the caseback and the dial side, so it needs both faces.
   const casingMat = useMemo(() => Object.assign(movementMaterials.plate.clone(), { side: THREE.DoubleSide }), [movementMaterials]);
   // The stem runs on into the crown's centre, where the crown hides its end.
@@ -141,10 +141,10 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
         <Layers layers={p.strap} pick={pick} shadows />
       </group>
       <group ref={secondsGroup} name="seconds-hand" position-z={frame.secondsZ}>
-        {p.hands.seconds.map((l, i) => <mesh key={i} geometry={l.geometry} material={movementMaterials[l.material as keyof typeof movementMaterials]} />)}
+        {p.hands.seconds.map((l, i) => <mesh key={i} geometry={l.geometry} material={resolveMaterial(l.material, {}, movementMaterials)} />)}
       </group>
       <group ref={back}>
-        {p.caseback.map((l, i) => <mesh key={i} name={l.name} geometry={l.geometry} material={pick(l)} castShadow={l.name !== 'caseback-glass'} />)}
+        {p.caseback.map((l, i) => <mesh key={i} name={l.name} geometry={l.geometry} material={pick(l)} castShadow={l.castShadow ?? true} />)}
       </group>
       <group ref={rotor}>
         <mesh geometry={rotorGeo} material={rotorMat} castShadow />

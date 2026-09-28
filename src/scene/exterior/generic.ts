@@ -26,6 +26,6 @@ export const genericCase: ExteriorBuilder = ({ movement: m }) => {
       hands: { hour: [], minute: [], seconds: [] },
     },
     materials: { case: metal, 'caseback-metal': metal },
-    anchors: { boreRadius: inner, crownX: r + 4.3 },
+    anchors: { seatRadius: inner, crownX: r + 4.3 },
   };
 };

@@ -415,7 +415,9 @@ test('watch pages open on the dial, and dial chapters remove it', async ({ page 
   await page.waitForTimeout(1500);
   // Off-centre: at the centre the hour wheel's pipe passes through the dial, as in a real watch.
   const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
-  const front = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
+  const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
+  // The real-time hour and minute hands sweep over this probe point too; ignore them so the assertion doesn't flake.
+  const front = hits.filter((n) => n !== 'hour-hand' && n !== 'minute-hand');
   expect(front.slice(0, 2)).toEqual(['crystal', 'dial']);
   await page.getByRole('button', { name: '裏蓋を開ける' }).click();
   await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
