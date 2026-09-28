@@ -15,7 +15,7 @@ describe('Tudor 79220B dial', () => {
     expect(lume).toHaveLength(12);
     expect(layers.filter((l) => l.material === 'polished')).toHaveLength(12);
   });
-  it('lays the 3 and 9 bars across and the 6 bar along the radius', () => {
+  it('lays the 3, 6 and 9 bars along the radius', () => {
     const at = (h: number) => {
       const a = (h / 12) * Math.PI * 2;
       const ri = T.indexRing * T.dialRadius - 0.5;

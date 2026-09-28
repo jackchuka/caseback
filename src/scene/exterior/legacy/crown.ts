@@ -4,8 +4,6 @@ import type { Layer } from '../../../geometry/parts';
 import type { CaseRadii } from './radii';
 import { cutFlutes, fluteCount } from '../kit/flutes';
 
-export { fluteCount } from '../kit/flutes';
-
 export function crownX(e: LegacyConfig, r: CaseRadii) {
   return r.outer + e.crown.lengthMm / 2 - 0.2;
 }

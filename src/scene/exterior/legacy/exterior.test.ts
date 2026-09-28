@@ -126,7 +126,8 @@ describe('dial proportion', () => {
   });
 });
 
-import { crown, fluteCount } from './crown';
+import { crown } from './crown';
+import { fluteCount } from '../kit/flutes';
 describe('crown', () => {
   it('turns a fluted grip at the real diameter and length', () => {
     const e = DIVER;

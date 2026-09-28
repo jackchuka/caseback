@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { caseShape } from './case';
@@ -29,6 +28,5 @@ describe('Tudor 79220B bracelet', () => {
   });
   it('continues into three-piece links', () => {
     expect(layers.filter((l) => l.name === 'bracelet-center').length).toBe(T.bracelet.links * 2);
-    void THREE;
   });
 });

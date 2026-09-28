@@ -17,8 +17,8 @@ export function tudorMaterials(): Record<string, () => THREE.Material> {
     // Separate from the movement lume so it fades with the dial; same colour so dial and hands match.
     'dial-lume': () => new THREE.MeshPhysicalMaterial({ color: T.lume, roughness: 0.5, metalness: 0 }),
     insert: () => new THREE.MeshPhysicalMaterial({ map: paintInsert(), roughness: 0.6, metalness: 0.15 }),
-    // Same finish as the case's brushed top: the higher envMapIntensity it had before over-darkened the links'
-    // shadowed faces relative to their edge highlights, which is what read as thin lines on flat grey.
+    // The case's brushed-top finish, so links and case read as one steel; a stronger reflection darkens the links'
+    // shadowed faces against their edge highlights, and they read as thin lines on flat grey.
     bracelet: () => new THREE.MeshPhysicalMaterial({ color: STEEL, metalness: 1, roughness: 0.34, envMapIntensity: 1.4 }),
     'caseback-metal': () => new THREE.MeshPhysicalMaterial({ color: 0xc8cbd0, metalness: 1, roughness: 0.3, clearcoat: 0.15, clearcoatRoughness: 0.3 }),
   };
