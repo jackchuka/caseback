@@ -401,9 +401,9 @@ test('display caseback lets you see the movement, a solid one does not @quick', 
     const [x, y] = await page.evaluate(() => window.__caseback!.project('balance'));
     return page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
   };
-  const glass = await firstHits('/watches/hamilton/khaki-field-auto-h70455553?lang=en');
+  const glass = await firstHits('/watches/sinn/556?lang=en');
   expect(glass[0]).toBe('caseback-glass');
-  const solid = await firstHits('/watches/sinn/556?lang=en');
+  const solid = await firstHits('/watches/tudor/heritage-black-bay-79220b?lang=en');
   expect(solid[0]).toBe('caseback-solid');
 });
 
