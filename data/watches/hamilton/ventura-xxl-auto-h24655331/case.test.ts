@@ -89,6 +89,24 @@ describe('Ventura case', () => {
     expect(s.sdf(V.housing.tip + 0.4, 0, crystalFront() + 0.1)).toBeGreaterThan(0);
     expect(s.sdf(V.housing.tip - 0.3, 0, crystalFront() - 0.15)).toBeGreaterThan(0);
   });
+  it('makes the housing a bullet standing 1.5–2 mm proud of the flank, filleted into it', () => {
+    const top = (x: number) => { let z = V.housing.top - 0.5; while (s.sdf(x, 0, z) > 0) z += 0.01; return z; };
+    const proud = s.sdf(20.5, 0, caseFront() + 0.2) < 0 ? caseFront() - top(20.5) : NaN;
+    expect(proud).toBeGreaterThan(1.5);
+    expect(proud).toBeLessThan(2.1);
+    // Just beside the collar, a little in front of the case face, the fillet fills the corner a plain union would leave.
+    const z = caseFront() - 0.05;
+    const edge = V.housing.halfWidth * (1 - ((z - m.stemZ) / (m.stemZ - V.housing.top)) ** 4) ** 0.25;
+    expect(s.sdf(19.5, edge + 0.1, z)).toBeLessThan(0);
+    expect(s.sdf(19.5, edge + 1.5, z)).toBeGreaterThan(0);
+  });
+  it('bulges the flanks: widest at mid-height, drawn in toward front and back', () => {
+    expect(s.barrel((s.fronts[0]! + s.back) / 2)).toBeCloseTo(0, 6);
+    expect(s.barrel(s.back)).toBeCloseTo(V.barrel, 6);
+    const mid = (s.fronts[0]! + s.back) / 2;
+    expect(s.sdf(-21.0 + 0.1, 0, mid)).toBeLessThan(0);
+    expect(s.sdf(-21.0 + 0.1, 0, s.back - 0.8)).toBeGreaterThan(0);
+  });
   it('pierces the nose with the triangular window', () => {
     const w = V.housing.window;
     expect(s.sdf((w.from + w.to) / 2 + 0.8, 0, crystalFront() - 0.2)).toBeGreaterThan(0);

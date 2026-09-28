@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { sampled2d } from '../../../../src/scene/exterior/kit/field2d';
 import { polygonSdf, type P2 } from '../../../../src/scene/exterior/kit/sdf';
 import { mirrored, TRACE, V } from './params';
@@ -35,16 +34,3 @@ export function casebackPlan() {
   const window = (x: number, y: number) => Math.max(plate(x, y) + frame, x - V.caseback.crownSide, -cut(x, y));
   return { plate, window };
 }
-
-export const shapeOf = (pts: P2[]) => {
-  const s = new THREE.Shape();
-  pts.forEach(([x, y], i) => (i === 0 ? s.moveTo(x, y) : s.lineTo(x, y)));
-  s.closePath();
-  return s;
-};
-export const pathOf = (pts: P2[]) => {
-  const s = new THREE.Path();
-  pts.forEach(([x, y], i) => (i === 0 ? s.moveTo(x, y) : s.lineTo(x, y)));
-  s.closePath();
-  return s;
-};

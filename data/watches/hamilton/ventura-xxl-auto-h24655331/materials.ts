@@ -6,7 +6,8 @@ const STEEL = 0xe4e6ea;
 
 export function venturaMaterials(): Record<string, () => THREE.Material> {
   return {
-    // Mirror-polished all over, as on every photo.
+    // The real case is mirror-polished all over; a mirror renders black in the dark studio, so the metal is a little
+    // rough (0.22) to catch the softboxes. A lighting compromise, not the finish.
     case: () => new THREE.MeshPhysicalMaterial({ color: STEEL, metalness: 1, roughness: 0.22, envMapIntensity: 1.6 }),
     polished: () => new THREE.MeshPhysicalMaterial({ color: STEEL, metalness: 1, roughness: 0.14, envMapIntensity: 1.6 }),
     crystal: () => glass(1.5),

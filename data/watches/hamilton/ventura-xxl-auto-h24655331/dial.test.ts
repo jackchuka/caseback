@@ -39,6 +39,16 @@ describe('Ventura dial', () => {
     const [cx, cy] = V.dialPanels.corners[1]!;
     expect(cast('dial', cx / 2, cy / 2)).toBe(1);
   });
+  it('tapers the arms from the hub out to the corners', () => {
+    const [cx, cy] = V.dialPanels.corners[1]!;
+    const len = Math.hypot(cx, cy);
+    const n = [-cy / len, cx / len];
+    const across = (t: number, w: number) => cast('dial', cx * t + n[0]! * w, cy * t + n[1]! * w);
+    const near = 2.2 / len, far = 0.7;
+    expect(across(near, 1.0)).toBe(1);
+    expect(across(far, 0.95)).toBe(0);
+    expect(across(far, 0.5)).toBe(1);
+  });
   it('sets the grille behind the dial face, in front of the date ring', () => {
     const g = layers.find((l) => l.material === 'dial-grille')!.geometry;
     g.computeBoundingBox();

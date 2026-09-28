@@ -47,9 +47,10 @@ function clip(poly: P2[], p: P2, n: P2): P2[] {
   return out;
 }
 
-// The three grille panels: the inner triangle split by black arms from the pivot to its corners, less the hub.
+// The three grille panels: the inner triangle split by black arms from the pivot to its corners, less the hub. The
+// arms taper from the hub out to the corners.
 export function dialPanels(): P2[][] {
-  const { corners, armHalfWidth: w, hub } = V.dialPanels;
+  const { corners, arm, hub } = V.dialPanels;
   return corners.map((a, i) => {
     const b = corners[(i + 1) % corners.length]!;
     let poly: P2[] = [[0, 0], a, b];
@@ -60,7 +61,13 @@ export function dialPanels(): P2[][] {
       const other = c === a ? b : a;
       const s = Math.sign(u[0] * other[1] - u[1] * other[0]);
       const n: P2 = [s * u[1], -s * u[0]];
-      poly = clip(poly, [n[0] * -w, n[1] * -w], n);
+      // The arm's edge runs from `arm.hub` off its centre line at the pivot to `arm.corner` off it at the corner.
+      const p0: P2 = [-n[0] * arm.hub, -n[1] * arm.hub];
+      const p1: P2 = [c[0] - n[0] * arm.corner, c[1] - n[1] * arm.corner];
+      const ex = p1[0] - p0[0], ey = p1[1] - p0[1], el = Math.hypot(ex, ey);
+      let e: P2 = [ey / el, -ex / el];
+      if (e[0] * n[0] + e[1] * n[1] < 0) e = [-e[0], -e[1]];
+      poly = clip(poly, p0, e);
     }
     const mid: P2 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     const ml = Math.hypot(...mid);

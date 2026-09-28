@@ -10,12 +10,14 @@ export const PHOTO = { mmPerPx: 45.5 / 1198, pivot: [999, 956] as P2 };
 
 // The outlines below are traced on monica-front.jpg in pixels, upper half only, from the 9 o'clock axis round to the
 // 3 o'clock axis: the case is mirror-symmetric about the 3–9 line through the pivot to within 5 px (checked column by
-// column against the lower half). Tier 0 is the case's main front round the dial; tiers 1 and 2 are the two steps of
-// each wing, whose grooves converge on the 9 o'clock tip and run out into the top edge.
+// column against the lower half). The right flank is set 2 px in from the upper half's edge so that both halves of
+// the photo's slightly skewed flank sit within 4 px of the mirrored outline. Tier 0 is the case's main front round
+// the dial; tiers 1 and 2 are the two steps of each wing, whose grooves converge on the 9 o'clock tip and run out
+// into the top edge.
 export const TRACE = {
   tier2: [[446, 956], [446, 890], [470, 858], [500, 824], [540, 736], [580, 644], [620, 599], [660, 561], [700, 526], [740, 495], [780, 465], [820, 438], [860, 415], [900, 406], [940, 408], [965, 412], [965, 956]],
   tier1: [[478, 956], [500, 895], [520, 843], [540, 791], [580, 686], [620, 654], [660, 623], [700, 592], [740, 563], [780, 535], [820, 509], [860, 483], [900, 459], [940, 437], [965, 414], [980, 410], [1020, 400], [1060, 389], [1100, 380], [1140, 372], [1180, 366], [1220, 361], [1240, 359], [1256, 368], [1266, 388], [1266, 956]],
-  tier0: [[505, 956], [520, 916], [540, 862], [580, 755], [620, 722], [660, 690], [700, 661], [740, 632], [780, 606], [820, 581], [860, 558], [900, 536], [940, 516], [980, 497], [1020, 479], [1060, 462], [1100, 445], [1140, 429], [1180, 414], [1220, 401], [1266, 388], [1300, 402], [1340, 410], [1380, 422], [1400, 440], [1413, 482], [1437, 534], [1459, 584], [1480, 632], [1499, 681], [1518, 729], [1536, 777], [1554, 826], [1556, 956]],
+  tier0: [[505, 956], [520, 916], [540, 862], [580, 755], [620, 722], [660, 690], [700, 661], [740, 632], [780, 606], [820, 581], [860, 558], [900, 536], [940, 516], [980, 497], [1020, 479], [1060, 462], [1100, 445], [1140, 429], [1180, 414], [1220, 401], [1266, 388], [1300, 402], [1340, 410], [1380, 422], [1400, 440], [1411, 482], [1435, 534], [1457, 584], [1478, 632], [1497, 681], [1516, 729], [1534, 777], [1552, 826], [1554, 956]],
   // The case's inner edge round the dial; under the crown housing (from 850 px down) it is extrapolated on the edge's
   // slope to its hidden vertex on the 3 o'clock axis.
   dial: [[497, 956], [502, 915], [520, 880], [553, 855], [585, 828], [620, 795], [660, 762], [700, 731], [740, 704], [780, 678], [820, 653], [860, 630], [900, 609], [940, 589], [980, 571], [1020, 554], [1060, 538], [1100, 523], [1140, 508], [1180, 495], [1220, 484], [1260, 476], [1284, 473], [1300, 482], [1310, 519], [1332, 563], [1347, 609], [1361, 653], [1374, 694], [1387, 733], [1400, 772], [1413, 810], [1426, 848], [1440, 890], [1452, 930], [1456, 956]],
@@ -33,6 +35,7 @@ export const V = {
   backChamfer: 0.5, // photo:monica-back
   edge: 0.2, // est
   rim: 1.0, // est: the least width of the main front round the dial (at the 9 o'clock tip)
+  barrel: 0.35, // photo:monica-side: the flanks draw in this far toward the front and back faces
   seat: 13.0, // est: the round movement seat behind the dial, 0.2 mm clear of the 25.6 mm movement
   ledge: 0.15, // est: the dial rests on the seat this far behind its face
 
@@ -44,7 +47,9 @@ export const V = {
     tip: 8.6, // photo:front: the nose's point, from the pivot
     collar: [16.4, 21.5] as P2, // photo:front: the collar's inner step and its outer face
     halfWidth: 4.2, tipHalfWidth: 0.8, // photo:front: at the collar and the nose's point
-    top: -6.4, tipTop: -5.85, // photo:timescape-wrist: the collar stands proud of the case front; the nose dips toward its point
+    // photo:timescape-wrist: the collar stands ~1.7 mm proud of the case front; the nose dips toward its point.
+    top: -7.0, tipTop: -5.9,
+    blend: 0.8, // photo:timescape-wrist: the fillet where the housing grows out of the flank
     // The triangular window in the nose: its point and its base, from the pivot, and the base's half-height.
     window: { from: 10.9, to: 14.6, halfHeight: 1.3 }, // photo:front
   },
@@ -58,7 +63,7 @@ export const V = {
     // The inner triangle of grille (mesh) under which the movement shows, and the three black arms from the pivot to
     // its corners that split it into three panels. Corners from the pivot, in mm.
     corners: [[-11.4, 0], [7.4, -13.0], [7.4, 13.0]] as P2[], // photo:front
-    armHalfWidth: 0.9, // photo:front
+    arm: { hub: 1.2, corner: 0.5 }, // photo:front: the arms' half-width at the pivot and at the corners
     hub: 1.6, // photo:front: the black disc round the pivot the arms meet in
     mesh: 0.72, // photo:front: pitch of the diamond grille
   },

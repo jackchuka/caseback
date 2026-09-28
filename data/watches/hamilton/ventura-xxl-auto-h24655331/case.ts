@@ -1,5 +1,5 @@
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
-import { extrudeProfile, polygonSdf, smax } from '../../../../src/scene/exterior/kit/sdf';
+import { extrudeProfile, polygonSdf, smax, smin } from '../../../../src/scene/exterior/kit/sdf';
 import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { V } from './params';
 import { planFields } from './plan';
@@ -36,26 +36,32 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
   const H = V.housing;
   const win = polygonSdf([[H.window.from, 0], [H.window.to, -H.window.halfHeight], [H.window.to, H.window.halfHeight]]);
   const opts = { chamfer: V.chamfer, backChamfer: V.backChamfer, edge: V.edge };
+  // The flanks bulge slightly: the traced outline is the widest, at mid-height, and the plan draws in by up to
+  // `barrel` toward the front and back faces.
+  const zMid = (fronts[0]! + back) / 2, zHalf = (back - fronts[0]!) / 2;
+  const barrel = (z: number) => V.barrel * Math.min(1, ((z - zMid) / zHalf) ** 2);
 
   const housing = (x: number, y: number, z: number, open: number) => {
     const s = housingSection(m, x);
     const h = s.zc - s.top;
-    // A squarish section (a superellipse): broad flanks either side of the window, as on the photos' flat facets.
-    const e = (Math.abs(y / s.w) ** 3 + Math.abs((z - s.zc) / h) ** 3) ** (1 / 3);
+    // A squarish section (a superellipse): a flat top and broad flanks either side of the window, the faceted
+    // "bullet" of the wrist photo.
+    const e = (Math.abs(y / s.w) ** 4 + Math.abs((z - s.zc) / h) ** 4) ** (1 / 4);
     let d = Math.max((e - 1) * Math.min(s.w, h), H.tip - x, x - H.collar[1]);
     d = Math.max(d, -win(x, y));
     // Inside the dial opening nothing reaches behind the crystal's face: the nose rests on the sapphire.
     return smax(d, Math.min(-open, z - clip), 0.15);
   };
 
-  let cx = NaN, cy = NaN, cPlan = [0, 0, 0], cMin = 0, cOpen = 0, cBore = 0, cRoll = 0;
+  let cx = NaN, cy = NaN, cRaw0 = 0, cPlan = [0, 0, 0], cMin = 0, cOpen = 0, cBore = 0, cRoll = 0;
   const column = (x: number, y: number) => {
     if (x === cx && y === cy) return;
     cx = x; cy = y;
     cOpen = dial(x, y);
     // Tier 0 always keeps a band round the dial opening, even where the traced wing grooves converge on the 9 o'clock
     // tip, so no sliver of the main front thinner than the mesh grid is left there.
-    cPlan = tiers.map((f, k) => (k === 0 ? Math.min(f(x, y), cOpen - V.rim) : f(x, y)));
+    cRaw0 = tiers[0]!(x, y);
+    cPlan = tiers.map((f, k) => (k === 0 ? Math.min(cRaw0, cOpen - V.rim) : f(x, y)));
     cMin = Math.min(...cPlan);
     cBore = Math.hypot(x, y) - V.seat;
     cRoll = roll(cOpen, cPlan[0]!);
@@ -77,13 +83,19 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
     if (z - back > 1) return z - back;
     if (counter) counter.full++;
     let middle = Infinity;
-    for (let k = 0; k < 3; k++) middle = Math.min(middle, extrudeProfile(cPlan[k]!, fronts[k]! + (k === 0 ? cRoll : 0) - z, z - back, opts));
+    const bulge = barrel(z);
+    for (let k = 0; k < 3; k++) {
+      // The band round the dial opening (tier 0's rim) is inside the case and does not draw in with the flanks.
+      const plan = k === 0 ? Math.min(cRaw0 + bulge, cOpen - V.rim) : cPlan[k]! + bulge;
+      middle = Math.min(middle, extrudeProfile(plan, fronts[k]! + (k === 0 ? cRoll : 0) - z, z - back, opts));
+    }
     const hole = Math.min(Math.max(cOpen, z - ledge), cBore);
     const shell = smax(middle, -hole, V.edge);
-    return near ? Math.min(shell, housing(x, y, z, cOpen)) : shell;
+    // The housing grows out of the 3 o'clock flank with a fillet rather than sitting on it.
+    return near ? smin(shell, housing(x, y, z, cOpen), V.housing.blend) : shell;
   };
   const bounds = { x: [-22, H.collar[1] + 0.4] as [number, number], y: 23.3, z: [H.top - 0.4, back + 0.4] as [number, number] };
-  return { sdf, fronts, back, bounds, roll };
+  return { sdf, fronts, back, bounds, roll, barrel };
 }
 
 export function venturaCase(m: MovementFrame, step: number): ExteriorLayer[] {
