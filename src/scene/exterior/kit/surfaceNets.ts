@@ -93,3 +93,13 @@ export function surfaceNets(f: Sdf, min: V3, max: V3, step: number): THREE.Buffe
   g.setIndex(positions.length / 3 > 65535 ? new THREE.Uint32BufferAttribute(index, 1) : new THREE.Uint16BufferAttribute(index, 1));
   return g;
 }
+
+// A surface-nets mesh over [min, max] carrying a per-vertex `polish` attribute read from `polish`.
+export function polishedMesh(f: Sdf, polish: Sdf, min: V3, max: V3, step: number): THREE.BufferGeometry {
+  const g = surfaceNets(f, min, max, step);
+  const pos = g.getAttribute('position');
+  const p = new Float32Array(pos.count);
+  for (let i = 0; i < pos.count; i++) p[i] = polish(pos.getX(i), pos.getY(i), pos.getZ(i));
+  g.setAttribute('polish', new THREE.BufferAttribute(p, 1));
+  return g;
+}

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { canvasTexture } from '../../../../src/scene/exterior/kit/canvas';
 import { cutFlutes } from '../../../../src/scene/exterior/kit/flutes';
-import { lathe } from '../../../../src/scene/exterior/kit/lathe';
+import { flange as flangeRing, lathe } from '../../../../src/scene/exterior/kit/lathe';
 import { caseFront } from './case';
 import { T } from './params';
 
@@ -46,7 +46,7 @@ export function tudorBezel(m: MovementFrame): ExteriorLayer[] {
   const cup = new THREE.CylinderGeometry(T.pipRadius + 0.18, T.pipRadius + 0.18, 0.3, 40).rotateX(Math.PI / 2).translate(0, pipAt, pipSeat - 0.15);
   const pip = new THREE.CylinderGeometry(T.pipRadius, T.pipRadius, 0.1, 40).rotateX(Math.PI / 2).translate(0, pipAt, pipSeat - 0.32);
   // The flange (rehaut) closes the wall between the dial's edge and the case front, which stands proud of the dial.
-  const flange = new THREE.LatheGeometry([new THREE.Vector2(T.dialRadius, m.dialZ - 0.01), new THREE.Vector2(T.bezelInner, b)], 180).rotateX(Math.PI / 2);
+  const flange = flangeRing([T.dialRadius, m.dialZ - 0.01], [T.bezelInner, b]);
   return [
     { geometry: body, material: 'polished' },
     { geometry: flange, material: 'polished', name: 'flange' },

@@ -1,8 +1,8 @@
-import * as THREE from 'three';
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
-import { lathe } from '../../../../src/scene/exterior/kit/lathe';
+import { hollowCaseback } from '../../../../src/scene/exterior/kit/caseback';
+import { softFinish } from '../../../../src/scene/exterior/kit/polish';
 import { extrudeProfile, roundedConvex, smax, smin } from '../../../../src/scene/exterior/kit/sdf';
-import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
+import { polishedMesh } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { T } from './params';
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
@@ -72,22 +72,13 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
     // Only the lug-tip rows can meet the hole.
     return Math.abs(Math.abs(y) - hole.y) > T.holeRadius + 1 ? solid : Math.max(solid, drill(x, y, z));
   };
-  // 0 brushed … 1 polished. Each face's finish is weighted by how close its term is to bounding the solid, so the
-  // finishes meet along the true crease rather than along grid triangles.
+  // 0 brushed … 1 polished.
   const polish = (x: number, y: number, z: number) => {
     column(x, y);
     const vf = cFront - z, vb = z - cBack;
-    const k: Array<[number, number]> = [
+    return softFinish([
       [0, vf], [0, cBore], [1, cPlan], [1, vb], [1, (cPlan + vf + T.bevel) / Math.SQRT2], [1, (cPlan + vb + T.backChamfer) / Math.SQRT2], [1, drill(x, y, z)],
-    ];
-    const top = Math.max(...k.map(([, t]) => t));
-    let sum = 0, weight = 0;
-    for (const [f, t] of k) {
-      const w = Math.exp((t - top) / 0.04);
-      sum += f * w;
-      weight += w;
-    }
-    return sum / weight;
+    ]);
   };
   return { sdf, polish, front, back, hole, bounds: { x: R + 0.5, y: tip + 0.5, z: [F - 0.5, back + 0.5] as [number, number] } };
 }
@@ -95,26 +86,13 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
 export function tudorCase(m: MovementFrame, step: number): ExteriorLayer[] {
   const s = caseShape(m);
   const b = s.bounds;
-  const g = surfaceNets(s.sdf, [-b.x, -b.y, b.z[0]], [b.x, b.y, b.z[1]], step);
-  const pos = g.getAttribute('position');
-  const polish = new Float32Array(pos.count);
-  for (let i = 0; i < pos.count; i++) polish[i] = s.polish(pos.getX(i), pos.getY(i), pos.getZ(i));
-  g.setAttribute('polish', new THREE.BufferAttribute(polish, 1));
-  return [{ geometry: g, material: 'case' }];
+  return [{ geometry: polishedMesh(s.sdf, s.polish, [-b.x, -b.y, b.z[0]], [b.x, b.y, b.z[1]], step), material: 'case' }];
 }
 
-// The screw-down back, hollowed from the inside: the movement model's rotor reaches almost to its outer face, so a
-// solid back would swallow the rotor and show it poking through as the back unscrews and lifts. Its flank keeps the
-// kit caseback's taper; the outer face carries the shared engraving material like the kit's.
+// Hollowed so the rotor clears it; its flank keeps the kit caseback's taper.
 export function tudorCaseback(m: MovementFrame): ExteriorLayer[] {
-  const R = T.caseRadius;
-  const zi = caseFront(m) + T.caseHeight, zo = zi + T.casebackThickness, zj = zo - T.casebackPlate;
-  const flank = (z: number) => R - 0.8 - (0.3 * (z - zi)) / T.casebackThickness;
-  const pocket = m.diameterMm / 2 + T.casebackPocketClearance;
-  const plate = new THREE.CylinderGeometry(flank(zo), flank(zj), T.casebackPlate, 160).rotateX(Math.PI / 2).translate(0, 0, (zo + zj) / 2);
-  const rim = lathe([[pocket, zj], [pocket, zi], [flank(zi), zi], [flank(zj), zj], [pocket, zj]], 160);
-  return [
-    { geometry: plate, material: ['caseback-metal', 'caseback-engraving', 'caseback-metal'], name: 'caseback-solid' },
-    { geometry: rim, material: 'caseback-metal' },
-  ];
+  return hollowCaseback({
+    radius: T.caseRadius - 0.8, taper: 0.3, seat: caseFront(m) + T.caseHeight, thickness: T.casebackThickness,
+    pocket: m.diameterMm / 2 + T.casebackPocketClearance, back: { kind: 'solid', plate: T.casebackPlate },
+  });
 }

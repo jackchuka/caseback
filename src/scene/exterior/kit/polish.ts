@@ -13,3 +13,16 @@ export function withPolish(m: THREE.MeshPhysicalMaterial, polishedRoughness: num
   };
   return m;
 }
+
+// Blends finishes (0 brushed … 1 polished) from terms [finish, t], where t is how close each face is to bounding the
+// solid (its signed distance term): the finishes meet along the true crease rather than along grid triangles.
+export function softFinish(k: Array<[number, number]>, width = 0.04) {
+  const top = Math.max(...k.map(([, t]) => t));
+  let sum = 0, weight = 0;
+  for (const [f, t] of k) {
+    const w = Math.exp((t - top) / width);
+    sum += f * w;
+    weight += w;
+  }
+  return sum / weight;
+}
