@@ -110,7 +110,7 @@ export function Compare({ caliber, watch, shots, shotId, view, mode: initialMode
             {/* Undo the movement's own turn so the watch frame is the movement's local frame. */}
             <group rotation-x={Math.PI / 2}>
               <Movement caliber={caliber} handLayers={build.parts.hands.hour.length ? hands : undefined} timeOverride={time}>
-                <Exterior caliber={caliber} build={build} frame={frame} watchFront />
+                <Exterior caliber={caliber} watch={watch} build={build} frame={frame} watchFront />
               </Movement>
             </group>
           </group>

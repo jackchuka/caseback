@@ -3,6 +3,8 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { extrudeCentered } from '../geometry/gear';
 import type { Caliber } from '../model/schema';
+import type { Watch } from '../model/watch';
+import { casebackEngraving } from './exterior/engraving';
 import { appStore } from '../state/app';
 import { casingRing, casingSpan, stemExtension } from './caseGeometry';
 import { crownEuler, crownState } from './crown';
@@ -26,17 +28,18 @@ const ROTOR_HALF = 0.225;
 // How far the watch's seconds hand travels when exploded: beyond the minute hand (−7.2), as it sits in front of it.
 const SECONDS_EXPLODE_DZ = -8.2;
 
-export function Exterior({ caliber, build, frame, watchFront }: { caliber: Caliber; build: ExteriorBuild; frame: MovementFrame; watchFront: boolean }) {
+export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber: Caliber; watch?: Watch; build: ExteriorBuild; frame: MovementFrame; watchFront: boolean }) {
   const r = frame.diameterMm / 2;
   const movementMaterials = useMaterials();
   const own = useMemo(() => instantiate(build), [build]);
   const shared = useMemo((): Record<(typeof SHARED_EXTERIOR_MATERIALS)[number], THREE.Material> => {
-    const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^(ETA|Seiko) /, '')}` });
+    const { number, jewels } = casebackEngraving(caliber, watch);
+    const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${jewels} JEWELS · `, center: `CAL. ${number}` });
     return {
       'caseback-engraving': new THREE.MeshPhysicalMaterial({ color: 0xd0d3d7, metalness: 1, roughness: 0.3, bumpMap: tex, bumpScale: 1.2, roughnessMap: tex, transparent: true }),
       'caseback-glass': glass(0.6),
     };
-  }, [caliber]);
+  }, [caliber, watch]);
   const pick = useMemo<PickMaterial>(() => {
     const fallback = { ...movementMaterials, ...shared };
     const one = (k: string) => resolveMaterial(k, own, fallback);

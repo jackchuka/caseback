@@ -45,7 +45,7 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
         <MaterialsProvider>
           <Studio />
           <Suspense fallback={null}>
-            <Scene caliber={caliber} exterior={exterior} watchFront={!!watch} />
+            <Scene caliber={caliber} watch={watch} exterior={exterior} />
           </Suspense>
         </MaterialsProvider>
         <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={140} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />
@@ -63,7 +63,8 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
 
 // Suspends until a watch's exterior arrives from its worker; the camera rig waits with it so its opening flip
 // starts on a mounted group.
-function Scene({ caliber, exterior, watchFront }: { caliber: Caliber; exterior: ExteriorBuild | Promise<ExteriorBuild>; watchFront: boolean }) {
+function Scene({ caliber, watch, exterior }: { caliber: Caliber; watch?: Watch; exterior: ExteriorBuild | Promise<ExteriorBuild> }) {
+  const watchFront = !!watch;
   const build = exterior instanceof Promise ? use(exterior) : exterior;
   const frame = useMemo(() => movementFrame(caliber), [caliber]);
   // A watch's own hands replace the movement's; the generic case keeps the movement's.
@@ -76,7 +77,7 @@ function Scene({ caliber, exterior, watchFront }: { caliber: Caliber; exterior: 
       <group ref={(g) => { flipGroup.current = g; }}>
         <Movement caliber={caliber} handLayers={handLayers}>
           <FlowPaths caliber={caliber} />
-          <Exterior caliber={caliber} build={build} frame={frame} watchFront={watchFront} />
+          <Exterior caliber={caliber} watch={watch} build={build} frame={frame} watchFront={watchFront} />
         </Movement>
       </group>
       <CameraRig caliber={caliber} watchFront={watchFront} />
