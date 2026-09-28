@@ -92,6 +92,8 @@ export const CaliberSchema = z.object({
     quickDate: z.boolean(),
     sourceIds: z.array(z.string()),
   }),
+  // Where the exterior meets the movement where no part says so: the case front and the seconds hand.
+  exterior: z.object({ frontZ: z.number(), secondsZ: z.number() }),
   parts: z.array(PartSchema).min(1),
   couplings: z.array(CouplingSchema),
   chapters: z.array(ChapterSchema).min(1),

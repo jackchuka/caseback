@@ -165,6 +165,7 @@ const caliber: Caliber = {
     diameterMm: 25.6, heightMm: 4.6, jewels: 25, vph: 28800, powerReserveH: 38, hacking: true, quickDate: true,
     sourceIds: ['eta-17jewels', 'calibercorner', 'eta-manual'],
   },
+  exterior: { frontZ: -2.8, secondsZ: -3.5 },
   parts,
   couplings: [
     { type: 'mesh', a: 'barrel', b: 'center-pinion' },
