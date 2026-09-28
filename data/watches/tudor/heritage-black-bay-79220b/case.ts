@@ -14,7 +14,8 @@ export const caseFront = (m: MovementFrame) => m.frontZ - T.caseFrontOffset;
 // The Black Bay's case middle: a 41 mm drum whose lugs are wedges drawn tangent to it, so the case edge runs
 // straight out to each lug tip; slab-sided flanks; a brushed top that curves down toward the wrist from the bezel
 // edge to the lug tips; and one polished bevel running along the whole top edge.
-export function caseShape(m: MovementFrame) {
+// `counter`, when given, counts the evaluations that get past the cheap early exits: the build's real work.
+export function caseShape(m: MovementFrame, counter?: { full: number }) {
   const R = T.caseRadius;
   const lw = T.lugGap / 2;
   const tip = T.lugToLug / 2;
@@ -66,6 +67,7 @@ export function caseShape(m: MovementFrame) {
     // Likewise voxels well in front of or behind the column's faces.
     if (cFront - z > 1) return cFront - z;
     if (z - cBack > 1) return z - cBack;
+    if (counter) counter.full++;
     const solid = smax(extrudeProfile(cPlan, cFront - z, z - cBack, opts), cBore, T.edge);
     // Only the lug-tip rows can meet the hole.
     return Math.abs(Math.abs(y) - hole.y) > T.holeRadius + 1 ? solid : Math.max(solid, drill(x, y, z));

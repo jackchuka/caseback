@@ -1,32 +1,29 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+import * as THREE from 'three';
 import { calibers } from '../../../calibers';
+import { buildShape } from '../../../../src/geometry/parts';
+import type { ExteriorLayer } from '../../../../src/scene/exterior/contract';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { closedAndOutward } from '../../../../src/scene/exterior/kit/meshCheck';
-import { caseFront, caseShape, tudorCase } from './case';
+import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
+import { openingDuration, openingPose } from '../../../../src/scene/opening';
+import { caseFront, caseShape, tudorCase, tudorCaseback } from './case';
+import { tudorCrystal } from './crystal';
+import tudor79220b from './exterior';
 import { T } from './params';
 
-const m = movementFrame(calibers['eta-2824-2']!);
+const caliber = calibers['eta-2824-2']!;
+const m = movementFrame(caliber);
+const zRange = (ls: { geometry: THREE.BufferGeometry }[], dz = 0) => {
+  const b = new THREE.Box3();
+  for (const l of ls) { l.geometry.computeBoundingBox(); b.union(l.geometry.boundingBox!); }
+  return [b.min.z + dz, b.max.z + dz] as const;
+};
 
 describe('Tudor 79220B case', () => {
   const s = caseShape(m);
-  const timed = () => {
-    const t0 = performance.now();
-    const ls = tudorCase(m, 0.3);
-    return { ls, ms: performance.now() - t0 };
-  };
-  const first = timed();
-  const layers = first.ls;
-  // Best of three: the suite runs files in parallel, and a single build's wall time mostly measures that load.
-  const buildMs = Math.min(first.ms, timed().ms, timed().ms);
-  const g = layers[0]!.geometry;
-  g.computeBoundingBox();
-  const b = g.boundingBox!;
   const mid = (caseFront(m) + s.back) / 2;
 
-  it('is 41 mm across and spans the lug-to-lug length', () => {
-    expect(b.max.x - b.min.x).toBeCloseTo(2 * T.caseRadius, 0);
-    expect(b.max.y - b.min.y).toBeCloseTo(T.lugToLug, 0);
-  });
   it('leaves exactly the lug width free between the lugs', () => {
     const y = T.lugToLug / 2 - 4;
     expect(s.sdf(T.lugGap / 2 - 0.25, y, mid)).toBeGreaterThan(0);
@@ -95,17 +92,98 @@ describe('Tudor 79220B case', () => {
     expect(s.sdf(T.lugGap / 2 + 0.3, s.hole.y, s.hole.z)).toBeGreaterThan(0);
     expect(s.sdf(T.lugGap / 2 + T.lugWidth - 0.3, s.hole.y, s.hole.z)).toBeLessThan(0);
   });
+});
+
+describe('Tudor 79220B case mesh', () => {
+  let layers: ExteriorLayer[];
+  let g: THREE.BufferGeometry;
+  beforeAll(() => {
+    layers = tudorCase(m, 0.3);
+    g = layers[0]!.geometry;
+  });
+
+  it('is 41 mm across and spans the lug-to-lug length', () => {
+    g.computeBoundingBox();
+    const b = g.boundingBox!;
+    expect(b.max.x - b.min.x).toBeCloseTo(2 * T.caseRadius, 0);
+    expect(b.max.y - b.min.y).toBeCloseTo(T.lugToLug, 0);
+  });
   it('is one closed, outward-facing surface', () => {
     expect(layers).toHaveLength(1);
     const { open, volume } = closedAndOutward(g);
     expect(open).toBe(0);
     expect(volume).toBeGreaterThan(0);
   });
-  it('builds within budget', () => {
-    // Best of three measures 0.6–0.9 s on a busy machine, alone or with the whole suite, so a 2× slowdown fails.
-    expect(buildMs).toBeLessThan(1200);
-  });
   it('carries a polish attribute per vertex', () => {
     expect(g.getAttribute('polish').count).toBe(g.getAttribute('position').count);
+  });
+});
+
+describe('Tudor 79220B case build cost', () => {
+  // Counted work, not wall time: in the parallel suite a build's wall time mostly measures the machine's load.
+  // At the 'high' step (0.2) this measured 5,601,232 calls, 4,130,924 full evaluations and 109,424 vertices; the
+  // ceilings sit ~25% above, so losing an early exit or refining the mesh fails while small shape tweaks pass.
+  const work = { calls: 0, full: 0, vertices: 0 };
+  beforeAll(() => {
+    const counter = { full: 0 };
+    const cs = caseShape(m, counter);
+    const counted = (x: number, y: number, z: number) => { work.calls++; return cs.sdf(x, y, z); };
+    const b = cs.bounds;
+    work.vertices = surfaceNets(counted, [-b.x, -b.y, b.z[0]], [b.x, b.y, b.z[1]], 0.2).getAttribute('position').count;
+    work.full = counter.full;
+  });
+
+  it('keeps the high-quality build within its work budget', () => {
+    expect(work.full).toBeLessThan(5_200_000);
+    expect(work.calls).toBeLessThan(7_000_000);
+    expect(work.vertices).toBeLessThan(137_000);
+  });
+  it.skipIf(!process.env.PERF)('builds the whole watch at high quality within 1.5 s (PERF=1)', () => {
+    let best = Infinity;
+    for (let i = 0; i < 3; i++) {
+      const t0 = performance.now();
+      tudor79220b({ movement: m, quality: 'high' });
+      best = Math.min(best, performance.now() - t0);
+    }
+    expect(best).toBeLessThan(1500);
+  });
+});
+
+describe('Tudor 79220B thickness and caseback', () => {
+  const back = tudorCaseback(m);
+  const rotor = caliber.parts.find((p) => p.id === 'rotor')!;
+  const [rotorFront, rotorBack] = zRange(buildShape(rotor.shape, rotor.material as never), rotor.pos.z);
+  const rotorRadius = rotor.shape.kind === 'rotor' ? rotor.shape.radius : NaN;
+  // Coplanar or touching faces z-fight, so the rotor keeps a real gap to the back throughout the opening.
+  const margin = 0.05;
+
+  it('keeps the rotor inside the case and caseback, at most 1.6 mm over the published thickness', () => {
+    const front = zRange(tudorCrystal(m))[0];
+    const outer = zRange(back)[1];
+    expect(outer - front).toBeLessThanOrEqual(T.totalThickness + 1.6);
+    expect(rotorBack).toBeLessThan(outer);
+  });
+  it('hollows the caseback so the rotor clears it, closed or lifting off', () => {
+    const [inner, outer] = zRange(back);
+    // The pocket: the solid plate's inner face, and the rim's inner radius.
+    const plate = back.find((l) => l.name === 'caseback-solid')!;
+    const floor = zRange([plate])[0];
+    const rim = back.find((l) => l !== plate)!;
+    const pr = rim.geometry.getAttribute('position');
+    let pocket = Infinity;
+    for (let i = 0; i < pr.count; i++) pocket = Math.min(pocket, Math.hypot(pr.getX(i), pr.getY(i)));
+    expect(floor - rotorBack).toBeGreaterThanOrEqual(margin);
+    expect(pocket - rotorRadius).toBeGreaterThanOrEqual(margin);
+    expect(outer - inner).toBeCloseTo(T.casebackThickness, 5);
+    expect(closedAndOutward(rim.geometry).volume).toBeGreaterThan(0);
+    expect(closedAndOutward(plate.geometry).volume).toBeGreaterThan(0);
+    for (let t = 0; t <= openingDuration(); t += 0.01) {
+      const p = openingPose(t);
+      const lo = inner + p.casebackLift;
+      // Wherever the rotor overlaps the back in depth, it must lie within the pocket, a margin in front of the plate.
+      if (rotorBack + p.rotorLift <= lo || rotorFront + p.rotorLift >= outer + p.casebackLift) continue;
+      expect(floor + p.casebackLift - (rotorBack + p.rotorLift)).toBeGreaterThanOrEqual(margin);
+      expect(pocket - (p.rotorSlide + rotorRadius)).toBeGreaterThanOrEqual(margin);
+    }
   });
 });
