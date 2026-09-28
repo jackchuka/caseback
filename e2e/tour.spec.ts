@@ -353,6 +353,10 @@ test('display caseback lets you see the movement, a solid one does not', async (
   const firstHits = async (url: string) => {
     await page.goto(url);
     await ready(page);
+    await page.waitForTimeout(1000);
+    // Watch pages open on the dial; the caseback faces the camera once the watch has turned over (1.2 s),
+    // before it starts to unscrew.
+    await page.locator('.intro button').click();
     await page.waitForTimeout(1500);
     const [x, y] = await page.evaluate(() => window.__caseback!.project('balance'));
     return page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
@@ -403,4 +407,21 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
     return Math.max(...errs);
   });
   expect(worst).toBeLessThan(0.02);
+});
+
+test('watch pages open on the dial, and dial chapters remove it', async ({ page }) => {
+  await page.goto('/watches/sinn/556?lang=ja');
+  await ready(page);
+  await page.waitForTimeout(1500);
+  // Off-centre: at the centre the hour wheel's pipe passes through the dial, as in a real watch.
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
+  const front = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
+  expect(front.slice(0, 2)).toEqual(['crystal', 'dial']);
+  await page.getByRole('button', { name: '裏蓋を開ける' }).click();
+  await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
+  await page.getByRole('button', { name: '針を動かす' }).click();
+  await page.waitForTimeout(2500);
+  const [hx, hy] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
+  const dialSide = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [hx, hy]);
+  expect(dialSide).not.toContain('dial');
 });

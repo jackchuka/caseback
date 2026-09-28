@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { OPENING_DURATION, openingPose } from './opening';
+import { OPENING_DURATION, openingDuration, openingPose } from './opening';
 
 describe('openingPose', () => {
   it('starts closed', () => {
@@ -15,5 +15,10 @@ describe('openingPose', () => {
     expect(p.done).toBe(true);
     expect(p.casebackOpacity).toBe(0);
     expect(p.rotorSlide).toBeGreaterThan(20);
+  });
+  it('openingPose waits for the flip', () => {
+    expect(openingPose(1.0, 1.2).casebackAngle).toBe(0);
+    expect(openingPose(1.2 + 1.0, 1.2).casebackAngle).toBeLessThan(-0.5);
+    expect(openingPose(openingDuration(1.2), 1.2).done).toBe(true);
   });
 });

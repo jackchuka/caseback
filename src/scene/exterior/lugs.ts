@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import type { WatchExterior } from '../../model/watch';
 import type { Layer } from '../../geometry/parts';
 import type { CaseRadii } from '../caseGeometry';
+import { flipWinding } from './bend';
 
 const LUG_T = 2.4;
+
 
 export function lugTips(e: WatchExterior, _r: CaseRadii) {
   return { y: e.case.lugToLugMm / 2, innerGap: e.case.lugWidthMm };
@@ -39,6 +41,8 @@ export function lugs(e: WatchExterior, r: CaseRadii): Layer[] {
         pos.setXYZ(i, sx * (e.case.lugWidthMm / 2 + w), side * u, v);
       }
       pos.needsUpdate = true;
+      // Mirroring across X (sx) or Y (side) alone turns the mesh inside out; swap triangle winding back.
+      if (sx * side < 0) flipWinding(g);
       g.computeVertexNormals();
       layers.push({ geometry: g, material: 'case' });
     }

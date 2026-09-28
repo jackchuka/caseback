@@ -41,12 +41,12 @@ export function App({ caliber, i18n, webgl, watch }: { caliber: Caliber; i18n: i
         <MaterialsProvider>
           <Studio />
           <group ref={(g) => { flipGroup.current = g; }}>
-          <Movement caliber={caliber}>
+          <Movement caliber={caliber} handStyle={watch ? { style: watch.exterior.hands.style, color: watch.exterior.hands.color } : undefined}>
             <FlowPaths caliber={caliber} />
             <Exterior caliber={caliber} watch={watch} />
           </Movement>
           </group>
-          <CameraRig caliber={caliber} />
+          <CameraRig caliber={caliber} watchFront={!!watch} />
         </MaterialsProvider>
         <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={90} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />
         {quality === 'high' && <Effects />}

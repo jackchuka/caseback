@@ -8,8 +8,18 @@ import type { Watch } from '../model/watch';
 import { appStore } from '../state/app';
 import { useMaterials } from './materials';
 import { crownEuler, crownState } from './crown';
-import { bezelProfile, caseRadii, casingRing, stemExtension } from './caseGeometry';
+import { caseRadii, casingRing, stemExtension } from './caseGeometry';
 import { openingPose } from './opening';
+import { buildShape, type Layer, type LayerMaterial, type MovementMaterial } from '../geometry/parts';
+import { bezel as bezelLayers } from './exterior/bezel';
+import { crown as crownLayers } from './exterior/crown';
+import { crystal as crystalLayers } from './exterior/crystal';
+import { dialLayers } from './exterior/dial';
+import { lugs as lugLayers } from './exterior/lugs';
+import { paintDial, paintInsert } from './exterior/paint';
+import { strap as strapLayers } from './exterior/strap';
+import { exteriorVisibility } from './exterior/visibility';
+import { registry } from './registry';
 import { engraving } from './textures';
 
 const CASE_COLORS = { steel: [0xc8cbd0, 0.3], titanium: [0xa9acb0, 0.45], gold: [0xe6c27a, 0.25] } as const;
@@ -25,20 +35,43 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
     return new THREE.MeshPhysicalMaterial({ color, metalness: 1, roughness, clearcoat: 0.15, clearcoatRoughness: 0.3 });
   }, [ext]);
   const glassMat = useMemo(() => new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.6, ior: 1.77, transparent: true }), []);
-  const bezel = useMemo(() => {
-    if (ext?.bezel.kind !== 'dive') return null;
-    const o = outer;
-    const prof = bezelProfile(o, bottom).map(([x, y]) => new THREE.Vector2(x, y));
-    const ring = new THREE.LatheGeometry(prof, 160).rotateX(Math.PI / 2);
-    const mat = new THREE.MeshPhysicalMaterial({ color: ext.bezel.color ?? '#222222', metalness: 0.2, roughness: 0.3, clearcoat: 1 });
-    const tickMat = new THREE.MeshStandardMaterial({ color: 0xf4f1e8, roughness: 0.5 });
-    const ticks = Array.from({ length: 60 }, (_, i) => {
-      const a = (i / 60) * Math.PI * 2;
-      const len = i % 5 === 0 ? 0.9 : 0.45;
-      return new THREE.BoxGeometry(0.14, len, 0.06).rotateZ(-a).translate(Math.sin(a) * (o - 1.2), -Math.cos(a) * (o - 1.2), bottom - 1.02);
-    });
-    return { ring, mat, tickMat, ticks };
-  }, [ext, outer, bottom]);
+  // Per-watch materials built from the exterior data; movement materials come from the shared set.
+  const watchParts = useMemo(() => {
+    if (!ext) return null;
+    const r = { inner, outer, height, bottom };
+    const finishRoughness = { polished: 0.22, brushed: 0.42, mixed: 0.34 }[ext.case.finish];
+    const mats: Record<Exclude<LayerMaterial, MovementMaterial>, THREE.MeshPhysicalMaterial> & { lume: THREE.MeshPhysicalMaterial } = {
+      // Stainless cases read as black in the dark studio at the movement's reflection strength; product photos light them harder.
+      case: new THREE.MeshPhysicalMaterial({ color: CASE_COLORS[ext.case.material][0], metalness: 1, roughness: finishRoughness, clearcoat: 0.15, clearcoatRoughness: 0.3, envMapIntensity: 2.2 }),
+      crystal: new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.8, ior: 1.77, transparent: true }),
+      // Opaque on purpose: three.js renders only opaque objects into the transmission buffer, so a transparent dial
+      // would vanish behind the (transmissive) crystal. It is removed by lifting and hiding instead of fading.
+      dial: new THREE.MeshPhysicalMaterial({ map: paintDial(ext), roughness: ext.dial.finish === 'matte' ? 0.8 : 0.35, clearcoat: ext.dial.finish === 'gloss' ? 1 : 0 }),
+      insert: new THREE.MeshPhysicalMaterial({ map: paintInsert(ext), roughness: 0.5, metalness: 0.1 }),
+      strap:
+        ext.strap.kind === 'bracelet'
+          ? new THREE.MeshPhysicalMaterial({ color: ext.strap.color, metalness: 1, roughness: 0.3, envMapIntensity: 2.2 })
+          : new THREE.MeshPhysicalMaterial({ color: ext.strap.color, metalness: 0, roughness: 0.75, sheen: 0.4 }),
+      tube: new THREE.MeshPhysicalMaterial({ color: ext.crown.tubeColor ?? '#888888', metalness: 0.6, roughness: 0.3 }),
+      // Dial lume fades with the dial, so it must not share the hands' material.
+      lume: new THREE.MeshPhysicalMaterial({ color: ext.dial.lume ?? '#f2eee2', roughness: 0.5, metalness: 0 }),
+    };
+    const pick = (l: Layer) => (l.material in mats ? mats[l.material as keyof typeof mats] : materials[l.material as MovementMaterial]);
+    const seconds = buildShape({ kind: 'hand', length: 10.5, width: 0.12, thickness: 0.06, style: 'baton' }, 'blued');
+    const secondsMat = materials[{ white: 'lume', silver: 'steel', blued: 'blued' }[ext.hands.color] as MovementMaterial];
+    return {
+      mats,
+      pick,
+      lugs: lugLayers(ext, r),
+      bezel: bezelLayers(ext, r),
+      crown: crownLayers(ext, r),
+      crystal: crystalLayers(ext, r),
+      dial: dialLayers(ext, r),
+      strap: strapLayers(ext, r),
+      seconds: ext.hands.seconds ? seconds : [],
+      secondsMat,
+    };
+  }, [ext, inner, outer, height, bottom, materials]);
   const backMat = useMemo(() => {
     const tex = engraving({ ring: `CASEBACK · AUTOMATIC · STAINLESS STEEL · ${caliber.specs.jewels} JEWELS · `, center: `CAL. ${caliber.name.replace(/^ETA /, '')}` });
     return new THREE.MeshPhysicalMaterial({ color: 0xd0d3d7, metalness: 1, roughness: 0.3, bumpMap: tex, bumpScale: 1.2, roughnessMap: tex, transparent: true });
@@ -69,13 +102,19 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
   const back = useRef<THREE.Group>(null);
   const rotor = useRef<THREE.Group>(null);
   const openT = useRef(0);
-  const crown = useRef<THREE.Mesh>(null);
+  const crown = useRef<THREE.Object3D>(null);
+  const dialGroup = useRef<THREE.Group>(null);
+  const crystalGroup = useRef<THREE.Group>(null);
+  const strapGroup = useRef<THREE.Group>(null);
+  const secondsGroup = useRef<THREE.Group>(null);
+  const dialFade = useRef(1);
+  const flipFirst = ext ? 1.2 : 0;
 
   useFrame((state, dt) => {
     const s = appStore().getState();
     if (s.mode === 'opening') openT.current += Math.min(dt, 0.05);
     const closed = s.mode === 'intro';
-    const pose = openingPose(closed ? 0 : s.mode === 'opening' ? openT.current : 99);
+    const pose = openingPose(closed ? 0 : s.mode === 'opening' ? openT.current : 99, flipFirst);
     if (back.current) {
       back.current.visible = pose.casebackOpacity > 0.01;
       back.current.rotation.z = pose.casebackAngle;
@@ -96,6 +135,22 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
       stemTube.current.position.x = s.crownPos * 0.7;
       stemTube.current.rotation.x = crownState.rot;
     }
+    if (watchParts) {
+      const step = caliber.tour[s.stepIndex];
+      const vis = exteriorVisibility(s.mode, s.mode === 'free' ? s.freeSide : (step?.side ?? null), s.explode);
+      dialFade.current += ((vis.dial ? 1 : 0) - dialFade.current) * 0.12;
+      const f = dialFade.current;
+      for (const g of [dialGroup.current, crystalGroup.current]) {
+        if (!g) continue;
+        g.visible = f > 0.02;
+        // Lift the dial and crystal off toward the viewer as they fade, like taking them off the movement.
+        g.position.z = -3 * (1 - f);
+      }
+      watchParts.mats.crystal.opacity = f;
+      if (strapGroup.current) strapGroup.current.visible = vis.strap;
+      const fourth = registry.get('fourth-wheel');
+      if (secondsGroup.current && fourth) secondsGroup.current.rotation.z = fourth.group.rotation.z;
+    }
     if (s.mode === 'opening' && pose.done) {
       openT.current = 0;
       s.finishOpening();
@@ -105,14 +160,24 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
   return (
     <group>
       <mesh geometry={ring} material={caseMat} castShadow receiveShadow />
-      {[-1, 1].flatMap((sx) =>
+      {watchParts
+        ? watchParts.lugs.map((l, i) => <mesh key={`lug${i}`} geometry={l.geometry} material={watchParts.pick(l)} castShadow receiveShadow />)
+        : [-1, 1].flatMap((sx) =>
         [-1, 1].map((sy) => (
           <RoundedBox key={`${sx}${sy}`} args={[2.8, 7.5, 3.2]} radius={1.1} smoothness={6} position={[sx * lug.x, sy * lug.y, 0.5]} rotation-z={sx * sy * -0.12} material={caseMat} castShadow />
         )),
       )}
-      <mesh ref={crown} position={[crownX, 0, -1.5]} rotation={[0, 0, Math.PI / 2, 'ZYX']} material={caseMat}>
-        <cylinderGeometry args={[crownSize.radius, crownSize.radius, crownSize.length, 48]} />
-      </mesh>
+      {watchParts ? (
+        <group ref={crown} position={[crownX, 0, -1.5]} rotation={[0, 0, Math.PI / 2, 'ZYX']}>
+          {watchParts.crown.map((l, i) => (
+            <mesh key={i} geometry={l.geometry} material={watchParts.pick(l)} castShadow />
+          ))}
+        </group>
+      ) : (
+        <mesh ref={crown} position={[crownX, 0, -1.5]} rotation={[0, 0, Math.PI / 2, 'ZYX']} material={caseMat}>
+          <cylinderGeometry args={[crownSize.radius, crownSize.radius, crownSize.length, 48]} />
+        </mesh>
+      )}
       {casing && (
         <mesh rotation-x={Math.PI / 2} material={casingMat} receiveShadow>
           <cylinderGeometry args={[casing.rOut, casing.rOut, 4.4, 160, 1, true]} />
@@ -130,13 +195,32 @@ export function Exterior({ caliber, watch }: { caliber: Caliber; watch?: Watch }
           </mesh>
         </group>
       )}
-      {bezel && (
-        <group>
-          <mesh geometry={bezel.ring} material={bezel.mat} />
-          {bezel.ticks.map((g, i) => (
-            <mesh key={i} geometry={g} material={bezel.tickMat} />
+      {watchParts && (
+        <>
+          {watchParts.bezel.map((l, i) => (
+            <mesh key={`bz${i}`} geometry={l.geometry} material={watchParts.pick(l)} />
           ))}
-        </group>
+          <group ref={dialGroup} name="dial">
+            {watchParts.dial.map((l, i) => (
+              <mesh key={i} name="dial" geometry={l.geometry} material={watchParts.pick(l)} />
+            ))}
+          </group>
+          <group ref={crystalGroup} name="crystal">
+            {watchParts.crystal.map((l, i) => (
+              <mesh key={i} name="crystal" geometry={l.geometry} material={watchParts.mats.crystal} />
+            ))}
+          </group>
+          <group ref={strapGroup} name="strap">
+            {watchParts.strap.map((l, i) => (
+              <mesh key={i} geometry={l.geometry} material={watchParts.pick(l)} castShadow receiveShadow />
+            ))}
+          </group>
+          <group ref={secondsGroup} name="seconds-hand" position-z={-3.5}>
+            {watchParts.seconds.map((l, i) => (
+              <mesh key={i} geometry={l.geometry} material={watchParts.secondsMat} />
+            ))}
+          </group>
+        </>
       )}
       <group ref={back}>
         {ext?.caseback === 'display' ? (

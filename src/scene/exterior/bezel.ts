@@ -12,10 +12,10 @@ export function bezel(e: WatchExterior, r: CaseRadii): Layer[] {
   // Coin edge: 120 shallow grooves around the rim.
   for (let i = 0; i < 120; i++) {
     const a = (i / 120) * Math.PI * 2;
-    layers.push({ geometry: new THREE.BoxGeometry(0.12, 0.25, 0.8).translate(0, -(o - 0.15), r.bottom - 0.5).rotateZ(a), material: 'case' });
+    layers.push({ geometry: new THREE.BoxGeometry(0.1, 0.2, 0.5).translate(0, -(o - 0.12), r.bottom - 0.5).rotateZ(a), material: 'case' });
   }
   const insertIn = o - e.bezel.widthMm;
-  const insert = new THREE.RingGeometry(insertIn, o - 0.45, 180).translate(0, 0, r.bottom - 1.03).rotateX(Math.PI);
+  const insert = new THREE.RingGeometry(insertIn, o - 0.45, 180).rotateX(Math.PI).translate(0, 0, r.bottom - 1.03);
   layers.push({ geometry: insert, material: 'insert' });
   return layers;
 }

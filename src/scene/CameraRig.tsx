@@ -17,7 +17,7 @@ declare global {
   }
 }
 
-export function CameraRig({ caliber }: { caliber: Caliber }) {
+export function CameraRig({ caliber, watchFront = false }: { caliber: Caliber; watchFront?: boolean }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
   const size = useThree((s) => s.size);
@@ -32,8 +32,8 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
   // Only a new shot (mode, step, side) starts a flight; resizes, scene or hook changes must never re-fly the camera.
   useEffect(() => {
     if (!controls) return;
-    tween.current = new Tween(camera.position.toArray() as V3, controls.target.toArray() as V3, shotFor(caliber, mode, stepIndex, freeSide), flipGroup.current?.rotation.x ?? 0);
-  }, [caliber, camera, controls, mode, stepIndex, freeSide]);
+    tween.current = new Tween(camera.position.toArray() as V3, controls.target.toArray() as V3, shotFor(caliber, mode, stepIndex, freeSide, watchFront), flipGroup.current?.rotation.x ?? 0);
+  }, [caliber, camera, controls, mode, stepIndex, freeSide, watchFront]);
 
   useEffect(() => {
     if (!controls) return;
@@ -60,7 +60,9 @@ export function CameraRig({ caliber }: { caliber: Caliber }) {
         const ray = new THREE.Raycaster();
         ray.setFromCamera(new THREE.Vector2((x / size.width) * 2 - 1, -(y / size.height) * 2 + 1), camera);
         const named = (o: THREE.Object3D | null): string => (!o ? '' : o.name || named(o.parent));
-        return ray.intersectObjects(scene.children, true).filter((h) => h.object.visible).slice(0, 5).map((h) => named(h.object));
+        // three.js raycasts ignore visibility, so report only objects whose whole ancestor chain is rendered.
+        const shown = (o: THREE.Object3D | null): boolean => !o || (o.visible && shown(o.parent));
+        return ray.intersectObjects(scene.children, true).filter((h) => shown(h.object)).slice(0, 5).map((h) => named(h.object));
       },
       angle: (id) => {
         const e = registry.get(id);

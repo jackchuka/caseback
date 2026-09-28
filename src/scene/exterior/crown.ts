@@ -19,6 +19,6 @@ export function crown(e: WatchExterior, r: CaseRadii): Layer[] {
   }
   body.computeVertexNormals();
   const layers: Layer[] = [{ geometry: body, material: 'case' }];
-  if (e.crown.tube) layers.push({ geometry: new THREE.CylinderGeometry(rad * 0.55, rad * 0.55, 0.9, 32).translate(0, -e.crown.lengthMm / 2 - 0.35, 0), material: 'tube' });
+  if (e.crown.tube) layers.push({ geometry: new THREE.CylinderGeometry(rad * 0.55, rad * 0.55, 0.9, 32).translate(0, e.crown.lengthMm / 2 + 0.35, 0), material: 'tube' });
   return layers;
 }
