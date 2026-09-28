@@ -1,0 +1,11 @@
+.compare-index { padding: 40px; }
+.compare-index h1 { font-size: 20px; font-weight: 500; margin-bottom: 24px; }
+.compare-index ul { list-style: none; padding: 0; display: grid; gap: 14px; }
+.compare-index li { display: flex; gap: 18px; align-items: baseline; }
+.compare-index a { color: var(--fg); }
+.compare-index .views { display: flex; gap: 12px; font-size: 13px; }
+.compare-index .views a { color: var(--muted); }
+.compare-bar { display: flex; gap: 10px; align-items: center; padding: 10px 16px; font-size: 13px; }
+.compare-bar button { padding: 4px 10px; border-radius: 10px; background: var(--chip); }
+.compare-bar button:disabled { color: var(--acc); cursor: default; }
+.compare-missing { color: var(--acc); }

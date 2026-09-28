@@ -45,6 +45,12 @@ export function Home() {
           ))}
         </ul>
       </section>
+      {import.meta.env.DEV && (
+        <section>
+          <h2>Dev</h2>
+          <a className="cta" href={`${import.meta.env.BASE_URL}dev/compare`}>Compare with reference photos →</a>
+        </section>
+      )}
     </main>
   );
 }

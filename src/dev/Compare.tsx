@@ -36,9 +36,22 @@ function Rig({ cam, width, height }: { cam: ShotCamera; width: number; height: n
 export function CompareIndex({ ids }: { ids: string[] }) {
   useEffect(() => { window.__compare = { watches: ids }; }, [ids]);
   return (
-    <ul className="compare-index">
-      {ids.map((id) => <li key={id}><a href={`${import.meta.env.BASE_URL}dev/compare/${id}`}>{id}</a></li>)}
-    </ul>
+    <main className="compare-index">
+      <h1>Compare with reference photos</h1>
+      <ul>
+        {ids.map((id) => {
+          const href = `${import.meta.env.BASE_URL}dev/compare/${id}`;
+          return (
+            <li key={id}>
+              <a href={href}>{id}</a>
+              <span className="views">
+                {(['front', 'side', 'three-quarter'] as const).map((v) => <a key={v} href={`${href}?view=${v}&mode=model`}>{v}</a>)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </main>
   );
 }
 

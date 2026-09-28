@@ -5,6 +5,8 @@ import { calibers } from '../../data/calibers';
 import { watches } from '../../data/watches';
 import { createI18n } from '../i18n';
 import { initAppStore } from '../state/app';
+import '../ui/styles.css';
+import './compare.css';
 import { Compare, CompareIndex, type Mode } from './Compare';
 import type { Shot, View } from './shots';
 
