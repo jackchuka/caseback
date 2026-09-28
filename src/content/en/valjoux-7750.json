@@ -80,7 +80,7 @@
     },
     "date-day-ring": {
       "kicker": "3 · Calendar",
-      "body": "The day disc turns inside the sub-dials' arbors and shows through the window beside the date. A second finger wheel on the hour wheel steps it one day each night. Setting the day or date quickly between 20:00 and 02:00 is to be avoided, as ETA's instructions say."
+      "body": "The day disc turns on its own arbor beside the centre, its wide hole letting the hand pipes through, and is printed twice round with the days, so its star has 14 teeth. A second finger wheel on the hour wheel steps it one day each night. Setting the day or date quickly between 20:00 and 02:00 is to be avoided, as ETA's instructions say."
     },
     "chrono-overview": {
       "kicker": "Chronograph",
@@ -278,7 +278,7 @@
     "day-ring": {
       "name": "Day disc",
       "en": "Day indicator",
-      "body": "The disc printed with the days of the week."
+      "body": "A disc on its own star beside the centre, printed twice round with the days of the week."
     },
     "rotor": {
       "name": "Oscillating weight",
