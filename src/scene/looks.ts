@@ -17,7 +17,7 @@ export const LOOKS: Record<Theme, Look> = {
     rimColor: '#bfd0ff', key: 1.1, keyColor: '#ffffff', rim: 0.4, shadowOpacity: 0.5,
   },
   light: {
-    background: '#ecebe7', exposure: 0.8, envIntensity: 0.65,
+    background: '#ecebe7', exposure: 0.8, envIntensity: 0.85,
     rimColor: '#ffffff', key: 1.0, keyColor: '#ffffff', rim: 0.3, shadowOpacity: 0.22,
   },
 };
