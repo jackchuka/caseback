@@ -48,7 +48,10 @@
     "step": "送り",
     "direction": "回転",
     "system": "方式",
-    "position": "段"
+    "position": "段",
+    "chrono": "クロノグラフ",
+    "counters": "積算計",
+    "hearts": "ハートカム"
   },
   "fallback": {
     "title": "3D表示に対応していません",
@@ -61,6 +64,15 @@
     "pos1": "1 · 日付",
     "pos2": "2 · 時刻",
     "turn": "押している間 リューズを回す"
+  },
+  "chrono": {
+    "startStop": "スタート / ストップ",
+    "reset": "リセット",
+    "running": "計測中",
+    "stopped": "停止中",
+    "zero": "ゼロ",
+    "pusherStart": "2時のプッシャー",
+    "pusherReset": "4時のプッシャー"
   },
   "home": {
     "title": "機械式ムーブメントを覗く",

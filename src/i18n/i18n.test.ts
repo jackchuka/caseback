@@ -78,3 +78,16 @@ describe('Magic Lever content', () => {
     expect(i18n.t('seiko-nh35a:steps.auto-pawl-lever.body')).toMatch(/whichever way/);
   });
 });
+
+describe('chronograph content', () => {
+  it('explains the oscillating pinion, the counters and the hearts in both languages', async () => {
+    const en = await createI18n('en');
+    expect(en.t('valjoux-7750:steps.chrono-pinion.body')).toMatch(/fourth wheel/);
+    expect(en.t('valjoux-7750:steps.chrono-hour-counter.body')).toMatch(/barrel/);
+    expect(en.t('valjoux-7750:steps.chrono-hammer.body')).toMatch(/heart/);
+    for (const lang of ['ja', 'en'] as const) {
+      const i18n = await createI18n(lang);
+      for (const key of ['startStop', 'reset', 'running', 'stopped', 'zero']) expect(i18n.getResource(lang, 'ui', `chrono.${key}`), `${lang} ${key}`).toBeTypeOf('string');
+    }
+  });
+});

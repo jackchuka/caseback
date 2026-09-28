@@ -1,0 +1,324 @@
+{
+  "chapters": {
+    "time": {
+      "title": "Keeping time"
+    },
+    "hands": {
+      "title": "Moving the hands"
+    },
+    "date": {
+      "title": "Day and date"
+    },
+    "chrono": {
+      "title": "Chronograph"
+    },
+    "auto": {
+      "title": "Self-winding"
+    },
+    "crown": {
+      "title": "Crown"
+    }
+  },
+  "steps": {
+    "time-overview": {
+      "kicker": "Overview",
+      "title": "From power to time",
+      "body": "The most widely used mechanical chronograph: three layers stacked on one plate. Underneath the chronograph works, an ordinary going train turns the mainspring's force into {{specs.beatsPerSecond}} beats a second. Follow the light to trace the flow."
+    },
+    "time-barrel": {
+      "kicker": "1 · Power",
+      "body": "The mainspring coiled inside wants to unwind; fully wound it runs the watch for about {{specs.powerReserveH}} hours. A pinion on the barrel also drives the chronograph's hour counter, which is why the barrel sits near 6 o'clock."
+    },
+    "time-great": {
+      "kicker": "2 · Going train",
+      "body": "It turns once an hour, like any centre wheel, but not on the centre: the chronograph's runner needs that spot. Its arbor carries the minute hand's drive through to the dial side, where the motion works bring it back to the centre."
+    },
+    "time-third": {
+      "kicker": "3 · Going train",
+      "body": "Its {{parts.third-wheel.teeth}} teeth drive a pinion of {{parts.fourth-pinion.teeth}} leaves, trading force for speed on the way to the fourth wheel at 9 o'clock."
+    },
+    "time-fourth": {
+      "kicker": "4 · Going train",
+      "body": "It turns once a minute at 9 o'clock and carries the small running seconds hand there. It is also where the chronograph takes its drive: the oscillating pinion is always in mesh with it."
+    },
+    "time-escape": {
+      "kicker": "5 · Escapement",
+      "body": "The last wheel of the train, with {{parts.escape-wheel.teeth}} teeth. Left alone it would spin away; the pallet fork stops and releases it one tooth at a time."
+    },
+    "time-fork": {
+      "kicker": "6 · Escapement",
+      "body": "Two ruby pallet stones lock the escape wheel in turn, and at each release give the balance a small push. ETA gives a lift angle of 49°."
+    },
+    "time-balance": {
+      "kicker": "7 · Regulator",
+      "body": "Paired with its hairspring, it beats {{specs.beatsPerSecond}} times a second ({{specs.hz}} full swings). The fast beat lets the chronograph read eighths of a second."
+    },
+    "hands-overview": {
+      "kicker": "Motion works",
+      "title": "Under the dial",
+      "body": "Turn the movement over. Because the great wheel stands off the centre, its driving pinion hands the hour's turn to a minute wheel, which turns the cannon pinion on the centre and, through its own pinion, the hour wheel."
+    },
+    "hands-cannon": {
+      "kicker": "1 · Motion works",
+      "body": "The driving pinion sits on the great wheel's arbor, held by friction so the hands can be set without forcing the train. The minute wheel carries its turn to the free cannon pinion on the centre, which carries the minute hand."
+    },
+    "hands-minute-wheel": {
+      "kicker": "2 · Motion works",
+      "body": "Its {{parts.minute-wheel.teeth}} teeth link the driving pinion and the cannon pinion, and its {{parts.minute-pinion.teeth}}-leaf pinion slows the motion on its way to the hour wheel."
+    },
+    "hands-hour": {
+      "kicker": "3 · Motion works",
+      "body": "It turns once in twelve hours and carries the hour hand. It also turns the two calendar drivers."
+    },
+    "date-driver": {
+      "kicker": "1 · Calendar",
+      "body": "Meshed with the hour wheel, it turns once a day. Its finger pushes one tooth of the date disc around midnight."
+    },
+    "date-ring": {
+      "kicker": "2 · Calendar",
+      "body": "A disc with 31 teeth on the inside, its dates printed where the window at 3 o'clock sits, outboard of the day."
+    },
+    "date-day-ring": {
+      "kicker": "3 · Calendar",
+      "body": "The day disc turns inside the sub-dials' arbors and shows through the window beside the date. A second finger wheel on the hour wheel steps it one day each night. Setting the day or date quickly between 20:00 and 02:00 is to be avoided, as ETA's instructions say."
+    },
+    "chrono-overview": {
+      "kicker": "Chronograph",
+      "title": "Start, stop, reset",
+      "body": "Press the pusher at 2 to start, again to stop, and the one at 4 to reset. A cam decides what each push does; an oscillating pinion couples the chronograph to the running watch; hearts bring it back to zero. The buttons below are the two pushers."
+    },
+    "chrono-cam": {
+      "kicker": "1 · Switching",
+      "body": "Instead of a column wheel, a stamped cam: each push on the start/stop pusher turns it one tooth, and its raised and lowered steps tell the levers to run or stop. Cheap to make and robust, it is the heart of the 7750's design."
+    },
+    "chrono-pinion": {
+      "kicker": "2 · Coupling",
+      "body": "A short arbor with a pinion at each end. The lower one is always turned by the fourth wheel; when the cam lets it, the arbor tilts and the upper one drops into the chronograph wheel's teeth. Stop, and it swings out again. Watch it move as you press."
+    },
+    "chrono-runner": {
+      "kicker": "3 · Seconds",
+      "body": "The chronograph wheel on the centre, carrying the chronograph seconds hand. Coupled through equal pinions, it turns exactly as fast as the fourth wheel: once a minute. A finger on it counts each turn."
+    },
+    "chrono-minute-counter": {
+      "kicker": "4 · 30-minute counter",
+      "body": "Once a turn, the runner's finger nudges the intermediate wheel, which steps the minute counting wheel one of its {{parts.minute-counting-wheel.teeth}} teeth; a jumper holds it there. Its hand at 12 o'clock counts 30 minutes. Shown at 20× speed."
+    },
+    "chrono-hour-counter": {
+      "kicker": "5 · 12-hour counter",
+      "body": "The hour counter at 6 is driven straight from the barrel through a friction clutch and turns smoothly, once in 12 hours. When the chronograph stops, a brake holds it and the clutch slips. Shown at 600× speed."
+    },
+    "chrono-hammer": {
+      "kicker": "6 · Reset",
+      "body": "Stop the chronograph, then press reset: the hammers drop onto the heart-shaped cams on the runner and both counters. Each heart is pressed until its low point faces the hammer, turning its hand back to zero the shorter way. Reset does nothing while the chronograph runs."
+    },
+    "auto-rotor": {
+      "kicker": "Automatic",
+      "body": "A half-moon weight on a ball bearing that swings as your wrist moves. The 7750 winds only as it turns one way; the other way it spins freely, with the whirr 7750 owners know."
+    },
+    "auto-reversing": {
+      "kicker": "1 · Automatic",
+      "body": "The rotor turns this wheel both ways, but its click takes hold of the pinion beneath only one way. The other way the wheel simply slips past."
+    },
+    "auto-reduction": {
+      "kicker": "2 · Automatic",
+      "body": "Its {{parts.reduction-wheel.teeth}} teeth and {{parts.reduction-pinion.teeth}}-leaf pinion slow the rotor's motion, trading speed for the force needed to wind the mainspring."
+    },
+    "auto-ratchet-drive": {
+      "kicker": "3 · Automatic",
+      "body": "A long arbor carries the motion from the automatic device down past the chronograph works to the ratchet wheel."
+    },
+    "auto-ratchet": {
+      "kicker": "4 · Power",
+      "body": "Turning with the barrel arbor, it winds the mainspring — about {{hoursPerTurn}} hours per turn. A click stops it running back."
+    },
+    "crown-stem": {
+      "kicker": "1 · Keyless works",
+      "body": "The stem behind the crown runs in a pocket inside the plate. Pick a position below and turn the crown."
+    },
+    "crown-sliding": {
+      "kicker": "2 · Keyless works",
+      "body": "The clutch wheel turns with the stem. At position 0 it meshes with the winding pinion to wind; at 1 it corrects the date; at 2 it slides over to set the hands."
+    },
+    "crown-hacking": {
+      "kicker": "3 · Hacking",
+      "body": "Pulled to position 2, the stop lever holds the balance (hacking seconds), and the chronograph stops with it. Set the hands, push the crown in, and it starts again."
+    }
+  },
+  "parts": {
+    "plate": {
+      "name": "Main plate",
+      "en": "Main plate",
+      "body": "The foundation every part sits on, 30 mm across (13¼ lignes)."
+    },
+    "barrel": {
+      "name": "Barrel",
+      "en": "Barrel",
+      "body": "The drum that holds the mainspring. Its toothed rim drives the going train; its pinion drives the hour counter."
+    },
+    "hour-counter": {
+      "name": "Hour counting wheel",
+      "en": "Hour counting wheel",
+      "body": "Driven by the barrel through a friction clutch; carries the 12-hour counter's hand at 6."
+    },
+    "ratchet": {
+      "name": "Ratchet wheel",
+      "en": "Ratchet wheel",
+      "body": "Turns with the barrel arbor to wind the mainspring."
+    },
+    "great": {
+      "name": "Great wheel",
+      "en": "Great wheel",
+      "body": "The centre wheel of the train, turning once an hour, set off the centre."
+    },
+    "third": {
+      "name": "Third wheel",
+      "en": "Third wheel",
+      "body": "The intermediate wheel between the great and fourth wheels."
+    },
+    "fourth": {
+      "name": "Fourth wheel",
+      "en": "Second wheel",
+      "body": "Turns once a minute at 9 o'clock, carries the running seconds and drives the chronograph."
+    },
+    "escape": {
+      "name": "Escape wheel",
+      "en": "Escape wheel",
+      "body": "The last wheel of the train, released one tooth at a time by the pallet fork."
+    },
+    "fork": {
+      "name": "Pallet fork",
+      "en": "Pallet fork",
+      "body": "The lever that locks and releases the escape wheel and impulses the balance."
+    },
+    "balance": {
+      "name": "Balance wheel",
+      "en": "Balance wheel",
+      "body": "The oscillator that, with its hairspring, swings at a constant 4 Hz."
+    },
+    "barrel-bridge": {
+      "name": "Barrel bridge",
+      "en": "Barrel bridge",
+      "body": "Holds the barrel from above."
+    },
+    "train-bridge": {
+      "name": "Train wheel bridge",
+      "en": "Train wheel bridge",
+      "body": "Holds the great, third, fourth and escape wheels."
+    },
+    "pallet-bridge": {
+      "name": "Pallet bridge",
+      "en": "Pallet bridge",
+      "body": "A small bridge that holds the pallet fork's arbor."
+    },
+    "balance-cock": {
+      "name": "Balance bridge",
+      "en": "Balance bridge",
+      "body": "Supports the balance; its shock absorber protects the balance staff."
+    },
+    "oscillating-pinion": {
+      "name": "Oscillating pinion",
+      "en": "Oscillating pinion",
+      "body": "Two pinions on one tilting arbor: the lower always meshed with the fourth wheel, the upper swung into the chronograph wheel to start it."
+    },
+    "runner": {
+      "name": "Chronograph wheel",
+      "en": "Chronograph wheel",
+      "body": "Turns once a minute while the chronograph runs and carries its seconds hand; its finger counts the minutes."
+    },
+    "minute-counter": {
+      "name": "Minute counting wheel",
+      "en": "Minute counting wheel",
+      "body": "Stepped a tooth a minute by the runner's finger through the intermediate wheel; carries the 30-minute counter's hand."
+    },
+    "cam": {
+      "name": "Chronograph cam",
+      "en": "Chronograph cam",
+      "body": "Stepped one tooth per start/stop push; it decides whether the chronograph runs."
+    },
+    "hammer": {
+      "name": "Hammers",
+      "en": "Hammers",
+      "body": "Drop onto the hearts at reset and turn the chronograph hands back to zero."
+    },
+    "chronograph-bridge": {
+      "name": "Chronograph bridge",
+      "en": "Chronograph bridge",
+      "body": "Holds the chronograph wheel, the oscillating pinion and the minute counting wheel."
+    },
+    "cannon": {
+      "name": "Cannon pinion",
+      "en": "Cannon pinion",
+      "body": "The driving pinion on the great wheel and the free cannon pinion on the centre, which carries the minute hand."
+    },
+    "minute-wheel": {
+      "name": "Minute wheel",
+      "en": "Minute wheel",
+      "body": "Links the driving pinion to the cannon pinion and slows the motion on its way to the hour wheel."
+    },
+    "hour": {
+      "name": "Hour wheel",
+      "en": "Hour wheel",
+      "body": "Turns once in twelve hours and carries the hour hand."
+    },
+    "date-driver": {
+      "name": "Date driving wheel",
+      "en": "Date driving wheel",
+      "body": "Turns once a day and advances the date disc with its finger."
+    },
+    "day-driver": {
+      "name": "Day driving wheel",
+      "en": "Day driving wheel",
+      "body": "Turns once a day and advances the day disc with its finger."
+    },
+    "date-ring": {
+      "name": "Date disc",
+      "en": "Date indicator",
+      "body": "The disc printed with the dates 1 to 31."
+    },
+    "day-ring": {
+      "name": "Day disc",
+      "en": "Day indicator",
+      "body": "The disc printed with the days of the week."
+    },
+    "rotor": {
+      "name": "Oscillating weight",
+      "en": "Oscillating weight",
+      "body": "The half-moon weight turned by your wrist. It winds turning one way only."
+    },
+    "reversing": {
+      "name": "Reversing wheel",
+      "en": "Reversing wheel",
+      "body": "Turned by the rotor's pinion; its click passes on only one direction."
+    },
+    "reduction": {
+      "name": "Reduction wheel",
+      "en": "Reduction wheel",
+      "body": "Slows the rotor's motion on the way to the ratchet wheel."
+    },
+    "ratchet-drive": {
+      "name": "Ratchet wheel driving wheel",
+      "en": "Ratchet wheel driving wheel",
+      "body": "A long arbor from the automatic device down to the ratchet wheel."
+    },
+    "automatic-bridge": {
+      "name": "Automatic device bridge",
+      "en": "Automatic device bridge",
+      "body": "Holds the reversing, reduction and ratchet-driving wheels above the chronograph."
+    },
+    "stem": {
+      "name": "Winding stem",
+      "en": "Winding stem",
+      "body": "Connected to the crown; its position selects winding, date or time setting."
+    },
+    "sliding-pinion": {
+      "name": "Clutch wheel",
+      "en": "Sliding pinion",
+      "body": "Slides along the stem to change what it meshes with."
+    },
+    "setting-wheel": {
+      "name": "Setting wheel",
+      "en": "Setting wheel",
+      "body": "Passes the stem's rotation to the minute wheel when setting the time."
+    }
+  }
+}

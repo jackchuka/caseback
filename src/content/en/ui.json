@@ -48,7 +48,10 @@
     "step": "Advance",
     "direction": "Turns",
     "system": "System",
-    "position": "Position"
+    "position": "Position",
+    "chrono": "Chronograph",
+    "counters": "Counters",
+    "hearts": "Hearts"
   },
   "fallback": {
     "title": "3D is not available",
@@ -61,6 +64,15 @@
     "pos1": "1 · Date",
     "pos2": "2 · Time",
     "turn": "Hold to turn the crown"
+  },
+  "chrono": {
+    "startStop": "Start / Stop",
+    "reset": "Reset",
+    "running": "Running",
+    "stopped": "Stopped",
+    "zero": "At zero",
+    "pusherStart": "2 o'clock pusher",
+    "pusherReset": "4 o'clock pusher"
   },
   "home": {
     "title": "Look inside mechanical movements",

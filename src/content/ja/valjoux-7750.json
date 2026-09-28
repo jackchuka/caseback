@@ -1,0 +1,324 @@
+{
+  "chapters": {
+    "time": {
+      "title": "時を刻む"
+    },
+    "hands": {
+      "title": "針を動かす"
+    },
+    "date": {
+      "title": "曜日と日付"
+    },
+    "chrono": {
+      "title": "クロノグラフ"
+    },
+    "auto": {
+      "title": "自動で巻く"
+    },
+    "crown": {
+      "title": "リューズ"
+    }
+  },
+  "steps": {
+    "time-overview": {
+      "kicker": "Overview",
+      "title": "動力が時を刻むまで",
+      "body": "世界でもっとも広く使われる機械式クロノグラフ。1枚の地板の上に3つの層が重なる。クロノグラフ機構の下では、ふつうの輪列がぜんまいの力を1秒{{specs.beatsPerSecond}}回のリズムに変えている。光の筋を追って、その流れを辿ろう。"
+    },
+    "time-barrel": {
+      "kicker": "1 · Power",
+      "body": "中に巻かれたぜんまいが、ほどけようとする力を生む。全巻きで約{{specs.powerReserveH}}時間動く。香箱のカナはクロノグラフの積算時計も回すので、香箱は6時側に置かれている。"
+    },
+    "time-great": {
+      "kicker": "2 · Going train",
+      "body": "ふつうの二番車と同じく1時間で1回転するが、中心にはない。中心はクロノグラフ車の場所だからだ。その軸は分針の駆動を文字盤側へ通し、日の裏輪列が中心へ戻す。"
+    },
+    "time-third": {
+      "kicker": "3 · Going train",
+      "body": "{{parts.third-wheel.teeth}}枚の歯で{{parts.fourth-pinion.teeth}}枚のカナを回し、力を速さに変えて9時位置の四番車へ渡す。"
+    },
+    "time-fourth": {
+      "kicker": "4 · Going train",
+      "body": "9時位置で1分に1回転し、そこで小さな秒針（スモールセコンド）を運ぶ。クロノグラフの動力の取り出し口でもあり、オシレーティングピニオンが常にここに噛み合っている。"
+    },
+    "time-escape": {
+      "kicker": "5 · Escapement",
+      "body": "輪列の最後の車で、歯は{{parts.escape-wheel.teeth}}枚。放っておけば一気に回ってしまう力を、アンクルが一歯ずつ止めては放す。"
+    },
+    "time-fork": {
+      "kicker": "6 · Escapement",
+      "body": "左右のルビー爪石がガンギ車を交互に止め、放すたびにテンプへ小さな衝撃を与える。ETAの資料では持ち上がり角は49°。"
+    },
+    "time-balance": {
+      "kicker": "7 · Regulator",
+      "body": "ヒゲゼンマイと組になって、1秒に{{specs.beatsPerSecond}}回振動する（{{specs.hz}}往復）。この速い振動のおかげで、クロノグラフは1/8秒まで読める。"
+    },
+    "hands-overview": {
+      "kicker": "Motion works",
+      "title": "文字盤の下へ",
+      "body": "ムーブメントを裏返そう。二番車が中心から外れているため、その軸のカナが1時間1回転を日の裏車へ渡し、日の裏車が中心の筒カナと、自分のカナを通して筒車を回す。"
+    },
+    "hands-cannon": {
+      "kicker": "1 · Motion works",
+      "body": "二番車の軸には摩擦で差し込まれた駆動カナがあり、時刻合わせのときはここが滑る。日の裏車がその回転を中心の筒カナへ運び、筒カナが分針を回す。"
+    },
+    "hands-minute-wheel": {
+      "kicker": "2 · Motion works",
+      "body": "{{parts.minute-wheel.teeth}}枚の歯で駆動カナと筒カナをつなぎ、裏側の{{parts.minute-pinion.teeth}}枚のカナで回転を落として筒車へ伝える。"
+    },
+    "hands-hour": {
+      "kicker": "3 · Motion works",
+      "body": "12時間で1回転して時針を運ぶ。曜日と日付を送る2つの車もこの筒車が回す。"
+    },
+    "date-driver": {
+      "kicker": "1 · Calendar",
+      "body": "筒車に噛み合って1日に1回転する。ついている爪が、0時前後に日車の歯を1枚押す。"
+    },
+    "date-ring": {
+      "kicker": "2 · Calendar",
+      "body": "内側に31枚の歯を持つ円盤。3時の窓の位置、曜日の外側に日付が印刷されている。"
+    },
+    "date-day-ring": {
+      "kicker": "3 · Calendar",
+      "body": "曜車はサブダイヤルの軸の内側で回り、日付の隣の窓に曜日を見せる。筒車にかかるもう1つの爪車が毎晩1日ぶん送る。20時〜2時の早送りは避けること（ETAの資料より）。"
+    },
+    "chrono-overview": {
+      "kicker": "Chronograph",
+      "title": "スタート、ストップ、リセット",
+      "body": "2時のプッシャーでスタート、もう一度押してストップ、4時のプッシャーでリセット。押すたびの動きはカムが決め、オシレーティングピニオンが動いている時計とクロノグラフをつなぎ、ハートカムが針をゼロに戻す。下のボタンが2つのプッシャー。"
+    },
+    "chrono-cam": {
+      "kicker": "1 · Switching",
+      "body": "コラムホイールの代わりに、プレスで打ち抜いたカムを使う。スタート/ストップを押すたびに1歯ずつ回り、その段差がレバーに動かすか止めるかを伝える。安く作れて丈夫な、7750の設計の要。"
+    },
+    "chrono-pinion": {
+      "kicker": "2 · Coupling",
+      "body": "両端にカナを持つ短い軸。下のカナは四番車に常に回されている。カムが許すと軸が傾き、上のカナがクロノグラフ車の歯に入る。止めると再び離れる。押しながら動きを見てみよう。"
+    },
+    "chrono-runner": {
+      "kicker": "3 · Seconds",
+      "body": "中心のクロノグラフ車で、クロノグラフ秒針を運ぶ。同じ枚数のカナでつながるので、四番車とまったく同じ速さ、1分に1回転で回る。ついている指が1周ごとに数を送る。"
+    },
+    "chrono-minute-counter": {
+      "kicker": "4 · 30-minute counter",
+      "body": "クロノグラフ車の指が1周に1回中間車を押し、中間車が分積算車を{{parts.minute-counting-wheel.teeth}}枚の歯の1枚ぶん送る。ジャンパーがその位置に留める。12時位置の針で30分まで数える。20倍速で表示。"
+    },
+    "chrono-hour-counter": {
+      "kicker": "5 · 12-hour counter",
+      "body": "6時の積算時計は、香箱からスリップ機構を通して直接回され、12時間で1回転の速さでなめらかに進む。クロノグラフを止めるとブレーキが押さえ、スリップ機構が滑る。600倍速で表示。"
+    },
+    "chrono-hammer": {
+      "kicker": "6 · Reset",
+      "body": "クロノグラフを止めてからリセットを押すと、ハンマーがクロノグラフ車と2つの積算車のハートカムに落ちる。ハートはいちばん低い点がハンマーに向くまで押され、針を近い向きからゼロへ戻す。動いている間のリセットは効かない。"
+    },
+    "auto-rotor": {
+      "kicker": "Automatic",
+      "body": "ボールベアリングで支えられ、腕の動きで揺れる半円の錘。7750は一方向に回るときだけ巻き上げ、逆向きには空転する。7750の持ち主が知っている、あの「シャーッ」という音だ。"
+    },
+    "auto-reversing": {
+      "kicker": "1 · Automatic",
+      "body": "ローターのカナが両方向に回すが、そのクリックが下のカナをつかむのは一方向だけ。逆向きのときは滑って素通りする。"
+    },
+    "auto-reduction": {
+      "kicker": "2 · Automatic",
+      "body": "{{parts.reduction-wheel.teeth}}枚の歯と{{parts.reduction-pinion.teeth}}枚のカナで回転を落とし、ぜんまいを巻く力に変える。"
+    },
+    "auto-ratchet-drive": {
+      "kicker": "3 · Automatic",
+      "body": "長い軸が、自動巻き機構からクロノグラフ機構の脇を通って角穴車まで回転を運ぶ。"
+    },
+    "auto-ratchet": {
+      "kicker": "4 · Power",
+      "body": "香箱の芯と一体で回り、ぜんまいを巻き上げる。1回転で約{{hoursPerTurn}}時間ぶん。コハゼが逆戻りを止める。"
+    },
+    "crown-stem": {
+      "kicker": "1 · Keyless works",
+      "body": "リューズにつながる軸は、地板の中に掘られた溝を通る。下のボタンで段を切り替えて、リューズを回してみよう。"
+    },
+    "crown-sliding": {
+      "kicker": "2 · Keyless works",
+      "body": "巻真と一緒に回るつづみ車。0段目ではきち車と噛み合って巻き上げ、1段目で日付の修正、2段目では小鉄車側へ滑って時刻合わせに切り替わる。"
+    },
+    "crown-hacking": {
+      "kicker": "3 · Hacking",
+      "body": "2段目まで引くと、ストップレバーがテンプを止め（秒針停止）、クロノグラフも一緒に止まる。針を合わせて押し込めば、また動き出す。"
+    }
+  },
+  "parts": {
+    "plate": {
+      "name": "地板",
+      "en": "Main plate",
+      "body": "すべての部品の土台で、直径30 mm（13¼リーニュ）。"
+    },
+    "barrel": {
+      "name": "香箱",
+      "en": "Barrel",
+      "body": "ぜんまいを収めた円筒。外周の歯車で輪列を、カナで積算時計を回す。"
+    },
+    "hour-counter": {
+      "name": "時積算車",
+      "en": "Hour counting wheel",
+      "body": "香箱からスリップ機構を通して回され、6時の12時間積算計の針を運ぶ。"
+    },
+    "ratchet": {
+      "name": "角穴車",
+      "en": "Ratchet wheel",
+      "body": "香箱の芯と一体で回り、ぜんまいを巻き上げる。"
+    },
+    "great": {
+      "name": "二番車",
+      "en": "Great wheel",
+      "body": "1時間で1回転する輪列の中心車。中心から外れた位置にある。"
+    },
+    "third": {
+      "name": "三番車",
+      "en": "Third wheel",
+      "body": "二番車と四番車の間の中継ぎの車。"
+    },
+    "fourth": {
+      "name": "四番車",
+      "en": "Second wheel",
+      "body": "9時位置で1分に1回転し、秒針を運び、クロノグラフを駆動する。"
+    },
+    "escape": {
+      "name": "ガンギ車",
+      "en": "Escape wheel",
+      "body": "輪列の最後の車。アンクルに一歯ずつ放される。"
+    },
+    "fork": {
+      "name": "アンクル",
+      "en": "Pallet fork",
+      "body": "ガンギ車を止めては放し、テンプに衝撃を与えるレバー。"
+    },
+    "balance": {
+      "name": "テンプ",
+      "en": "Balance wheel",
+      "body": "ヒゲゼンマイと組になり、4 Hzで一定に振動する調速機。"
+    },
+    "barrel-bridge": {
+      "name": "香箱受",
+      "en": "Barrel bridge",
+      "body": "香箱を上から支える受け。"
+    },
+    "train-bridge": {
+      "name": "輪列受",
+      "en": "Train wheel bridge",
+      "body": "二番車から四番車、ガンギ車までを支える受け。"
+    },
+    "pallet-bridge": {
+      "name": "アンクル受",
+      "en": "Pallet bridge",
+      "body": "アンクルの軸を支える小さな受け。"
+    },
+    "balance-cock": {
+      "name": "テンプ受",
+      "en": "Balance bridge",
+      "body": "テンプを支える受け。耐震装置が天真を守る。"
+    },
+    "oscillating-pinion": {
+      "name": "オシレーティングピニオン",
+      "en": "Oscillating pinion",
+      "body": "傾く1本の軸に2つのカナ。下は四番車と常に噛み合い、上はクロノグラフ車に入ってスタートさせる。"
+    },
+    "runner": {
+      "name": "クロノグラフ車",
+      "en": "Chronograph wheel",
+      "body": "クロノグラフが動いている間1分に1回転し、秒針を運ぶ。指で分を数える。"
+    },
+    "minute-counter": {
+      "name": "分積算車",
+      "en": "Minute counting wheel",
+      "body": "クロノグラフ車の指に中間車を通して1分に1歯送られ、30分積算計の針を運ぶ。"
+    },
+    "cam": {
+      "name": "クロノグラフカム",
+      "en": "Chronograph cam",
+      "body": "スタート/ストップを押すたびに1歯進み、クロノグラフを動かすか止めるかを決める。"
+    },
+    "hammer": {
+      "name": "ハンマー",
+      "en": "Hammers",
+      "body": "リセットでハートカムに落ち、クロノグラフの針をゼロに戻す。"
+    },
+    "chronograph-bridge": {
+      "name": "クロノグラフ受",
+      "en": "Chronograph bridge",
+      "body": "クロノグラフ車、オシレーティングピニオン、分積算車を支える受け。"
+    },
+    "cannon": {
+      "name": "筒カナ",
+      "en": "Cannon pinion",
+      "body": "二番車の軸の駆動カナと、分針を運ぶ中心の筒カナ。"
+    },
+    "minute-wheel": {
+      "name": "日の裏車",
+      "en": "Minute wheel",
+      "body": "駆動カナと筒カナをつなぎ、回転を落として筒車へ伝える。"
+    },
+    "hour": {
+      "name": "筒車",
+      "en": "Hour wheel",
+      "body": "12時間で1回転して時針を運ぶ。"
+    },
+    "date-driver": {
+      "name": "日回し車",
+      "en": "Date driving wheel",
+      "body": "1日に1回転し、爪で日車を送る。"
+    },
+    "day-driver": {
+      "name": "曜回し車",
+      "en": "Day driving wheel",
+      "body": "1日に1回転し、爪で曜車を送る。"
+    },
+    "date-ring": {
+      "name": "日車",
+      "en": "Date indicator",
+      "body": "1から31の日付が印刷された円盤。"
+    },
+    "day-ring": {
+      "name": "曜車",
+      "en": "Day indicator",
+      "body": "曜日が印刷された円盤。"
+    },
+    "rotor": {
+      "name": "ローター",
+      "en": "Oscillating weight",
+      "body": "腕の動きで回る半円の錘。一方向に回るときだけ巻き上げる。"
+    },
+    "reversing": {
+      "name": "切替車",
+      "en": "Reversing wheel",
+      "body": "ローターのカナに回され、クリックが一方向の回転だけを伝える。"
+    },
+    "reduction": {
+      "name": "減速車",
+      "en": "Reduction wheel",
+      "body": "ローターの回転を落として角穴車へ運ぶ。"
+    },
+    "ratchet-drive": {
+      "name": "角穴伝え車",
+      "en": "Ratchet wheel driving wheel",
+      "body": "自動巻き機構から角穴車まで下りる長い軸の車。"
+    },
+    "automatic-bridge": {
+      "name": "自動巻受",
+      "en": "Automatic device bridge",
+      "body": "クロノグラフ機構の上で、切替車・減速車・角穴伝え車を支える受け。"
+    },
+    "stem": {
+      "name": "巻真",
+      "en": "Winding stem",
+      "body": "リューズにつながり、引き出す段で巻き上げ・日付修正・時刻合わせを切り替える。"
+    },
+    "sliding-pinion": {
+      "name": "つづみ車",
+      "en": "Sliding pinion",
+      "body": "巻真の上を滑り、噛み合う相手を切り替える。"
+    },
+    "setting-wheel": {
+      "name": "小鉄車",
+      "en": "Setting wheel",
+      "body": "時刻合わせのとき、巻真の回転を日の裏車へ伝える。"
+    }
+  }
+}
