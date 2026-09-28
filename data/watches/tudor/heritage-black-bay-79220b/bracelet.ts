@@ -1,10 +1,13 @@
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { bracelet } from '../../../../src/scene/exterior/kit/bracelet';
+import { extrudeProfile } from '../../../../src/scene/exterior/kit/sdf';
 import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { caseShape } from './case';
 import { T } from './params';
 
 const CLEAR = 0.1;
+// Same edge treatment as the links it feeds into, so the end link doesn't read as a sharper, flatter piece.
+const EDGE_OPTS = { chamfer: T.bracelet.chamfer, backChamfer: 0, edge: 0.15 };
 
 // Solid end links that follow the case's curve and fill the gap between the lugs, then plain three-piece links.
 export function tudorBracelet(m: MovementFrame): ExteriorLayer[] {
@@ -18,7 +21,9 @@ export function tudorBracelet(m: MovementFrame): ExteriorLayer[] {
     // undershoots it there and lets the link sink into the case; testing the case's own sdf keeps clearance exact.
     const sdf = (x: number, y: number, z: number) => {
       const ay = y * dir;
-      return Math.max(Math.abs(x) - lw, CLEAR - s.sdf(x, y, z), ay - reach, Math.abs(z - s.hole.z) - th / 2);
+      // z smaller than hole.z is the outward (visible) face, matching the three-piece links' own convention.
+      const plate = extrudeProfile(Math.abs(x) - lw, s.hole.z - th / 2 - z, z - (s.hole.z + th / 2), EDGE_OPTS);
+      return Math.max(plate, CLEAR - s.sdf(x, y, z), ay - reach);
     };
     const y0 = dir > 0 ? T.caseRadius - 6 : -(reach + 0.5);
     const y1 = dir > 0 ? reach + 0.5 : -(T.caseRadius - 6);

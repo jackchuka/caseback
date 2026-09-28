@@ -69,7 +69,10 @@ export const T = {
   tubeDiameter: 4.2, // est: photo:three-quarter
   tubeLength: 0.5, // photo:front: a short dark neck between case and crown
 
-  bracelet: { endWidth: 18, pitch: 6.5, centerRatio: 0.42, thickness: 2.6, links: 6, gap: 0.15, wristRadius: 26, centerRaise: 0.15 }, // est: photo:front
+  // centerRatio: photo:front, centre-piece width / total link width at mid-height, on the first link past the end
+  // link. chamfer, crown: est — the photo shows a bevel highlight along each edge and a brighter, domed centre
+  // piece, but not their depth. The rest of the object is est.
+  bracelet: { endWidth: 18, pitch: 6.5, centerRatio: 0.55, thickness: 2.6, links: 6, gap: 0.15, wristRadius: 26, centerRaise: 0.15, chamfer: 0.3, crown: 0.12 },
   lume: '#f2eee2', // matches the movement lume the hands must use
   insertBlue: '#1b2a4a', // photo:front: hue of the insert's shaded areas (12, 18, 32)
 } as const;
