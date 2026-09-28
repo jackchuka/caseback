@@ -107,3 +107,19 @@ describe('Magic Lever and plate shapes', () => {
     expect(through(-8, 0)).toBeGreaterThan(0);
   });
 });
+
+import { blendedOutline } from './parts';
+describe('blended bridge outline', () => {
+  it('traces the smooth union of its lobes as one loop', () => {
+    const lobes = [{ x: 0, y: 0, r: 1 }, { x: 3, y: 0, r: 1 }, { x: 1.5, y: 2.5, r: 0.8 }];
+    const pts = blendedOutline(lobes, 2.5).getPoints();
+    const area = Math.abs(THREE.ShapeUtils.area(pts));
+    // More than the three discs (the fillets add web between them), well under their bounding box.
+    expect(area).toBeGreaterThan(2 * Math.PI + 0.64 * Math.PI);
+    expect(area).toBeLessThan(5 * 4.3);
+    for (const l of lobes) expect(Math.max(...pts.map((p) => Math.hypot(p.x - l.x, p.y - l.y)))).toBeGreaterThan(l.r);
+    // Every point sits on or just outside a lobe's own reach plus the fillet.
+    for (const p of pts) expect(Math.min(...lobes.map((l) => Math.hypot(p.x - l.x, p.y - l.y) - l.r))).toBeLessThan(0.1 + 2.5 / 4);
+    expect(Math.min(...pts.map((p) => Math.min(...lobes.map((l) => Math.hypot(p.x - l.x, p.y - l.y) - l.r))))).toBeGreaterThan(-0.05);
+  });
+});

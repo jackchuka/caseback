@@ -34,6 +34,9 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
     thickness: pos,
     jewels: z.array(Point),
     screws: z.array(Point),
+    // When set, the outline is the lobes' smooth union with this fillet radius instead of a hull around their centroid,
+    // for long or branching bridges whose lobes do not surround one centre.
+    blend: pos.optional(),
   }),
 ]);
 

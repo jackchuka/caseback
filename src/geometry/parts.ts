@@ -241,9 +241,72 @@ function bridgeOutline(lobes: Bridge['lobes']): THREE.Shape {
   return s;
 }
 
+// The outline of the lobes' smooth union: marching squares over the blended distance field, the one longest loop kept.
+export function blendedOutline(lobes: Bridge['lobes'], k: number, step = 0.05): THREE.Shape {
+  const smin = (a: number, b: number) => {
+    const h = Math.max(k - Math.abs(a - b), 0) / k;
+    return Math.min(a, b) - (h * h * k) / 4;
+  };
+  const f = (x: number, y: number) => lobes.reduce((d, l) => smin(d, Math.hypot(x - l.x, y - l.y) - l.r), Infinity);
+  const x0 = Math.min(...lobes.map((l) => l.x - l.r)) - 2 * step, y0 = Math.min(...lobes.map((l) => l.y - l.r)) - 2 * step;
+  const nx = Math.ceil((Math.max(...lobes.map((l) => l.x + l.r)) + 2 * step - x0) / step);
+  const ny = Math.ceil((Math.max(...lobes.map((l) => l.y + l.r)) + 2 * step - y0) / step);
+  const v = new Float64Array((nx + 1) * (ny + 1));
+  for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) v[j * (nx + 1) + i] = f(x0 + i * step, y0 + j * step);
+  const at = (i: number, j: number) => v[j * (nx + 1) + i]!;
+  // Edge points keyed by the grid edge they sit on, so segments sharing an edge join up.
+  const point = new Map<string, [number, number]>();
+  const edge = (i: number, j: number, horizontal: boolean) => {
+    const key = `${horizontal ? 'h' : 'v'}${i},${j}`;
+    if (!point.has(key)) {
+      const a = at(i, j), b = horizontal ? at(i + 1, j) : at(i, j + 1);
+      const t = a / (a - b);
+      point.set(key, horizontal ? [x0 + (i + t) * step, y0 + j * step] : [x0 + i * step, y0 + (j + t) * step]);
+    }
+    return key;
+  };
+  const links = new Map<string, string[]>();
+  const link = (p: string, q: string) => {
+    links.set(p, [...(links.get(p) ?? []), q]);
+    links.set(q, [...(links.get(q) ?? []), p]);
+  };
+  for (let j = 0; j < ny; j++)
+    for (let i = 0; i < nx; i++) {
+      // Corners 0..3 counter-clockwise from (i, j); edge e runs from corner e to corner e + 1.
+      const inside = [at(i, j) < 0, at(i + 1, j) < 0, at(i + 1, j + 1) < 0, at(i, j + 1) < 0];
+      const crossing = [0, 1, 2, 3].filter((e) => inside[e] !== inside[(e + 1) % 4]);
+      if (crossing.length === 0) continue;
+      const edges = [edge(i, j, true), edge(i + 1, j, false), edge(i, j + 1, true), edge(i, j, false)];
+      if (crossing.length === 2) {
+        link(edges[crossing[0]!]!, edges[crossing[1]!]!);
+        continue;
+      }
+      // A saddle: cut off the two corners that differ from the cell's centre, each by its own two edges.
+      const centre = f(x0 + (i + 0.5) * step, y0 + (j + 0.5) * step) < 0;
+      for (let c = 0; c < 4; c++) if (inside[c] !== centre) link(edges[(c + 3) % 4]!, edges[c]!);
+    }
+  let best: string[] = [];
+  const seen = new Set<string>();
+  for (const start of links.keys()) {
+    if (seen.has(start)) continue;
+    const loop = [start];
+    seen.add(start);
+    for (let cur = start; ; ) {
+      const nxt = links.get(cur)!.find((q) => !seen.has(q));
+      if (!nxt) break;
+      seen.add(nxt);
+      loop.push(nxt);
+      cur = nxt;
+    }
+    if (loop.length > best.length) best = loop;
+  }
+  return new THREE.Shape(best.map((key) => new THREE.Vector2(...point.get(key)!)));
+}
+
 function bridge(shape: Bridge, material: MaterialKey): Layer[] {
   const top = shape.thickness / 2;
-  const layers: Layer[] = [{ geometry: extrudeCentered(bridgeOutline(shape.lobes), shape.thickness, 0.08), material }];
+  const outline = shape.blend === undefined ? bridgeOutline(shape.lobes) : blendedOutline(shape.lobes, shape.blend);
+  const layers: Layer[] = [{ geometry: extrudeCentered(outline, shape.thickness, 0.08), material }];
   for (const j of shape.jewels) {
     layers.push({ geometry: disc(0.36, 0.2).translate(j.x, j.y, top + 0.03), material: 'ruby' });
     layers.push({ geometry: new THREE.TorusGeometry(0.42, 0.06, 12, 48).translate(j.x, j.y, top + 0.03), material: 'steel' });

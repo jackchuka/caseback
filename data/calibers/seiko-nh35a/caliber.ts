@@ -82,8 +82,16 @@ const cockBase = place(balance, 4.2, 50);
 const offset = (p: P2, dx: number, dy: number) => ({ x: p.x + dx, y: p.y + dy });
 const at = (p: P2, z: number) => ({ x: p.x, y: p.y, z });
 
-const bridgeScrews = [{ x: -3.5, y: -3.0 }, { x: 4.3, y: 2.6 }, offset(barrel, 4.9, -1.6)];
+// Screws sit clear of the automatic wheels that turn just above the bridges.
+const bridgeScrews = [place(barrel, 5.2, 160), { x: 3.9, y: 2.9 }, { x: -4.4, y: -1.2 }];
 const autoScrews = [offset(first, -3.6, 1.2), offset(second, 1.4, 2.2)];
+const autoKnee = { x: 3.4, y: 1.4 };
+// Discs of radius r every ~1.2 mm from a to b: the webs that join a bridge's lobes into one plate.
+const chain = (a: P2, b: P2, r: number) => {
+  const n = Math.max(1, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / 1.2));
+  return Array.from({ length: n - 1 }, (_, i) => ({ x: a.x + ((b.x - a.x) * (i + 1)) / n, y: a.y + ((b.y - a.y) * (i + 1)) / n, r }));
+};
+const BLEND = 1.5;
 
 const parts: Part[] = [
   {
@@ -149,7 +157,12 @@ const parts: Part[] = [
     id: 'train-bridge', mechanism: 'frame', side: 'back', pos: at(center, H.bridges), explode: { dz: 10 }, material: 'rhodium',
     shape: {
       kind: 'bridge', thickness: BRIDGE,
-      lobes: [{ ...barrel, r: 3.2 }, { ...center, r: 1.4 }, { ...third, r: 1.2 }, { ...escape, r: 1.0 }, ...bridgeScrews.map((s) => ({ ...s, r: 0.9 }))],
+      lobes: [
+        { ...barrel, r: 3.4 }, { ...center, r: 1.7 }, { ...third, r: 1.3 }, { ...escape, r: 1.2 }, ...bridgeScrews.map((s) => ({ ...s, r: 0.9 })),
+        ...chain(barrel, center, 1.8), ...chain(center, third, 1.2), ...chain(center, escape, 1.1),
+        ...chain(center, bridgeScrews[1]!, 0.9), ...chain(escape, bridgeScrews[2]!, 0.9), ...chain(barrel, bridgeScrews[0]!, 1.0),
+      ],
+      blend: BLEND,
       // The centre and barrel jewels sit under the rotor's gear and the ratchet wheel; only these two show.
       jewels: [third, escape],
       screws: bridgeScrews,
@@ -158,16 +171,17 @@ const parts: Part[] = [
   },
   {
     id: 'pallet-bridge', mechanism: 'frame', side: 'back', pos: at(center, H.bridges), explode: { dz: 11 }, material: 'rhodium',
-    shape: { kind: 'bridge', thickness: BRIDGE, lobes: [{ ...fork, r: 0.8 }, { ...offset(fork, -0.4, -2.0), r: 0.8 }], jewels: [fork], screws: [offset(fork, -0.4, -2.0)] },
+    shape: { kind: 'bridge', thickness: BRIDGE, lobes: [{ ...fork, r: 0.8 }, { ...offset(fork, -0.4, -2.0), r: 0.8 }, ...chain(fork, offset(fork, -0.4, -2.0), 0.6)], jewels: [fork], screws: [offset(fork, -0.4, -2.0)], blend: BLEND },
     provenance: estimated(LAYOUT, 'sii-spec'),
   },
   {
     id: 'balance-cock', mechanism: 'frame', side: 'back', pos: at(center, H.bridges), explode: { dz: 13 }, material: 'rhodium',
     shape: {
       kind: 'bridge', thickness: BRIDGE,
-      lobes: [{ ...balance, r: 1.0 }, { x: (balance.x + cockBase.x) / 2, y: (balance.y + cockBase.y) / 2, r: 0.8 }, { ...cockBase, r: 1.3 }],
+      lobes: [{ ...balance, r: 1.0 }, ...chain(balance, cockBase, 0.75), { ...cockBase, r: 1.3 }],
       jewels: [balance],
       screws: [cockBase],
+      blend: BLEND,
     },
     provenance: estimated(LAYOUT, 'sii-spec'),
   },
@@ -190,7 +204,16 @@ const parts: Part[] = [
   { id: 'second-reduction-pinion', arbor: 'second-reduction', mechanism: 'automatic', side: 'back', pos: at(second, H.secondPinion), explode: { dz: 16 }, material: 'steel', shape: { kind: 'pinion', leaves: A.secondPinion, module: mRatchet, length: 0.3 }, provenance: estimated(AUTO, 'tmi-guide', 'wmj-magic-lever') },
   {
     id: 'automatic-bridge', mechanism: 'frame', side: 'back', pos: at(center, H.autoBridge), explode: { dz: 17 }, material: 'rhodium',
-    shape: { kind: 'bridge', thickness: 0.16, lobes: [{ ...first, r: 1.1 }, { ...second, r: 1.0 }, { x: 3.4, y: 1.4, r: 0.9 }, ...autoScrews.map((s) => ({ ...s, r: 0.85 }))], jewels: [first, second], screws: autoScrews },
+    shape: {
+      kind: 'bridge', thickness: 0.16,
+      lobes: [
+        { ...first, r: 1.2 }, { ...second, r: 1.1 }, { ...autoKnee, r: 1.0 }, ...autoScrews.map((s) => ({ ...s, r: 0.85 })),
+        ...chain(first, autoKnee, 0.9), ...chain(autoKnee, second, 0.9), ...chain(first, autoScrews[0]!, 0.8), ...chain(second, autoScrews[1]!, 0.8),
+      ],
+      jewels: [first, second],
+      screws: autoScrews,
+      blend: BLEND,
+    },
     provenance: estimated('The automatic train bridge holds both reduction wheels (NH3 parts catalogue); outline estimated.'),
   },
   { id: 'stem', focus: 'stem', axis: 'x', mechanism: 'keyless', side: 'dial', pos: { x: (stemIn + stemOut) / 2, y: 0, z: STEM_Z }, explode: { dz: -3 }, material: 'steel', shape: { kind: 'stem', radius: 0.45, length: stemOut - stemIn }, provenance: sourced('sii-spec') },
@@ -248,9 +271,9 @@ const caliber: Caliber = {
     { id: 'date-driver', chapter: 'date', focus: 'date-driver', side: 'dial', speed: 6000, xray: false, rotor: 'hide', cameraOffset: [-12, 20, 22], stats: [{ label: 'teeth', value: '64' }, { label: 'rotation', value: '24 h' }] },
     { id: 'date-ring', chapter: 'date', focus: 'date-ring', side: 'dial', speed: 6000, xray: false, rotor: 'hide', cameraOffset: [-14, 26, 28], stats: [{ label: 'teeth', value: '31' }, { label: 'step', value: '1 / day' }] },
     { id: 'auto-rotor', chapter: 'auto', focus: 'rotor', side: 'back', speed: 0.1, xray: false, rotor: 'show', cameraOffset: [-18, 30, 32], stats: [{ label: 'direction', value: '⟲ ⟳' }, { label: 'powerReserve', value: 'live:reserve' }] },
-    { id: 'auto-first-reduction', chapter: 'auto', focus: 'first-reduction', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-12, 22, 24], stats: [{ label: 'teeth', value: '58' }, { label: 'powerReserve', value: 'live:reserve' }] },
-    { id: 'auto-pawl-lever', chapter: 'auto', focus: 'pawl-lever', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-11, 20, 22], stats: [{ label: 'system', value: 'Magic Lever' }, { label: 'powerReserve', value: 'live:reserve' }] },
-    { id: 'auto-second-reduction', chapter: 'auto', focus: 'second-reduction', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-10, 18, 20], stats: [{ label: 'teeth', value: '36 / 10' }, { label: 'powerReserve', value: 'live:reserve' }] },
+    { id: 'auto-first-reduction', chapter: 'auto', focus: 'first-reduction', side: 'back', speed: 0.1, xray: true, rotor: 'xray', cameraOffset: [-12, 22, 24], stats: [{ label: 'teeth', value: '58' }, { label: 'powerReserve', value: 'live:reserve' }] },
+    { id: 'auto-pawl-lever', chapter: 'auto', focus: 'pawl-lever', side: 'back', speed: 0.1, xray: true, rotor: 'xray', cameraOffset: [-11, 20, 22], stats: [{ label: 'system', value: 'Magic Lever' }, { label: 'powerReserve', value: 'live:reserve' }] },
+    { id: 'auto-second-reduction', chapter: 'auto', focus: 'second-reduction', side: 'back', speed: 0.1, xray: true, rotor: 'xray', cameraOffset: [-10, 18, 20], stats: [{ label: 'teeth', value: '36 / 10' }, { label: 'powerReserve', value: 'live:reserve' }] },
     { id: 'auto-ratchet', chapter: 'auto', focus: 'ratchet', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-13, 24, 26], stats: [{ label: 'teeth', value: '72' }, { label: 'powerReserve', value: 'live:reserve' }] },
     { id: 'crown-stem', chapter: 'crown', focus: 'stem', side: 'dial', speed: 0.1, xray: false, rotor: 'hide', ctl: 'crown', cameraOffset: [-10, 20, 22], stats: [{ label: 'position', value: 'live:crown' }, { label: 'powerReserve', value: 'live:reserve' }] },
     { id: 'crown-sliding', chapter: 'crown', focus: 'sliding-pinion', side: 'dial', speed: 0.1, xray: false, rotor: 'hide', ctl: 'crown', cameraOffset: [-8, 15, 16], stats: [{ label: 'position', value: 'live:crown' }, { label: 'powerReserve', value: 'live:reserve' }] },
