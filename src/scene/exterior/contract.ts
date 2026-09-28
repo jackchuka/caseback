@@ -25,7 +25,7 @@ export type MovementFrame = {
   stemEnd: number | null;
   stemRadius: number;
   dateWindow: { x: number; width: number; height: number } | null;
-  // A day window beside the date, over the middle of the day ring's printed band at 3 o'clock.
+  // A day window beside the date, over the day ring's names at 3 o'clock.
   dayWindow: { x: number; width: number; height: number } | null;
   plateFrontZ: number;
   rotorBackZ: number;

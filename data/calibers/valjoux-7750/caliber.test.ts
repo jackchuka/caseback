@@ -107,11 +107,11 @@ describe('Valjoux 7750 dial side', () => {
     expect(turns('date-driver', 86400)).toBeCloseTo(1, 9);
     expect(turns('day-driver', 86400)).toBeCloseTo(1, 9);
     expect(Math.abs(angle('date-ring', 86400 + 60) - angle('date-ring', 60))).toBeCloseTo(TAU / 31, 9);
-    expect(Math.abs(angle('day-ring', 86400 + 60) - angle('day-ring', 60))).toBeCloseTo(TAU / 7, 9);
+    expect(Math.abs(angle('day-ring', 86400 + 60) - angle('day-ring', 60))).toBeCloseTo(TAU / 14, 9);
   });
   it('shows today\'s weekday, and quick-set moves the date but not the day', () => {
     const r = (id: string, extra = {}) => angle(id, 60, extra);
-    expect(Math.abs(r('day-ring', { dayBase: 3 }) - r('day-ring'))).toBeCloseTo((3 * TAU) / 7, 9);
+    expect(Math.abs(r('day-ring', { dayBase: 3 }) - r('day-ring'))).toBeCloseTo((3 * TAU) / 14, 9);
     expect(r('day-ring', { quickRot: TAU })).toBeCloseTo(r('day-ring'), 9);
     expect(Math.abs(r('date-ring', { quickRot: TAU }) - r('date-ring'))).toBeCloseTo(TAU / 31, 9);
   });
@@ -124,7 +124,8 @@ describe('Valjoux 7750 dial side', () => {
       for (let i = 0; i < 1000; i++) {
         const f = i / 1000;
         const a = (dd.rest ?? 0) + angle(driver, f * 86400);
-        const r = Math.hypot(dd.pos.x - Math.sin(a) * L, dd.pos.y + Math.cos(a) * L);
+        const rp = part(ring).pos;
+        const r = Math.hypot(dd.pos.x - Math.sin(a) * L - rp.x, dd.pos.y + Math.cos(a) * L - rp.y);
         if (far ? r > best.r : r < best.r) best = { r, f };
       }
       expect(best.f, driver).toBeGreaterThanOrEqual(0.9);
@@ -272,9 +273,14 @@ describe('Valjoux 7750 depth', () => {
     expect(part('barrel').pos.z + s.thickness / 2 + s.drumHeight).toBeLessThan(bottom('barrel-bridge'));
     expect(bottom('ratchet')).toBeGreaterThan(top('barrel-bridge'));
   });
-  it('puts the dial-side layers in order: day ring at the dial, then the date ring, drivers, motion works, plate', () => {
+  it('puts the dial-side layers in order: day disc at the dial, then the date ring, drivers, motion works, plate', () => {
     expect(bottom('day-ring')).toBeGreaterThanOrEqual(frame.dialZ + 0.2 - 1e-9);
-    expect(top('day-ring')).toBeLessThan(bottom('date-ring'));
+    // The day driver's finger reaches the star behind the day disc, not through it.
+    expect(part('day-driver').pos.z - 0.3 - 0.09).toBeGreaterThan(top('day-ring'));
+    // The day disc turns clear of the centre's pipes and the sub-dial arbors.
+    const day = part('day-ring');
+    expect(Math.hypot(day.pos.x, day.pos.y) - (day.shape as { outerRadius: number }).outerRadius).toBeGreaterThan(0.5);
+    for (const h of ['seconds-hand', 'minute-counter-hand', 'hour-counter-hand']) expect(Math.hypot(part(h).pos.x - day.pos.x, part(h).pos.y - day.pos.y) - (day.shape as { outerRadius: number }).outerRadius, h).toBeGreaterThan(0.5);
     expect(top('date-ring')).toBeLessThan(bottom('date-driver'));
     expect(top('hour-counting-wheel')).toBeLessThan(bottom('hour-heart'));
     expect(top('minute-wheel')).toBeLessThan(bottom('plate'));

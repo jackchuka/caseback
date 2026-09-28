@@ -8,6 +8,8 @@ export const EXTRA_MOVEMENT_MATERIALS = ['slot', 'date', 'day', 'lume'] as const
 export type MovementMaterial = MaterialKey | (typeof EXTRA_MOVEMENT_MATERIALS)[number];
 export type WatchMaterial = 'case' | 'polished' | 'crystal' | 'dial' | 'insert' | 'strap' | 'tube';
 export type LayerMaterial = MovementMaterial | WatchMaterial;
+// A day ring's names are printed centred this far out along its radius (see textures.dayNames), where its window goes.
+export const DAY_LABEL_AT = 0.6;
 export type Layer = { geometry: THREE.BufferGeometry; material: LayerMaterial };
 
 type Bridge = Extract<Shape, { kind: 'bridge' }>;
@@ -397,7 +399,8 @@ function camOutline(teeth: number, radius: number): THREE.Shape {
   return s;
 }
 
-// Printed ring: UVs map the band's mid radius to 0.87 of the texture radius (see textures.dateNumbers).
+// Printed ring. A date ring's UVs map the band's mid radius to 0.87 of the texture radius (see textures.dateNumbers);
+// a day ring's map its outer edge to the texture's edge, its names at DAY_LABEL_AT.
 function dateRing(teeth: number, rIn: number, rOut: number, thickness: number, print: 'date' | 'day' = 'date'): Layer[] {
   const s = new THREE.Shape();
   s.absarc(0, 0, rOut, 0, Math.PI * 2, false);
@@ -405,7 +408,7 @@ function dateRing(teeth: number, rIn: number, rOut: number, thickness: number, p
   hole.absarc(0, 0, rIn, 0, Math.PI * 2, true);
   s.holes.push(hole);
   const g = extrudeCentered(s, thickness, 0.02);
-  const scale = ((rIn + rOut) / 2) / 0.87;
+  const scale = print === 'day' ? rOut : ((rIn + rOut) / 2) / 0.87;
   const pos = g.getAttribute('position');
   const uv = g.getAttribute('uv');
   for (let i = 0; i < pos.count; i++) uv.setXY(i, 0.5 + pos.getX(i) / (2 * scale), 0.5 + pos.getY(i) / (2 * scale));

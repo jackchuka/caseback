@@ -1,3 +1,4 @@
+import { DAY_LABEL_AT } from '../../geometry/parts';
 import type { Caliber } from '../../model/schema';
 import type { MovementFrame } from './contract';
 
@@ -31,7 +32,8 @@ export function movementFrame(c: Caliber): MovementFrame {
     stemRadius: stemShape?.radius ?? DEFAULT_STEM_RADIUS,
     // Over the middle of the ring's printed band at 3 o'clock.
     dateWindow: ringShape ? { x: (ringShape.innerRadius + ringShape.outerRadius) / 2, ...(c.exterior.dateWindow ?? WINDOW) } : null,
-    dayWindow: dayShape ? { x: (dayShape.innerRadius + dayShape.outerRadius) / 2, ...(c.exterior.dayWindow ?? WINDOW) } : null,
+    // Over the day ring's names where they pass 3 o'clock.
+    dayWindow: day && dayShape ? { x: day.pos.x + dayShape.outerRadius * DAY_LABEL_AT, ...(c.exterior.dayWindow ?? WINDOW) } : null,
     plateFrontZ: plate ? plate.pos.z - half(plate) : c.exterior.frontZ,
     // Without a rotor, the back of the movement is its highest back-side part.
     rotorBackZ: rotor ? rotor.pos.z + half(rotor) : Math.max(...c.parts.filter((p) => p.side === 'back').map((p) => p.pos.z + half(p))),

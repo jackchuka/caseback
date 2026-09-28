@@ -107,9 +107,14 @@ describe('Magic Lever and plate shapes', () => {
     expect(maxRadius(buildShape({ kind: 'cam', teeth: 8, radius: 1.5, thickness: 0.3 }, 'steel')[0]!.geometry)).toBeCloseTo(1.5, 1);
     const lever = buildShape({ kind: 'lever', outline: [{ x: -1, y: -0.5 }, { x: 5, y: -0.5 }, { x: 5, y: 0.5 }, { x: -1, y: 0.5 }], thickness: 0.2, hole: 0.3 }, 'steel');
     expect(box(lever[0]!.geometry).max.x).toBeCloseTo(5, 1);
-    const day = buildShape({ kind: 'day-ring', teeth: 7, innerRadius: 5, outerRadius: 7.5, thickness: 0.15 }, 'plate');
+    const day = buildShape({ kind: 'day-ring', teeth: 14, innerRadius: 0.9, outerRadius: 4, thickness: 0.1 }, 'plate');
     expect(day[0]!.material).toBe('day');
-    expect(maxRadius(day[0]!.geometry)).toBeCloseTo(7.5, 1);
+    expect(maxRadius(day[0]!.geometry)).toBeCloseTo(4, 1);
+    // Its UVs put the outer edge on the texture's edge.
+    const uv = day[0]!.geometry.getAttribute('uv');
+    const pos = day[0]!.geometry.getAttribute('position');
+    const i = Array.from({ length: pos.count }, (_, k) => k).find((k) => Math.hypot(pos.getX(k), pos.getY(k)) > 3.99)!;
+    expect(Math.hypot(uv.getX(i) - 0.5, uv.getY(i) - 0.5)).toBeCloseTo(0.5, 2);
   });
   it('cuts slots through the plate', () => {
     const [plate] = buildShape({ kind: 'plate', radius: 13, thickness: 1, slots: [{ from: { x: 5, y: 0 }, to: { x: 11, y: 0 }, r: 1 }] }, 'plate');

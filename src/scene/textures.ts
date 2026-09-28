@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { DAY_LABEL_AT } from '../geometry/parts';
 
 function canvasTexture(size: number, draw: (g: CanvasRenderingContext2D, s: number) => void, srgb = false) {
   const c = document.createElement('canvas');
@@ -129,7 +130,7 @@ export function flowStripe() {
 }
 
 // Labels around a circle at 0.87 of the texture radius, mirrored vertically so they read correctly from the dial side.
-function ringLabels(labels: string[], fontScale: number) {
+function ringLabels(labels: string[], fontScale: number, at = 0.87) {
   return canvasTexture(2048, (g, s) => {
     g.fillStyle = '#f3f0e8';
     g.fillRect(0, 0, s, s);
@@ -143,7 +144,7 @@ function ringLabels(labels: string[], fontScale: number) {
       g.save();
       g.rotate((i / labels.length) * Math.PI * 2);
       // Each label is printed turned a quarter turn so it reads upright once the ring brings it to 3 o'clock.
-      g.translate(0, -(s / 2) * 0.87);
+      g.translate(0, -(s / 2) * at);
       g.rotate(-Math.PI / 2);
       g.fillText(label, 0, 0);
       g.restore();
@@ -153,5 +154,8 @@ function ringLabels(labels: string[], fontScale: number) {
 
 export const dateNumbers = (count = 31) => ringLabels(Array.from({ length: count }, (_, i) => String(i + 1)), 0.05);
 
-// Monday first, as the day ring's base index counts.
-export const dayNames = () => ringLabels(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'], 0.11);
+// Monday first, as the day ring's base index counts; twice round, as on a 14-tooth day star.
+export const dayNames = () => {
+  const week = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  return ringLabels([...week, ...week], 0.17, DAY_LABEL_AT);
+};

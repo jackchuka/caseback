@@ -54,14 +54,17 @@ const hammerOutline = lever(hammerPivot, [[5.0, -2.2], [2.2, 1.0], [1.5, 1.0], [
 const hourHammerPivot = { x: 3.2, y: 5.2 };
 const hourHammerOutline = lever(hourHammerPivot, [[3.7, 4.7], [3.9, 5.5], [1.9, 9.0], [1.3, 9.0], [1.3, 7.4], [2.6, 5.0]]);
 
-// Calendar: two finger wheels off the hour wheel, the date driver toward 1 o'clock and the day driver toward 11.
+// Calendar: two finger wheels off the hour wheel. The date disc runs round outside the sub-dial arbors; the day disc
+// is a small disc of its own beside the centre, toward 3 o'clock, with its day star underneath (ETA's day star with
+// dial disc), so its names run out along its radius into the window.
 const dateDriver = place(center, centerDistance(mHour, MW.hourWheel, MW.dateDriver), -60);
-const dayDriver = place(center, centerDistance(mHour, MW.hourWheel, MW.dateDriver), -120);
-// Fingers (+Y) out toward the date ring and in toward the day ring, each in the middle of the change window (95 % of
-// a turn); the drivers turn clockwise in local coordinates.
+const dayDriver = place(center, centerDistance(mHour, MW.hourWheel, MW.dateDriver), 30);
+const dayDisc: P2 = { x: 4.6, y: 0 };
+// Fingers (+Y) out toward the date ring's teeth and across to the day star, each in the middle of the change window
+// (95 % of a turn); the drivers turn clockwise in local coordinates.
 const WINDOW_AT = 0.95 * Math.PI * 2;
 const dateDriverRest = (Math.atan2(dateDriver.y, dateDriver.x) - Math.PI / 2 + WINDOW_AT) % (Math.PI * 2);
-const dayDriverRest = (Math.atan2(dayDriver.y, dayDriver.x) + Math.PI / 2 + WINDOW_AT) % (Math.PI * 2);
+const dayDriverRest = (Math.atan2(dayDisc.y - dayDriver.y, dayDisc.x - dayDriver.x) - Math.PI / 2 + WINDOW_AT) % (Math.PI * 2);
 const MOTION = 'Motion-works tooth counts give the 1:12 and one turn a day for the calendar drivers; the real 7750 counts are not published.';
 
 // Self-winding: the rotor's pinion turns the reversing wheel both ways; its click turns the reversing pinion one way
@@ -83,9 +86,9 @@ const FRONT = DIAL - DIAL_THICKNESS;
 const PLATE = { front: -1.75, back: -0.25 };
 const STEM_Z = -1.0;
 const H = {
-  dayRing: -2.575,
+  dayRing: -2.595,
   dateRing: -2.4,
-  dayDriver: -2.275,
+  dayDriver: -2.15,
   hourCounter: -2.2,
   hourWheel: -2.19,
   dateDriver: -2.1,
@@ -329,10 +332,10 @@ const parts: Part[] = [
   { id: 'hour-wheel', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, H.hourWheel), explode: { dz: -4.2 }, material: 'gilt', shape: { kind: 'wheel', teeth: MW.hourWheel, module: mHour, thickness: 0.3, spokes: 4 }, provenance: estimated(MOTION, 'eta-tc') },
   // Calendar
   { id: 'date-driver', arbor: 'date-driver', rest: dateDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dateDriver, H.dateDriver), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.14, fingerLength: 4.6 }, provenance: estimated(MOTION, 'bobinchak-calendar') },
-  { id: 'day-driver', arbor: 'day-driver', rest: dayDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dayDriver, H.dayDriver), explode: { dz: -2.6 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.14, fingerLength: 1.3 }, provenance: estimated(MOTION, 'bobinchak-calendar') },
+  { id: 'day-driver', arbor: 'day-driver', rest: dayDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dayDriver, H.dayDriver), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mHour, thickness: 0.14, fingerLength: 2.5 }, provenance: estimated(MOTION, 'bobinchak-calendar') },
   // rest π/2 turns today's date and day from 12 o'clock to the windows at 3.
-  { id: 'date-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(center, H.dateRing), explode: { dz: -1.6 }, material: 'plate', shape: { kind: 'date-ring', teeth: 31, innerRadius: 9.9, outerRadius: 13.2, thickness: 0.15 }, provenance: estimated('The date disc outside the sub-dial arbors; its window sits outboard of the day window at 3 (Bobinchak).', 'bobinchak-calendar', 'eta-tc') },
-  { id: 'day-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(center, H.dayRing), explode: { dz: -1.2 }, material: 'plate', shape: { kind: 'day-ring', teeth: 7, innerRadius: 5.3, outerRadius: 7.8, thickness: 0.15 }, provenance: estimated('The day indicator inside the sub-dial arbors, its window inboard of the date at 3 (Bobinchak).', 'bobinchak-calendar', 'eta-tc') },
+  { id: 'date-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(center, H.dateRing), explode: { dz: -1.6 }, material: 'plate', shape: { kind: 'date-ring', teeth: 31, innerRadius: 9.0, outerRadius: 12.3, thickness: 0.15 }, provenance: estimated('The date disc outside the sub-dial arbors; its band is centred under the Sinn 103\'s date window, 10.65 mm out.', 'bobinchak-calendar', 'eta-tc') },
+  { id: 'day-ring', rest: Math.PI / 2, mechanism: 'calendar', side: 'dial', pos: at(dayDisc, H.dayRing), explode: { dz: -1.2 }, material: 'plate', shape: { kind: 'day-ring', teeth: 14, innerRadius: 0.9, outerRadius: 4.0, thickness: 0.1 }, provenance: estimated('A small disc printed twice round with the days, on its own 14-tooth star (ETA part 2561/1); size and place fitted to the Sinn 103\'s day window.', 'gleave-day-disc', 'eta-tc') },
   // Hands
   { id: 'hour-hand', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, HAND.hour), explode: { dz: -6.2 }, material: 'blued', shape: { kind: 'hand', length: 7.2, width: 0.45, thickness: 0.12, style: 'baton' }, provenance: estimated(HANDS) },
   { id: 'minute-hand', arbor: 'cannon', mechanism: 'motion-works', side: 'dial', pos: at(center, HAND.minute), explode: { dz: -7.2 }, material: 'blued', shape: { kind: 'hand', length: 11.5, width: 0.36, thickness: 0.12, style: 'baton' }, provenance: estimated(HANDS) },
@@ -462,6 +465,7 @@ const caliber: Caliber = {
     { id: 'timezone-hours', title: 'Valjoux 7750 hour counter keeps advancing — TimeZone forum', url: 'http://forums.timezone.com/index.php?t=msg&th=2413291' },
     { id: 'bobinchak-calendar', title: '7750: calendar synchronization — Nathan Bobinchak', url: 'http://www.bobinchak.com/watchmaking/2018/3/18/7750-calendar-synchronization' },
     { id: 'commons-7750', title: 'Valjoux 7750, rotor side — Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Valjoux7750.JPG' },
+    { id: 'gleave-day-disc', title: 'Day disc at 3 o\'clock, ETA 7750 (2561/1) — Gleave & Co.', url: 'https://gleave.london/day-disc-at-3-oclock-eta-7750-2561-1/' },
   ],
 };
 
