@@ -144,7 +144,7 @@ export function Exterior({ caliber, build, frame, watchFront }: { caliber: Calib
         {p.hands.seconds.map((l, i) => <mesh key={i} geometry={l.geometry} material={movementMaterials[l.material as keyof typeof movementMaterials]} />)}
       </group>
       <group ref={back}>
-        {p.caseback.map((l, i) => <mesh key={i} name={l.name} geometry={l.geometry} material={pick(l)} castShadow />)}
+        {p.caseback.map((l, i) => <mesh key={i} name={l.name} geometry={l.geometry} material={pick(l)} castShadow={l.name !== 'caseback-glass'} />)}
       </group>
       <group ref={rotor}>
         <mesh geometry={rotorGeo} material={rotorMat} castShadow />
