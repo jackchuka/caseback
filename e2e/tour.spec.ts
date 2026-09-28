@@ -370,7 +370,7 @@ test('unknown paths show the home page', async ({ page }) => {
   await expect(page.locator('.home')).toBeVisible();
 });
 
-test('display caseback lets you see the movement, a solid one does not', async ({ page }) => {
+test('display caseback lets you see the movement, a solid one does not @quick', async ({ page }) => {
   const firstHits = async (url: string) => {
     await page.goto(url);
     await ready(page);
@@ -429,7 +429,7 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
   expect(worst).toBeLessThan(0.02);
 });
 
-test('watch pages open on the dial, and dial chapters remove it', async ({ page }) => {
+test('watch pages open on the dial, and dial chapters remove it @quick', async ({ page }) => {
   await page.goto('/watches/sinn/556?lang=ja');
   await ready(page);
   await tick(page);
@@ -448,7 +448,7 @@ test('watch pages open on the dial, and dial chapters remove it', async ({ page 
   expect(dialSide).not.toContain('dial');
 });
 
-test('the rebuilt Tudor opens on the dial', async ({ page }) => {
+test('the rebuilt Tudor opens on the dial @quick', async ({ page }) => {
   await page.goto('/watches/tudor/heritage-black-bay-79220b?lang=ja');
   await ready(page);
   await tick(page);
@@ -467,13 +467,13 @@ test('the rebuilt Tudor opens on the dial', async ({ page }) => {
   expect(dialSide).not.toContain('dial');
 });
 
-test('the compare page is not in production builds', async ({ page }) => {
+test('the compare page is not in production builds @quick', async ({ page }) => {
   await page.goto('/dev/compare/sinn/556');
   await expect(page.locator('.home')).toBeVisible();
   await expect(page.locator('.compare')).toHaveCount(0);
 });
 
-test('the site states it is unofficial and the models are approximate', async ({ page }) => {
+test('the site states it is unofficial and the models are approximate @quick', async ({ page }) => {
   await page.goto('/?lang=en');
   await expect(page.locator('.catalog-footer .notice')).toContainText('Not affiliated with');
   await page.goto('/watches/sinn/556?lang=ja');
