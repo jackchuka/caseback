@@ -25,6 +25,7 @@ const dateDriver = place(center, centerDistance(mMotion, MW.hourWheel, MW.dateDr
 // The finger (+Y) points outward, along the driver's direction from the centre, in the middle of the date-change
 // window (95 % of a turn); the driver turns clockwise in local coordinates.
 const dateDriverRest = (Math.atan2(dateDriver.y, dateDriver.x) - Math.PI / 2 + 0.95 * Math.PI * 2) % (Math.PI * 2);
+const HAND = 'Height and thickness from SII\'s hand-fitting drawing (type M hands); length and width estimated.';
 const MOTION = 'Motion-works tooth counts give the required 1:12 and 1 turn a day for the date driver; the real NH35A counts are not published.';
 
 // Magic Lever: the rotor's own gear turns the first reduction wheel, whose eccentric strokes the pawl lever; the
@@ -186,11 +187,11 @@ const parts: Part[] = [
     provenance: estimated(LAYOUT, 'sii-spec'),
   },
   { id: 'cannon-pinion', arbor: 'cannon', mechanism: 'motion-works', side: 'dial', pos: at(center, -1.3), explode: { dz: -2.4 }, material: 'steel', shape: { kind: 'pinion', leaves: MW.cannon, module: mMotion, length: 0.5 }, provenance: estimated(MOTION) },
-  { id: 'minute-hand', arbor: 'cannon', mechanism: 'motion-works', side: 'dial', pos: at(center, DIAL - DIAL_THICKNESS - 1.28), explode: { dz: -7.2 }, material: 'blued', shape: { kind: 'hand', length: 10.5, width: 0.32, thickness: 0.18 }, provenance: sourced('sii-spec') },
+  { id: 'minute-hand', arbor: 'cannon', mechanism: 'motion-works', side: 'dial', pos: at(center, DIAL - DIAL_THICKNESS - 1.28), explode: { dz: -7.2 }, material: 'blued', shape: { kind: 'hand', length: 10.5, width: 0.32, thickness: 0.18 }, provenance: estimated(HAND, 'sii-spec') },
   { id: 'minute-wheel', arbor: 'minute-wheel', mechanism: 'motion-works', side: 'dial', pos: at(minuteWheel, -1.2), explode: { dz: -3.2 }, material: 'gilt', shape: { kind: 'wheel', teeth: MW.minuteWheel, module: mMotion, thickness: 0.16, spokes: 0 }, provenance: estimated(MOTION) },
   { id: 'minute-pinion', arbor: 'minute-wheel', mechanism: 'motion-works', side: 'dial', pos: at(minuteWheel, -1.42), explode: { dz: -3.2 }, material: 'steel', shape: { kind: 'pinion', leaves: MW.minutePinion, module: mMotion, length: 0.3 }, provenance: estimated(MOTION) },
   { id: 'hour-wheel', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, -1.42), explode: { dz: -4.2 }, material: 'gilt', shape: { kind: 'wheel', teeth: MW.hourWheel, module: mMotion, thickness: 0.14, spokes: 4 }, provenance: estimated(MOTION) },
-  { id: 'hour-hand', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, DIAL - DIAL_THICKNESS - 0.69), explode: { dz: -6.2 }, material: 'blued', shape: { kind: 'hand', length: 6.8, width: 0.42, thickness: 0.18 }, provenance: sourced('sii-spec') },
+  { id: 'hour-hand', arbor: 'hour', mechanism: 'motion-works', side: 'dial', pos: at(center, DIAL - DIAL_THICKNESS - 0.69), explode: { dz: -6.2 }, material: 'blued', shape: { kind: 'hand', length: 6.8, width: 0.42, thickness: 0.18 }, provenance: estimated(HAND, 'sii-spec') },
   { id: 'date-driver', arbor: 'date-driver', rest: dateDriverRest, mechanism: 'calendar', side: 'dial', pos: at(dateDriver, -1.4), explode: { dz: -3.0 }, material: 'gilt', shape: { kind: 'date-driver', teeth: MW.dateDriver, module: mMotion, thickness: 0.14, fingerLength: 4.5 }, provenance: estimated(MOTION) },
   // rest π/2 turns today's date from 12 o'clock to the 3 o'clock window; its printed band is centred on the window SII
   // places 10.55 mm from the centre.

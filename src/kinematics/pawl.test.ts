@@ -17,7 +17,7 @@ function pawlCaliber(): Caliber {
     { ...base, id: 'rotor-gear', arbor: 'rotor', pos: { x: 0, y: 0, z: 4 }, shape: { kind: 'wheel', teeth: 40, module: 0.1, thickness: 0.16, spokes: 0 } },
     { ...base, id: 'first', arbor: 'first', pos: { x: 0, y: 4, z: 4 }, shape: { kind: 'wheel', teeth: 40, module: 0.1, thickness: 0.16, spokes: 0 } },
     { ...base, id: 'ecc', arbor: 'first', pos: { x: 0, y: 4, z: 4.2 }, shape: { kind: 'eccentric', radius: 0.4, throw: 0.3, thickness: 0.15 } },
-    { ...base, id: 'lever', pos: { x: 0.3, y: 4, z: 4.2 }, shape: { kind: 'pawl-lever', length: 8, reach: 1.6, hole: 0.42, width: 0.4, thickness: 0.12 } },
+    { ...base, id: 'lever', pos: { x: 0.3, y: 4, z: 4.2 }, shape: { kind: 'pawl-lever', length: 8, reach: 1.5, hole: 0.42, width: 0.4, thickness: 0.12 } },
     { ...base, id: 'second', arbor: 'second', pos: { x: 8.3, y: 4, z: 4.2 }, shape: { kind: 'wheel', teeth: 30, module: 0.1, thickness: 0.12, spokes: 0 } },
     { ...base, id: 'second-pinion', arbor: 'second', pos: { x: 8.3, y: 4, z: 3.9 }, shape: { kind: 'pinion', leaves: 10, module: 0.1, length: 0.3 } },
     { ...base, id: 'ratchet', mechanism: 'power', pos: { x: 8.3, y: 7, z: 3.9 }, shape: { kind: 'ratchet', teeth: 50, module: 0.1, thickness: 0.2 } },
@@ -90,6 +90,16 @@ describe('pawl validation', () => {
     expect(errors).toContain('pawl: first is not a eccentric');
     expect(errors).toContain('pawl: unknown part ghost');
     expect(errors).toContain('pawl: ratchet is not a wheel');
+  });
+  it('checks the lever sits on the eccentric\'s pin, reaches the wheel and meets its pitch circle', () => {
+    const c = pawlCaliber();
+    const lever = c.parts.find((p) => p.id === 'lever')!;
+    lever.pos = { ...lever.pos, x: 0.5 };
+    if (lever.shape.kind === 'pawl-lever') lever.shape = { ...lever.shape, reach: 1.6 };
+    const errors = validateCaliber(c);
+    expect(errors).toContain("pawl: lever does not sit on ecc's pin at rest");
+    expect(errors).toContain("pawl: lever does not reach second's centre");
+    expect(errors).toContain("pawl: lever's claws are not on second's pitch circle");
   });
   it('allows only one winding rectifier', () => {
     const c = pawlCaliber();

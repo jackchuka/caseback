@@ -72,7 +72,18 @@ export function validateCaliber(c: Caliber): string[] {
       }
       ref('pawl', cp.wheel);
       const w = byId.get(cp.wheel);
-      if (w && (w.shape.kind !== 'wheel')) errors.push(`pawl: ${cp.wheel} is not a wheel`);
+      if (w && w.shape.kind !== 'wheel') errors.push(`pawl: ${cp.wheel} is not a wheel`);
+      const e = byId.get(cp.eccentric);
+      const l = byId.get(cp.lever);
+      if (e?.shape.kind === 'eccentric' && l?.shape.kind === 'pawl-lever' && w?.shape.kind === 'wheel') {
+        // The lever's hub rides the eccentric's centre at rest, and its claws meet the wheel's pitch circle.
+        const off = 1e-6;
+        const pin = { x: e.pos.x + e.shape.throw * Math.cos(e.rest ?? 0), y: e.pos.y + e.shape.throw * Math.sin(e.rest ?? 0) };
+        if (Math.hypot(l.pos.x - pin.x, l.pos.y - pin.y) > off) errors.push(`pawl: ${cp.lever} does not sit on ${cp.eccentric}'s pin at rest`);
+        const tip = { x: l.pos.x + l.shape.length * Math.cos(l.rest ?? 0), y: l.pos.y + l.shape.length * Math.sin(l.rest ?? 0) };
+        if (Math.hypot(tip.x - w.pos.x, tip.y - w.pos.y) > off) errors.push(`pawl: ${cp.lever} does not reach ${cp.wheel}'s centre`);
+        if (Math.abs(l.shape.reach - (w.shape.teeth * w.shape.module) / 2) > off) errors.push(`pawl: ${cp.lever}'s claws are not on ${cp.wheel}'s pitch circle`);
+      }
     } else {
       ref('escapement', cp.balance);
       ref('escapement', cp.fork);
