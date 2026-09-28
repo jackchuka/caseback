@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../../data/calibers';
 import { legacyConfigs } from './configs';
-import { DIVER } from './fixtures';
+import { DIVER, FIELD } from './fixtures';
 import { movementFrame } from '../frame';
 import { caseRadii } from './radii';
 import { bend } from '../kit/bend';
@@ -20,7 +20,7 @@ const bbox = (ls: { geometry: THREE.BufferGeometry }[]) => {
 };
 
 describe('exterior generators', () => {
-  for (const [id, e] of Object.entries(legacyConfigs)) {
+  for (const [id, e] of Object.entries({ ...legacyConfigs, field: FIELD })) {
     const r = caseRadii(FRAME, e);
     it(`${id}: crystal sits inside the bezel and domes forward`, () => {
       const b = bbox(crystal(e, r));
@@ -44,7 +44,7 @@ describe('exterior generators', () => {
     expect(b.min.x).toBeGreaterThanOrEqual(-(r.outer + 0.01));
   });
   it('prints the right dial furniture', () => {
-    expect(dialTextureSpec(legacyConfigs['hamilton/khaki-field-auto-h70455553']!)).toEqual({ numerals: ['12', '1', '2', '', '4', '5', '6', '7', '8', '9', '10', '11'], ring24: true, outerMinutes: true, minuteTrack: true });
+    expect(dialTextureSpec(FIELD)).toEqual({ numerals: ['12', '1', '2', '', '4', '5', '6', '7', '8', '9', '10', '11'], ring24: true, outerMinutes: true, minuteTrack: true });
     expect(dialTextureSpec(legacyConfigs['sinn/556']!)).toEqual({ numerals: [], ring24: false, outerMinutes: false, minuteTrack: true });
   });
   it('bends a strip around the X axis toward the wrist', () => {
@@ -70,8 +70,7 @@ describe('strap faces', () => {
   it('every strap piece has outward-facing triangles, including the mirrored ones', () => {
     const e = legacyConfigs['sinn/556']!;
     const r = caseRadii(FRAME, e);
-    const hamilton = legacyConfigs['hamilton/khaki-field-auto-h70455553']!;
-    for (const [k, l] of [...strap(e, r), ...strap(hamilton, caseRadii(FRAME, hamilton))].entries()) {
+    for (const [k, l] of [...strap(e, r), ...strap(FIELD, caseRadii(FRAME, FIELD))].entries()) {
       const g = l.geometry.index ? l.geometry.toNonIndexed() : l.geometry;
       const p = g.getAttribute('position');
       g.computeBoundingBox();
@@ -90,23 +89,22 @@ describe('strap faces', () => {
 });
 
 describe('realism details', () => {
-  const ham = legacyConfigs['hamilton/khaki-field-auto-h70455553']!;
-  const hr = caseRadii(FRAME, ham);
+  const hr = caseRadii(FRAME, FIELD);
   it('cuts a date window at 3 o\'clock over the date ring and drops the printed 3', () => {
-    expect(ham.dial.dateWindow).toBe(true);
-    const disc = dialLayers(ham, hr, FRAME).find((l) => l.material === 'dial')!;
+    expect(FIELD.dial.dateWindow).toBe(true);
+    const disc = dialLayers(FIELD, hr, FRAME).find((l) => l.material === 'dial')!;
     const mesh = new THREE.Mesh(disc.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
     const hitAt = (x: number) => new THREE.Raycaster(new THREE.Vector3(x, 0, -10), new THREE.Vector3(0, 0, 1)).intersectObject(mesh).length;
     expect(hitAt(10.8)).toBe(0);
     expect(hitAt(-10.8)).toBeGreaterThan(0);
-    expect(dialTextureSpec(ham).numerals[3]).toBe('');
+    expect(dialTextureSpec(FIELD).numerals[3]).toBe('');
   });
   it('tapers a leather strap toward its end', () => {
-    const pieces = strap(ham, hr);
+    const pieces = strap(FIELD, hr);
     const p = pieces[0]!.geometry.getAttribute('position');
     let nearLug = 0;
     let far = 0;
-    const tip = ham.case.lugToLugMm / 2;
+    const tip = FIELD.case.lugToLugMm / 2;
     for (let i = 0; i < p.count; i++) {
       const y = Math.abs(p.getY(i));
       if (y < tip + 2) nearLug = Math.max(nearLug, Math.abs(p.getX(i)));
@@ -118,7 +116,7 @@ describe('realism details', () => {
 
 describe('dial proportion', () => {
   it('dials fill most of the case, like the real watches (dial radius ≥ 80 % of the case radius)', () => {
-    for (const [id, e] of Object.entries(legacyConfigs)) {
+    for (const [id, e] of Object.entries({ ...legacyConfigs, field: FIELD })) {
       const r = caseRadii(FRAME, e);
       const b = bbox(dialLayers(e, r, FRAME).filter((l) => l.material === 'dial'));
       expect(b.max.x / (e.case.diameterMm / 2), id).toBeGreaterThanOrEqual(e.bezel.kind === 'dive' ? 0.75 : 0.85);

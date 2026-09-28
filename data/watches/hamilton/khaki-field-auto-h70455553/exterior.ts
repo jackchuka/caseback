@@ -1,15 +1,32 @@
-import type { LegacyConfig } from '../../../../src/scene/exterior/legacy/config';
-import { legacyRound } from '../../../../src/scene/exterior/legacy';
+import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
+import { hamiltonBezel } from './bezel';
+import { caseBack, hamiltonCase } from './case';
+import { hamiltonCaseback } from './caseback';
+import { crownX, hamiltonCrown } from './crown';
+import { hamiltonCrystal } from './crystal';
+import { hamiltonDial } from './dial';
+import { hamiltonHands } from './hands';
+import { hamiltonMaterials } from './materials';
+import { H } from './params';
+import { hamiltonStrap } from './strap';
 
-export const config: LegacyConfig = {
-  case: { diameterMm: 38, thicknessMm: 11, lugToLugMm: 47, lugWidthMm: 20, material: 'steel', finish: { top: 'brushed', flank: 'brushed' }, flank: 'straight', chamferMm: 0.4, lugs: { widthMm: 3.0, taper: 0.95, drilled: false } },
-  bezel: { kind: 'plain', widthMm: 1.4, profile: 'sloped', finish: 'polished' },
-  crown: { diameterMm: 6.5, lengthMm: 3.5, tube: false, guards: false },
-  crystal: { domeMm: 0.6 },
-  dial: { color: '#cfcfca', finish: 'sunburst', indices: 'arabic-24', indexColor: '#1a1a1a', lume: '#e8e2cf', dateWindow: true },
-  hands: { style: 'syringe', color: 'silver', seconds: true },
-  strap: { kind: 'leather', color: '#6b4226' },
-  caseback: 'display',
+// Hamilton Khaki Field Auto H70455553, built from reference photos (see shots.ts); dimensions and their sources in
+// params.ts.
+const khakiField: ExteriorBuilder = {
+  geometry: ({ movement: m, quality }) => ({
+    parts: {
+      case: hamiltonCase(m, quality === 'high' ? 0.2 : 0.3),
+      bezel: hamiltonBezel(m),
+      dial: hamiltonDial(m),
+      crystal: hamiltonCrystal(m),
+      strap: hamiltonStrap(m),
+      caseback: hamiltonCaseback(m),
+      crown: hamiltonCrown(),
+      hands: hamiltonHands(),
+    },
+    anchors: { seatRadius: H.bore, crownX: crownX(), caseBackZ: caseBack(m) },
+  }),
+  materials: hamiltonMaterials,
 };
 
-export default legacyRound(config);
+export default khakiField;

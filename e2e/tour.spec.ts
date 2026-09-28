@@ -455,7 +455,7 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
   expect(worst).toBeLessThan(0.02);
 });
 
-for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja']]) {
+for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja'], ['Hamilton Khaki Field Auto', '/watches/hamilton/khaki-field-auto-h70455553?lang=ja']]) {
   test(`${name}: the watch page opens on the dial, and dial chapters remove it @quick`, async ({ page }) => {
     await page.goto(url!);
     await ready(page);
