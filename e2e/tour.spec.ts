@@ -14,17 +14,24 @@ async function ready(page: Page) {
 // OrbitControls when its tween completes), i.e. any in-flight camera flight or dial flip has settled. The
 // tween is created in a React effect after the triggering click, so enabled() may still read stale-true for a
 // few frames; wait out that grace window (real shots run 1.2s+, far longer) before trusting it means "done".
-async function settled(page: Page) {
-  await page.evaluate(async () => {
+// Bounded on its own, so a flight that never lands fails here with a clear message instead of at the test timeout.
+async function settled(page: Page, timeoutMs = 20_000) {
+  const done = await page.evaluate(async (ms) => {
     const h = window.__caseback!;
     const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+    const deadline = performance.now() + ms;
     let sawFlight = false;
     for (let i = 0; i < 15 && !sawFlight; i++) {
       await frame();
       if (!h.enabled()) sawFlight = true;
     }
-    while (!h.enabled()) await frame();
-  });
+    while (!h.enabled()) {
+      if (performance.now() > deadline) return false;
+      await frame();
+    }
+    return true;
+  }, timeoutMs);
+  if (!done) throw new Error(`settled(): the camera was still in flight after ${timeoutMs} ms`);
 }
 
 // Waits for a couple of render frames, for state changes that apply on the next frame of the r3f loop
@@ -401,14 +408,20 @@ test('display caseback lets you see the movement, a solid one does not @quick', 
 test('resizing the window does not move the camera', async ({ page }) => {
   await page.goto('/calibers/eta-2824-2?lang=ja');
   await ready(page);
-  await tick(page);
-  const before = await page.evaluate(() => window.__caseback!.camera());
+  await settled(page);
+  const camera = () => page.evaluate(() => window.__caseback!.camera());
+  const dist = (a: number[], b: number[]) => Math.hypot(a[0]! - b[0]!, a[1]! - b[1]!, a[2]! - b[2]!);
+  // Let auto-rotation carry the camera well away from the start pose first, or a reset to it would go unnoticed.
+  const start = await camera();
+  await expect.poll(async () => dist(await camera(), start), { timeout: 15_000 }).toBeGreaterThan(2);
+  const before = await camera();
   await page.setViewportSize({ width: 1400, height: 880 });
   await page.waitForTimeout(100);
-  const after = await page.evaluate(() => window.__caseback!.camera());
-  const moved = Math.hypot(after[0] - before[0], after[1] - before[1], after[2] - before[2]);
-  // Auto-rotation moves the camera a little in 100 ms; a reset to the start pose moves it much more.
-  expect(moved).toBeLessThan(0.5);
+  const after = await camera();
+  // Auto-rotation moves the camera a little in 100 ms; a reset or re-flight toward the start pose moves it much more,
+  // and a re-flight also hands the camera from the controls to the tween.
+  expect(dist(after, before)).toBeLessThan(0.5);
+  expect(await page.evaluate(() => window.__caseback!.enabled())).toBe(true);
 });
 
 test('the camera keeps looking at its target during chapter flights', async ({ page }) => {
@@ -440,43 +453,26 @@ test('the camera keeps looking at its target during chapter flights', async ({ p
   expect(worst).toBeLessThan(0.02);
 });
 
-test('watch pages open on the dial, and dial chapters remove it @quick', async ({ page }) => {
-  await page.goto('/watches/sinn/556?lang=ja');
-  await ready(page);
-  await tick(page);
-  // Off-centre: at the centre the hour wheel's pipe passes through the dial, as in a real watch.
-  const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
-  const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
-  // The real-time hands sweep over this probe point too; ignore them so the assertion doesn't flake.
-  const front = hits.filter((n) => n !== 'hour-hand' && n !== 'minute-hand' && n !== 'seconds-hand');
-  expect(front.slice(0, 2)).toEqual(['crystal', 'dial']);
-  await page.getByRole('button', { name: '裏蓋を開ける' }).click();
-  await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
-  await page.getByRole('button', { name: '針を動かす' }).click();
-  await settled(page);
-  const [hx, hy] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
-  const dialSide = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [hx, hy]);
-  expect(dialSide).not.toContain('dial');
-});
-
-test('the rebuilt Tudor opens on the dial @quick', async ({ page }) => {
-  await page.goto('/watches/tudor/heritage-black-bay-79220b?lang=ja');
-  await ready(page);
-  await tick(page);
-  // Off-centre: at the centre the hour wheel's pipe passes through the dial, as in a real watch.
-  const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
-  const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
-  // The real-time hands sweep over this probe point too; ignore them so the assertion doesn't flake.
-  const front = hits.filter((n) => n !== 'hour-hand' && n !== 'minute-hand' && n !== 'seconds-hand');
-  expect(front.slice(0, 2)).toEqual(['crystal', 'dial']);
-  await page.getByRole('button', { name: '裏蓋を開ける' }).click();
-  await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
-  await page.getByRole('button', { name: '針を動かす' }).click();
-  await settled(page);
-  const [hx, hy] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
-  const dialSide = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [hx, hy]);
-  expect(dialSide).not.toContain('dial');
-});
+for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79220B', '/watches/tudor/heritage-black-bay-79220b?lang=ja']]) {
+  test(`${name}: the watch page opens on the dial, and dial chapters remove it @quick`, async ({ page }) => {
+    await page.goto(url!);
+    await ready(page);
+    await settled(page);
+    // Off-centre: at the centre the hour wheel's pipe passes through the dial, as in a real watch.
+    const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
+    const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
+    // The real-time hands sweep over this probe point too; ignore them so the assertion doesn't flake.
+    const front = hits.filter((n) => n !== 'hour-hand' && n !== 'minute-hand' && n !== 'seconds-hand');
+    expect(front.slice(0, 2)).toEqual(['crystal', 'dial']);
+    await page.getByRole('button', { name: '裏蓋を開ける' }).click();
+    await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
+    await page.getByRole('button', { name: '針を動かす' }).click();
+    await settled(page);
+    const [hx, hy] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
+    const dialSide = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [hx, hy]);
+    expect(dialSide).not.toContain('dial');
+  });
+}
 
 test('the compare page is not in production builds @quick', async ({ page }) => {
   await page.goto('/dev/compare/sinn/556');
