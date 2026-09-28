@@ -92,6 +92,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
                 {n}
               </li>
             ))}
+            <li className="note">{t('ui:notice.full')}</li>
           </ul>
         </details>
       )}

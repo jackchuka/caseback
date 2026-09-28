@@ -452,3 +452,10 @@ test('the compare page is not in production builds', async ({ page }) => {
   await expect(page.locator('.home')).toBeVisible();
   await expect(page.locator('.compare')).toHaveCount(0);
 });
+
+test('the site states it is unofficial and the models are approximate', async ({ page }) => {
+  await page.goto('/?lang=en');
+  await expect(page.locator('.catalog-footer .notice')).toContainText('Not affiliated with');
+  await page.goto('/watches/sinn/556?lang=ja');
+  await expect(page.locator('.intro .notice')).toContainText('ブランドとは無関係');
+});

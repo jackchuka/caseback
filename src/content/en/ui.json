@@ -72,5 +72,9 @@
     "watchCount": "{{count}} watches",
     "home": "Home",
     "caliberSpecs": "{{d}} mm · {{j}} jewels · {{v}} vph"
+  },
+  "notice": {
+    "full": "An unofficial educational project. Not affiliated with, endorsed or sponsored by any watch brand or manufacturer shown; trademarks belong to their respective owners. The 3D models are approximate reconstructions from public information and photos, and do not accurately reproduce the real watches' shape, dimensions, specifications or design.",
+    "short": "Unofficial and not affiliated with any brand. Models are approximate reconstructions."
   }
 }

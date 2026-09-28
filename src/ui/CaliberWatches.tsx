@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { calibers } from '../../data/calibers';
 import { watchesForCaliber } from '../../data/watches';
 import { useApp } from '../state/app';
+import { Notice } from './Notice';
 import { CatalogHeader } from './CatalogHeader';
 import { hrefCaliber } from './catalogLinks';
 import { WatchCard } from './WatchCard';
@@ -22,6 +23,9 @@ export function CaliberWatches({ caliberId }: { caliberId: string }) {
           <WatchCard key={w.id} watch={w} />
         ))}
       </ul>
+      <footer className="catalog-footer">
+        <Notice />
+      </footer>
     </main>
   );
 }

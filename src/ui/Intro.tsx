@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { introFacts } from './introFacts';
+import { Notice } from './Notice';
 import { appStore, useApp } from '../state/app';
 
 export function Intro({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
@@ -31,6 +32,7 @@ export function Intro({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
         {t('ui:intro.open')}
       </button>
       <div className="scroll">{t('ui:intro.scroll')}</div>
+      <Notice short />
     </section>
   );
 }

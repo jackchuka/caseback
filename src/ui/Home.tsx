@@ -5,6 +5,7 @@ import { watches, watchesForCaliber } from '../../data/watches';
 import { searchCatalog } from '../app/catalog';
 import { useApp } from '../state/app';
 import { CatalogHeader } from './CatalogHeader';
+import { Notice } from './Notice';
 import { hrefCaliber, hrefCaliberWatches } from './catalogLinks';
 import { WatchCard } from './WatchCard';
 
@@ -51,6 +52,9 @@ export function Home() {
           <a className="cta" href={`${import.meta.env.BASE_URL}dev/compare`}>Compare with reference photos →</a>
         </section>
       )}
+      <footer className="catalog-footer">
+        <Notice />
+      </footer>
     </main>
   );
 }

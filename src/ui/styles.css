@@ -152,3 +152,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
   .catalog { padding: 16px 16px 40px; }
   .catalog h1 { font-size: 26px; }
 }
+
+.notice { font-size: 11px; line-height: 1.8; color: var(--muted); }
+.intro .notice { margin-top: 28px; }
+.catalog-footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line); max-width: 760px; }
