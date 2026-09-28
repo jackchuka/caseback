@@ -22,7 +22,7 @@ export const T = {
   lugHeelRun: 4, // photo:crown-low
   bevel: 0.9, // photo:front: the polished band along the case edge is ~5 px wide
   backChamfer: 0.3, // est
-  edge: 0.25, // softening of every crease
+  edge: 0.25, // est: softening of every crease; ~1.5 px in the front shot, too fine to measure, set to catch a highlight
   bore: 16.2, // est: inner radius of the case middle (movement seat)
   holeRadius: 0.55, // est: spring-bar hole
   holeInset: 1.7, // est: hole centre from lug tip
@@ -68,13 +68,17 @@ export const T = {
 
   crownDiameter: 8, // photo:front: 8.1 mm across the flutes
   crownLength: 2.8, // photo:front: the crown ends 23.4 mm from the centre
-  tubeDiameter: 4.2, // est: photo:three-quarter
+  tubeDiameter: 4.2, // est: hidden behind the crown in every shot
   tubeLength: 0.5, // photo:front: a short dark neck between case and crown
 
-  // centerRatio: photo:front, centre-piece width / total link width at mid-height, on the first link past the end
-  // link. chamfer, crown: est — the photo shows a bevel highlight along each edge and a brighter, domed centre
-  // piece, but not their depth. The rest of the object is est.
-  bracelet: { endWidth: 18, pitch: 6.5, centerRatio: 0.55, thickness: 2.6, links: 6, gap: 0.15, wristRadius: 26, centerRaise: 0.15, chamfer: 0.3, crown: 0.12 },
+  // photo:front — centerRatio: centre-piece width / total link width at mid-height, on the first link past the end
+  // link. pitch: gap to gap, 146 px mean over five link gaps near the case on bobs-126699.jpg (flat and square on,
+  // 0.058 mm/px from the bezel); the front shot's own link gaps are too blurred and uneven to read. endWidth: the
+  // last visible row of the front shot is 109–118 px (18.5–20 mm) across. links: the front shot's bracelet runs
+  // until it turns away under the watch, a quarter turn of the wrist curve, which 5 links reach.
+  // est — chamfer, crown: the photo shows a bevel highlight along each edge and a brighter, domed centre piece, but
+  // not their depth (sub-pixel); thickness, gap, wristRadius, centerRaise.
+  bracelet: { endWidth: 19, pitch: 8.5, centerRatio: 0.55, thickness: 2.6, links: 5, gap: 0.15, wristRadius: 26, centerRaise: 0.15, chamfer: 0.3, crown: 0.12 },
   lume: '#f2eee2', // matches the movement lume the hands must use
   insertBlue: '#1b2a4a', // photo:front: matches only the hue of the insert's shaded areas (RGB 12, 18, 32), not their darkness
 } as const;
