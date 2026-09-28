@@ -1,9 +1,9 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import * as THREE from 'three';
-import type { LayerMaterial } from '../geometry/parts';
+import type { MovementMaterial } from '../geometry/parts';
 import { cotesDeGeneve, dateNumbers, perlage, sunburst } from './textures';
 
-export type MaterialSet = Record<LayerMaterial, THREE.MeshPhysicalMaterial>;
+export type MaterialSet = Record<MovementMaterial, THREE.MeshPhysicalMaterial>;
 
 export function createMaterials(): MaterialSet {
   const cotes = cotesDeGeneve();
@@ -23,6 +23,7 @@ export function createMaterials(): MaterialSet {
     }),
     blued: new THREE.MeshPhysicalMaterial({ color: 0x1b3aa8, metalness: 1, roughness: 0.18, iridescence: 0.5, iridescenceIOR: 1.6 }),
     slot: new THREE.MeshPhysicalMaterial({ color: 0x050a1a, metalness: 0.5, roughness: 0.6 }),
+    lume: new THREE.MeshPhysicalMaterial({ color: 0xf2eee2, roughness: 0.5, metalness: 0 }),
     date: new THREE.MeshPhysicalMaterial({ map: dates, roughness: 0.45, clearcoat: 0.4 }),
   };
 }

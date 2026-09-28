@@ -1,7 +1,7 @@
 import type { ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import type * as THREE from 'three';
-import { buildShape } from '../geometry/parts';
+import { buildShape, type MovementMaterial } from '../geometry/parts';
 import type { Part } from '../model/schema';
 import { focusKey } from '../model/validate';
 import { useMaterials } from './materials';
@@ -10,7 +10,8 @@ import { registry } from './registry';
 export function PartMesh({ part, onPick }: { part: Part; onPick: (focus: string) => void }) {
   const materials = useMaterials();
   const layers = useMemo(() => buildShape(part.shape, part.material), [part]);
-  const mats = useMemo(() => layers.map((l) => materials[l.material].clone()), [layers, materials]);
+  // Caliber part shapes only ever produce movement materials; watch materials belong to the exterior.
+  const mats = useMemo(() => layers.map((l) => materials[l.material as MovementMaterial].clone()), [layers, materials]);
   const ref = useRef<THREE.Group>(null);
 
   useEffect(() => {

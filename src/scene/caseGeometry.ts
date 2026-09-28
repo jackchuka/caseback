@@ -20,3 +20,5 @@ export function bezelProfile(outer: number, bottom: number): Array<[number, numb
   const top = bottom - 0.02;
   return [[outer - 3.0, top], [outer - 0.3, top], [outer - 0.2, bottom - 0.5], [outer - 0.5, bottom - 1.0], [outer - 3.0, bottom - 1.0], [outer - 3.0, top]];
 }
+
+export type CaseRadii = ReturnType<typeof caseRadii>;
