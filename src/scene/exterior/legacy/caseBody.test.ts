@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../../data/calibers';
 import { legacyConfigs } from './configs';
+import { DIVER } from './fixtures';
 import { movementFrame } from '../frame';
 import { caseRadii } from './radii';
 import { caseBody, caseShape, springBar } from './caseBody';
@@ -68,7 +69,7 @@ describe('one-piece case middle', () => {
 });
 
 describe('crown guards', () => {
-  const base = legacyConfigs['tudor/heritage-black-bay-79220b']!;
+  const base = DIVER;
   const guarded = { ...base, crown: { ...base.crown, guards: true } };
   const r = caseRadii(FRAME, guarded);
   const cr = guarded.crown.diameterMm / 2;

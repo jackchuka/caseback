@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../../data/calibers';
 import { legacyConfigs } from './configs';
+import { DIVER } from './fixtures';
 import { movementFrame } from '../frame';
 import { caseRadii } from './radii';
 import { bend } from '../kit/bend';
@@ -36,7 +37,7 @@ describe('exterior generators', () => {
     });
   }
   it('dive bezel stays within the case outline', () => {
-    const e = legacyConfigs['tudor/heritage-black-bay-79220b']!;
+    const e = DIVER;
     const r = caseRadii(FRAME, e);
     const b = bbox(bezel(e, r));
     expect(b.max.x).toBeLessThanOrEqual(r.outer + 0.01);
@@ -56,7 +57,7 @@ describe('exterior generators', () => {
 
 describe('dive bezel insert', () => {
   it('sits on the front (dial) side of the case', () => {
-    const e = legacyConfigs['tudor/heritage-black-bay-79220b']!;
+    const e = DIVER;
     const r = caseRadii(FRAME, e);
     const insert = bezel(e, r).filter((l) => l.material === 'insert');
     expect(insert).toHaveLength(1);
@@ -128,7 +129,7 @@ describe('dial proportion', () => {
 import { crown, fluteCount } from './crown';
 describe('crown', () => {
   it('turns a fluted grip at the real diameter and length', () => {
-    const e = legacyConfigs['tudor/heritage-black-bay-79220b']!;
+    const e = DIVER;
     const body = crown(e, caseRadii(FRAME, e))[0]!.geometry;
     const p = body.getAttribute('position');
     const radii: number[] = [];

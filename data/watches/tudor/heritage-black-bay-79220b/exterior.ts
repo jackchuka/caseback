@@ -1,15 +1,29 @@
-import type { LegacyConfig } from '../../../../src/scene/exterior/legacy/config';
-import { legacyRound } from '../../../../src/scene/exterior/legacy';
+import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
+import { caseback } from '../../../../src/scene/exterior/kit/caseback';
+import { tudorBezel } from './bezel';
+import { tudorBracelet } from './bracelet';
+import { caseShape, tudorCase } from './case';
+import { crownX, tudorCrown } from './crown';
+import { tudorCrystal } from './crystal';
+import { tudorDial } from './dial';
+import { tudorHands } from './hands';
+import { tudorMaterials } from './materials';
+import { T } from './params';
 
-export const config: LegacyConfig = {
-  case: { diameterMm: 41, thicknessMm: 13, lugToLugMm: 50, lugWidthMm: 22, material: 'steel', finish: { top: 'brushed', flank: 'polished' }, flank: 'sloped', chamferMm: 0.8, lugs: { widthMm: 3.6, taper: 1, drilled: false } },
-  bezel: { kind: 'dive', widthMm: 3.4, finish: 'polished', color: '#c8cbd0', insertColor: '#1f3f8f' },
-  crown: { diameterMm: 8, lengthMm: 4, tube: true, tubeColor: '#1f3f8f', guards: false },
-  crystal: { domeMm: 1.2 },
-  dial: { color: '#0d0d0f', finish: 'gloss', indices: 'diver-dots', indexColor: '#efe9dc', lume: '#efe9dc', dateWindow: false },
-  hands: { style: 'pencil', color: 'silver', seconds: true, secondsDot: true },
-  strap: { kind: 'bracelet', color: '#c8cbd0' },
-  caseback: 'solid',
-};
+// Tudor Heritage Black Bay 79220B, built from reference photos (see shots.ts); dimensions and their sources in params.ts.
+const tudor79220b: ExteriorBuilder = ({ movement: m, quality }) => ({
+  parts: {
+    case: tudorCase(m, quality === 'high' ? 0.2 : 0.3),
+    bezel: tudorBezel(m),
+    dial: tudorDial(m),
+    crystal: tudorCrystal(m),
+    strap: tudorBracelet(m),
+    caseback: caseback(T.caseRadius, false, caseShape(m).back + 0.6),
+    crown: tudorCrown(),
+    hands: tudorHands(T.dialRadius),
+  },
+  materials: tudorMaterials(),
+  anchors: { seatRadius: T.bore, crownX: crownX() },
+});
 
-export default legacyRound(config);
+export default tudor79220b;
