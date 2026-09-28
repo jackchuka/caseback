@@ -7,7 +7,7 @@ import tudor79220b from './exterior';
 
 const m = movementFrame(calibers['eta-2824-2']!);
 
-// Vertex count, bounding box and coordinate sums per layer: any change to a part's geometry shows up here, so moving
+// Vertex count, bounding box, and coordinate, polish and UV sums per layer: any change to a part's geometry shows up here, so moving
 // its code into the shared kit is proven not to have moved a single vertex.
 const fingerprint = (ls: ExteriorLayer[]) =>
   ls.map((l) => {
@@ -16,7 +16,14 @@ const fingerprint = (ls: ExteriorLayer[]) =>
     let sx = 0, sy = 0, sz = 0;
     for (let i = 0; i < p.count; i++) { sx += Math.abs(p.getX(i)); sy += Math.abs(p.getY(i)); sz += p.getZ(i); }
     const r = (v: number) => Math.round(v * 1000) / 1000;
-    return `${l.name ?? ''}:${String(l.material)} n=${p.count} i=${l.geometry.index?.count ?? 0} box=${[b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z].map(r).join(',')} sum=${[sx, sy, sz].map((v) => r(v / 10)).join(',')}`;
+    const total = (name: string) => {
+      const a = l.geometry.getAttribute(name);
+      if (!a) return '-';
+      let t = 0;
+      for (let i = 0; i < a.count; i++) for (let k = 0; k < a.itemSize; k++) t += a.getComponent(i, k);
+      return String(r(t / 10));
+    };
+    return `${l.name ?? ''}:${String(l.material)} n=${p.count} i=${l.geometry.index?.count ?? 0} box=${[b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z].map(r).join(',')} sum=${[sx, sy, sz].map((v) => r(v / 10)).join(',')} polish=${total('polish')} uv=${total('uv')}`;
   });
 
 describe('Tudor 79220B geometry fingerprint', () => {
