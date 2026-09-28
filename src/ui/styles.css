@@ -129,7 +129,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .crown-ctl .turn { display: block; width: 100%; color: var(--fg); background: rgba(217, 179, 108, 0.12); border-color: var(--acc); user-select: none; touch-action: none; }
 .crown-ctl .turn:active { background: rgba(217, 179, 108, 0.3); }
 
-.catalog { height: 100%; overflow: auto; padding: 22px 26px 60px; max-width: 1180px; margin: 0 auto; }
+.catalog { height: 100%; overflow: auto; padding: 22px max(26px, calc((100% - 1128px) / 2)) 60px; }
 .catalog-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
 .catalog-header .brand { color: var(--fg); text-decoration: none; }
 .catalog-header .lang { display: flex; padding: 4px; }
