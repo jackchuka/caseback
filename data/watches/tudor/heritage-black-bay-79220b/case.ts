@@ -24,16 +24,16 @@ export function caseShape(m: MovementFrame) {
   const phi = Math.atan2(tip, xo) - Math.acos(R / Math.hypot(xo, tip));
   const tx = R * Math.cos(phi), ty = R * Math.sin(phi);
   const lug = roundedConvex([[lw, 0], [tx, ty], [xo, tip], [lw, tip]], T.lugTipRound);
+  // Outward normal of the lug's outer edge, from T to the tip corner.
+  const ol = Math.hypot(xo - tx, tip - ty), onx = (tip - ty) / ol, ony = (tx - xo) / ol, oc = onx * tx + ony * ty;
   const plan = (x: number, y: number) => {
     const disc = Math.hypot(x, y) - R;
     // Deep inside the drum only the sign matters.
     if (disc < -2) return disc;
     const ax = Math.abs(x), ay = Math.abs(y);
-    // Outside the lug's bounding box its distance is at least the distance to the box; beyond the blend it cannot
-    // change the result.
-    const bx = Math.max(lw - ax, ax - tx, 0), by = Math.max(ay - tip, 0);
-    const box = Math.hypot(bx, by);
-    return box > 0 && box >= disc + T.lugFillet ? disc : smin(disc, lug(ax, ay), T.lugFillet);
+    // The lug's edge lines bound its distance from below; beyond the blend the lug cannot change the result.
+    const bound = Math.max(lw - ax, onx * ax + ony * ay - oc, ay - tip);
+    return bound >= disc + T.lugFillet ? disc : smin(disc, lug(ax, ay), T.lugFillet);
   };
   // 0 at the bezel's edge, 1 at the lug tip, measured along the lug.
   const run = (x: number, y: number) => {

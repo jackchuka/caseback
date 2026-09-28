@@ -3,10 +3,12 @@
 export const T = {
   caseRadius: 20.5, // spec: 41 mm
   totalThickness: 13, // spec: caseback to crystal apex
-  // The crown sits 4.4 mm behind the case front in crown-low, but the movement model is 7.4 mm deep (rotor back at
-  // z 4.75), so pushing the case front further forward would either break 13 mm or let the rotor through the back.
-  caseFrontOffset: 1.0, // photo:crown-low (capped by the movement): case front ahead of the movement's frontZ
-  caseHeight: 8.55, // est: case middle, front face to caseback seat; its back clears the rotor
+  // Deliberate deviation: the movement model is deeper than the real 2824 (rotor back at z 4.75); see ledger. With
+  // the crown centre at its measured depth the watch comes out ~14.5 mm thick, not 13, and the extra depth goes into a
+  // thick screw-down back so the rotor stays inside.
+  caseFrontOffset: 3.1, // photo:crown-low: puts the crown centre 4.4 mm behind the case front
+  caseHeight: 8.55, // photo:crown-low: case middle, front face to caseback seat; the crown spans most of it
+  casebackThickness: 2.2, // deviation (see above): reaches back past the rotor
   lugToLug: 50, // spec: 50 mm (aBlogtoWatch, Millenary)
   lugGap: 22, // spec: lug width
   lugWidth: 2.9, // photo:front: lug top at the tip, gap edge to outer edge (bobs-126699.jpg agrees)
