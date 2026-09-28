@@ -9,14 +9,13 @@ import { buildShape } from '../../geometry/parts';
 import { casingSpan } from '../caseGeometry';
 import { MOVEMENT_MATERIAL_KEYS, SHARED_EXTERIOR_MATERIALS, materialKeys } from './materials';
 
-const FRAME = movementFrame(calibers['eta-2824-2']!);
 // The deepest point any back-side movement part actually renders to (pins, bosses and bevels included), not its nominal size.
-const MOVEMENT_BACK = Math.max(
-  ...calibers['eta-2824-2']!.parts
-    .filter((p) => p.side === 'back')
-    .flatMap((p) => buildShape(p.shape, p.material).map((l) => { l.geometry.computeBoundingBox(); return l.geometry.boundingBox!.max.z + p.pos.z; })),
-);
-const ctx = { movement: FRAME, quality: 'low' as const };
+const movementBack = (caliberId: string) =>
+  Math.max(
+    ...calibers[caliberId]!.parts
+      .filter((p) => p.side === 'back')
+      .flatMap((p) => buildShape(p.shape, p.material).map((l) => { l.geometry.computeBoundingBox(); return l.geometry.boundingBox!.max.z + p.pos.z; })),
+  );
 
 const vertices = (layers: ExteriorLayer[]) =>
   layers.flatMap((l) => {
@@ -25,11 +24,18 @@ const vertices = (layers: ExteriorLayer[]) =>
   });
 const box = (layers: ExteriorLayer[]) => new THREE.Box3().setFromPoints(vertices(layers));
 
-const builders: Array<[string, ExteriorBuilder]> = [['generic', genericCase], ...Object.values(watches).map((w): [string, ExteriorBuilder] => [w.id, w.exterior])];
+// The generic case is checked around the default caliber; every watch around its own.
+const builders: Array<[string, ExteriorBuilder, string]> = [
+  ['generic', genericCase, 'eta-2824-2'],
+  ...Object.values(watches).map((w): [string, ExteriorBuilder, string] => [w.id, w.exterior, w.caliberId]),
+];
 
 describe('exterior contract', () => {
-  for (const [id, builder] of builders) {
+  for (const [id, builder, caliberId] of builders) {
     describe(id, () => {
+      const FRAME = movementFrame(calibers[caliberId]!);
+      const MOVEMENT_BACK = movementBack(caliberId);
+      const ctx = { movement: FRAME, quality: 'low' as const };
       // Built once per builder (not at describe time) so a throwing builder fails only its own tests, under its id.
       let b: ExteriorBuild;
       let p: ExteriorBuild['parts'];

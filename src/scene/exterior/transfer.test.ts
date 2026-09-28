@@ -6,9 +6,9 @@ import { movementFrame } from './frame';
 import { packExterior, unpackExterior } from './transfer';
 
 describe('exterior transfer', () => {
-  const ctx = { movement: movementFrame(calibers['eta-2824-2']!), quality: 'low' as const };
   for (const w of Object.values(watches)) {
     it(`${w.id} survives a structured clone`, () => {
+      const ctx = { movement: movementFrame(calibers[w.caliberId]!), quality: 'low' as const };
       const { packed, transfer } = packExterior(w.exterior.geometry(ctx));
       const expected = structuredClone(packed);
       const back = unpackExterior(structuredClone(packed, { transfer }));

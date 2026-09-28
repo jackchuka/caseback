@@ -1,0 +1,238 @@
+{
+  "chapters": {
+    "time": {
+      "title": "Keeping time"
+    },
+    "hands": {
+      "title": "Moving the hands"
+    },
+    "date": {
+      "title": "Turning the date"
+    },
+    "auto": {
+      "title": "Self-winding"
+    },
+    "crown": {
+      "title": "Crown"
+    }
+  },
+  "steps": {
+    "time-overview": {
+      "kicker": "Overview",
+      "title": "From power to time",
+      "body": "Seiko's workhorse: the mainspring's force turns into speed through four wheels and is sliced into even beats by the balance, {{specs.beatsPerSecond}} times a second. Follow the light to trace the flow."
+    },
+    "time-barrel": {
+      "kicker": "1 · Power",
+      "body": "The mainspring coiled inside wants to unwind. Fully wound it runs the watch for more than {{specs.powerReserveH}} hours; eight turns of the ratchet wheel wind it from empty to full."
+    },
+    "time-center": {
+      "kicker": "2 · Going train",
+      "body": "Pushed by the barrel, it turns exactly once an hour and carries the minute hand. It sits low, right on the plate, so the fourth wheel can turn above it on the same axis."
+    },
+    "time-third": {
+      "kicker": "3 · Going train",
+      "body": "Its {{parts.third-wheel.teeth}} teeth drive a pinion of {{parts.fourth-pinion.teeth}} leaves, trading force for speed. It hands the motion back to the centre, to the fourth wheel."
+    },
+    "time-fourth": {
+      "kicker": "4 · Going train",
+      "body": "It turns once a minute right on the centre, above the centre wheel: its long arbor runs through the hollow centre pinion and carries the seconds hand directly."
+    },
+    "time-escape": {
+      "kicker": "5 · Escapement",
+      "body": "The last wheel of the train, with {{parts.escape-wheel.teeth}} teeth. Left alone it would spin away; the pallet fork stops and releases it one tooth at a time."
+    },
+    "time-fork": {
+      "kicker": "6 · Escapement",
+      "body": "Two ruby pallet stones lock the escape wheel in turn, and at each release give the balance a small push that keeps it swinging."
+    },
+    "time-balance": {
+      "kicker": "7 · Regulator",
+      "body": "Paired with its hairspring, it beats {{specs.beatsPerSecond}} times a second ({{specs.hz}} full swings), slower than the 2824's 8. A slower beat costs a little precision and saves energy."
+    },
+    "hands-overview": {
+      "kicker": "Motion works",
+      "title": "Under the dial",
+      "body": "Turn the movement over and the motion works appear under the dial. They split the centre wheel's rotation into the speeds of the minute and hour hands."
+    },
+    "hands-cannon": {
+      "kicker": "1 · Motion works",
+      "body": "Held on the centre arbor by friction, it carries the minute hand. When you set the time this friction slips, so the hands turn without forcing the train."
+    },
+    "hands-minute-wheel": {
+      "kicker": "2 · Motion works",
+      "body": "Its {{parts.minute-wheel.teeth}} teeth slow the cannon pinion by three, and its {{parts.minute-pinion.teeth}}-leaf pinion passes the motion on to the hour wheel."
+    },
+    "hands-hour": {
+      "kicker": "3 · Motion works",
+      "body": "It turns once in twelve hours and carries the hour hand. 3 × 4 = 12 gives exactly twelve turns of the minute hand per turn of the hour hand."
+    },
+    "date-driver": {
+      "kicker": "1 · Calendar",
+      "body": "Meshed with the hour wheel, it turns once a day. Its finger pushes one tooth of the date disc once every 24 hours."
+    },
+    "date-ring": {
+      "kicker": "2 · Calendar",
+      "body": "A disc with 31 teeth on the inside, its dates printed where the window at 3 o'clock sits. Around midnight the finger pushes it forward by one day."
+    },
+    "auto-rotor": {
+      "kicker": "Automatic",
+      "body": "A half-moon weight on a ball bearing that swings as your wrist moves. A gear ring around its hub turns the self-winding works whichever way it goes."
+    },
+    "auto-first-reduction": {
+      "kicker": "1 · Automatic",
+      "body": "The rotor's gear turns this wheel back and forth. On its arbor sits an off-centre cam, the eccentric: as the wheel turns, the eccentric's centre circles the arbor."
+    },
+    "auto-pawl-lever": {
+      "kicker": "2 · Magic Lever",
+      "body": "Seiko's pawl lever rides the eccentric, so every turn strokes it to and fro. Its two claws straddle the next wheel: one pulls a tooth on the way in, the other pushes a tooth on the way out. Both strokes turn the wheel the same way, so it winds whichever way the rotor swings — with one part instead of the reversing wheels most movements use."
+    },
+    "auto-second-reduction": {
+      "kicker": "3 · Automatic",
+      "body": "Stepped round by the claws, it only ever turns one way. Its {{parts.second-reduction-pinion.teeth}}-leaf pinion underneath slows the motion further and passes it on to the ratchet wheel."
+    },
+    "auto-ratchet": {
+      "kicker": "4 · Power",
+      "body": "Turning with the barrel arbor, it winds the mainspring — about {{hoursPerTurn}} hours per turn. A click stops it running back, and the energy flows on into the going train."
+    },
+    "crown-stem": {
+      "kicker": "1 · Keyless works",
+      "body": "The stem behind the crown runs in a pocket inside the plate itself. It clicks out 0.4 mm per position; pick one below and turn the crown."
+    },
+    "crown-sliding": {
+      "kicker": "2 · Keyless works",
+      "body": "The clutch wheel turns with the stem. At position 0 it meshes with the winding pinion to wind; at 1 it quick-sets the date; at 2 it slides over to the setting wheel to set the hands."
+    },
+    "crown-hacking": {
+      "kicker": "3 · Hacking",
+      "body": "Pulled to position 2, a lever stops the balance (hacking seconds). Set the hands, push the crown in, and it starts again. Avoid quick-setting the date (position 1) between 21:00 and 01:00, as Seiko's manual asks."
+    }
+  },
+  "parts": {
+    "plate": {
+      "name": "Main plate",
+      "en": "Main plate",
+      "body": "The foundation every part sits on, 27.4 mm across. The stem runs in a pocket cut into it."
+    },
+    "barrel": {
+      "name": "Barrel",
+      "en": "Barrel",
+      "body": "The drum that holds the mainspring. Its toothed rim sends power into the going train."
+    },
+    "ratchet": {
+      "name": "Ratchet wheel",
+      "en": "Ratchet wheel",
+      "body": "Turns with the barrel arbor to wind the mainspring; both the crown and the self-winding works turn it."
+    },
+    "center": {
+      "name": "Center wheel",
+      "en": "Center wheel",
+      "body": "Turns once an hour and drives the minute hand."
+    },
+    "third": {
+      "name": "Third wheel",
+      "en": "Third wheel",
+      "body": "The intermediate wheel between the centre and fourth wheels."
+    },
+    "fourth": {
+      "name": "Fourth wheel",
+      "en": "Fourth wheel",
+      "body": "Turns once a minute on the centre and carries the seconds hand."
+    },
+    "escape": {
+      "name": "Escape wheel",
+      "en": "Escape wheel",
+      "body": "The last wheel of the train, released one tooth at a time by the pallet fork."
+    },
+    "fork": {
+      "name": "Pallet fork",
+      "en": "Pallet fork",
+      "body": "The lever that locks and releases the escape wheel and impulses the balance."
+    },
+    "balance": {
+      "name": "Balance wheel",
+      "en": "Balance wheel",
+      "body": "The oscillator that, with its hairspring, swings at a constant 3 Hz."
+    },
+    "train-bridge": {
+      "name": "Barrel and train wheel bridge",
+      "en": "Barrel and train wheel bridge",
+      "body": "One large bridge holds the barrel and the going-train wheels from above."
+    },
+    "pallet-bridge": {
+      "name": "Pallet bridge",
+      "en": "Pallet bridge",
+      "body": "A small bridge that holds the pallet fork's arbor."
+    },
+    "balance-cock": {
+      "name": "Balance cock",
+      "en": "Balance cock",
+      "body": "Supports the balance from one side only; its shock absorber protects the balance staff."
+    },
+    "automatic-bridge": {
+      "name": "Automatic train bridge",
+      "en": "Automatic train bridge",
+      "body": "Holds the first and second reduction wheels over the barrel and train bridge."
+    },
+    "cannon": {
+      "name": "Cannon pinion",
+      "en": "Cannon pinion",
+      "body": "The friction-fitted pinion that carries the minute hand."
+    },
+    "minute-wheel": {
+      "name": "Minute wheel",
+      "en": "Minute wheel",
+      "body": "Slows the cannon pinion down on its way to the hour wheel."
+    },
+    "hour": {
+      "name": "Hour wheel",
+      "en": "Hour wheel",
+      "body": "Turns once in twelve hours and carries the hour hand."
+    },
+    "date-driver": {
+      "name": "Date driving wheel",
+      "en": "Date driving wheel",
+      "body": "Turns once a day and advances the date disc with its finger."
+    },
+    "date-ring": {
+      "name": "Date disc",
+      "en": "Date disc",
+      "body": "The disc printed with the dates 1 to 31."
+    },
+    "rotor": {
+      "name": "Oscillating weight",
+      "en": "Oscillating weight",
+      "body": "The half-moon weight turned by your wrist, with a gear ring around its hub."
+    },
+    "first-reduction": {
+      "name": "First reduction wheel",
+      "en": "First reduction wheel",
+      "body": "Turned by the rotor, it carries the eccentric that drives the pawl lever."
+    },
+    "pawl-lever": {
+      "name": "Pawl lever (Magic Lever)",
+      "en": "Pawl lever",
+      "body": "Seiko's Magic Lever: a lever on the eccentric whose pulling and pushing claws turn the next wheel one way only."
+    },
+    "second-reduction": {
+      "name": "Second reduction wheel",
+      "en": "Second reduction wheel",
+      "body": "Stepped round by the pawl lever's claws; its pinion turns the ratchet wheel."
+    },
+    "stem": {
+      "name": "Winding stem",
+      "en": "Winding stem",
+      "body": "Connected to the crown; its position selects winding, date or time setting."
+    },
+    "sliding-pinion": {
+      "name": "Clutch wheel",
+      "en": "Clutch wheel",
+      "body": "Slides along the stem to change what it meshes with."
+    },
+    "setting-wheel": {
+      "name": "Setting wheel",
+      "en": "Setting wheel",
+      "body": "Passes the stem's rotation to the minute wheel when setting the time."
+    }
+  }
+}
