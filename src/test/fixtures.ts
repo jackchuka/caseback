@@ -11,7 +11,6 @@ export function miniCaliber(): Caliber {
     { ...base, id: 'fork', mechanism: 'escapement', pos: { x: 8, y: 0, z: 0.5 }, shape: { kind: 'pallet-fork', span: 2.8, length: 3, thickness: 0.14 } },
     { ...base, id: 'bal', mechanism: 'regulator', pos: { x: 12, y: 0, z: 0.5 }, shape: { kind: 'balance', radius: 4, rimThickness: 0.2, arms: 2 } },
     { ...base, id: 'plate', mechanism: 'frame', explode: { dz: -2 }, pos: { x: 0, y: 0, z: -0.5 }, shape: { kind: 'plate', radius: 16, thickness: 1 } },
-    { ...base, id: 'hour-hand', mechanism: 'motion-works', side: 'dial', pos: { x: 0, y: 0, z: -2.95 }, shape: { kind: 'hand', length: 6.2, width: 0.42, thickness: 0.08 } },
   ];
   return {
     id: 'mini',
