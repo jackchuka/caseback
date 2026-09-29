@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { calibers } from '../../data/calibers';
-import type { Watch } from '../model/watch';
+import type { WatchMeta } from '../model/watch';
 import { useApp } from '../state/app';
 import { hrefCaliber, hrefWatch } from './catalogLinks';
 
-export function WatchCard({ watch }: { watch: Watch }) {
+export function WatchCard({ watch }: { watch: WatchMeta }) {
   const { t } = useTranslation();
   const lang = useApp((s) => s.lang);
   const caliber = calibers[watch.caliberId]!;

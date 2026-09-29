@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { calibers } from '../../data/calibers';
-import { watches, watchesForCaliber } from '../../data/watches';
+import { watchesForCaliber, watchMetas } from '../../data/watches/meta';
 import { searchCatalog } from '../app/catalog';
 import { useApp } from '../state/app';
 import { CatalogHeader } from './CatalogHeader';
@@ -13,7 +13,7 @@ export function Home() {
   const { t } = useTranslation();
   const lang = useApp((s) => s.lang);
   const [q, setQ] = useState('');
-  const found = searchCatalog(q, Object.values(calibers), Object.values(watches));
+  const found = searchCatalog(q, Object.values(calibers), Object.values(watchMetas));
   return (
     <main className="home catalog">
       <CatalogHeader />

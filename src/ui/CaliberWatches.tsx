@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { calibers } from '../../data/calibers';
-import { watchesForCaliber } from '../../data/watches';
+import { watchesForCaliber } from '../../data/watches/meta';
 import { useApp } from '../state/app';
 import { Notice } from './Notice';
 import { CatalogHeader } from './CatalogHeader';
