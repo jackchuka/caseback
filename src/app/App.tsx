@@ -50,7 +50,7 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
           </Suspense>
         </MaterialsProvider>
         <OrbitControls makeDefault enableDamping minDistance={10} maxDistance={140} autoRotate={mode === 'intro'} autoRotateSpeed={0.35} enableZoom={mode !== 'intro'} />
-        {quality === 'high' && <Effects />}
+        {quality === 'high' && <Effects caliber={caliber} />}
       </Canvas>
       <TopBar caliber={caliber} watch={watch} />
       <Intro caliber={caliber} watch={watch} />
