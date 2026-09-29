@@ -25,8 +25,9 @@ import { InfoPanel } from '../ui/InfoPanel';
 import { Intro } from '../ui/Intro';
 import { TopBar } from '../ui/TopBar';
 import { TourBar } from '../ui/TourBar';
+import { shadowsSupported, type WebGLProbe } from './webgl';
 
-export function App({ caliber, i18n, webglError, watch, exterior }: { caliber: Caliber; i18n: i18n; webglError: string | null; watch?: Watch; exterior: ExteriorBuild | Promise<ExteriorBuild> }) {
+export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Caliber; i18n: i18n; webgl: WebGLProbe; watch?: Watch; exterior: ExteriorBuild | Promise<ExteriorBuild> }) {
   const quality = useApp((s) => s.quality);
   const mode = useApp((s) => s.mode);
   useThemeAttr();
@@ -34,11 +35,11 @@ export function App({ caliber, i18n, webglError, watch, exterior }: { caliber: C
   useKeyboard();
   useUrlSync(caliber);
   const [contextLost, setContextLost] = useState(false);
-  if (webglError !== null) return <Fallback reason={webglError} />;
+  if (webgl.error !== null) return <Fallback reason={webgl.error} />;
   return (
     <>
       <Canvas
-        shadows
+        shadows={shadowsSupported(webgl.renderer)}
         dpr={quality === 'high' ? [1, 2] : [1, 1.5]}
         camera={{ fov: 26, near: 0.5, far: 400, position: [-24, 52, 62] }}
         // The effect composer multisamples its own buffer on high; the canvas's MSAA would only be discarded.

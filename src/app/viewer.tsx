@@ -7,7 +7,7 @@ import { buildExteriorGeometry } from '../scene/exterior/buildAsync';
 import { movementFrame } from '../scene/exterior/frame';
 import { genericCase } from '../scene/exterior/generic';
 import { App } from './App';
-import { webglError } from './webgl';
+import { probeWebGL } from './webgl';
 
 // Everything three.js-bound lives behind this module so the catalog pages never download it.
 export function startViewer(caliber: Caliber, watchId: string | null, quality: Quality) {
@@ -17,5 +17,5 @@ export function startViewer(caliber: Caliber, watchId: string | null, quality: Q
   const exterior = watch
     ? buildExteriorGeometry(watch.id, ctx).then((g) => ({ ...g, materials: watch.exterior.materials() }))
     : buildExterior(genericCase, ctx);
-  return (i18n: i18n) => <App caliber={caliber} i18n={i18n} webglError={webglError()} watch={watch} exterior={exterior} />;
+  return (i18n: i18n) => <App caliber={caliber} i18n={i18n} webgl={probeWebGL()} watch={watch} exterior={exterior} />;
 }
