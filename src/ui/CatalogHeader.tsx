@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useApp } from '../state/app';
 import { hrefHome } from './catalogLinks';
 import { useThemeAttr } from './hooks';
+import { Logo } from './Logo';
 
 export function CatalogHeader() {
   const { t, i18n } = useTranslation();
@@ -19,7 +20,10 @@ export function CatalogHeader() {
   return (
     <header className="catalog-header">
       <a className="brand" href={hrefHome(lang)}>
-        {t('ui:brand')}
+        <span className="brand-name">
+          <Logo />
+          {t('ui:brand')}
+        </span>
         <small>{t('ui:tagline')}</small>
       </a>
       <div className="lang glass" role="group" aria-label="Language">

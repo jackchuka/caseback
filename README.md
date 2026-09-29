@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/logo.svg" width="96" alt="Caseback">
+
 # Caseback
 
 **裏蓋の向こうで、何が起きているのか。**<br>

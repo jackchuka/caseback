@@ -4,6 +4,7 @@ import type { Watch } from '../model/watch';
 import { useApp } from '../state/app';
 import { hrefHome } from './catalogLinks';
 import { useOccluder } from './useOccluder';
+import { Logo } from './Logo';
 
 export function TopBar({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
   const { t } = useTranslation();
@@ -15,7 +16,10 @@ export function TopBar({ caliber, watch }: { caliber: Caliber; watch?: Watch }) 
   return (
     <header className="topbar" ref={ref}>
       <a className="brand" href={hrefHome(lang)}>
-        {t('ui:brand')}
+        <span className="brand-name">
+          <Logo />
+          {t('ui:brand')}
+        </span>
         <small>
           {watch ? `${watch.brand} ${watch.model} · ${caliber.name}` : caliber.name} · {t('ui:tagline')}
         </small>
