@@ -6,7 +6,7 @@ import { miniCaliber } from '../test/fixtures';
 import type { Caliber } from '../model/schema';
 
 const TAU = Math.PI * 2;
-const G = { lift: 0.35, swing: 0.14, turn: 0.6, retreat: 0.3, wheelTeeth: 8 };
+const G = { lift: 0.35, swing: 0.14, cock: 0.084, turn: 0.6, retreat: 0.3, wheelTeeth: 8 };
 
 describe('hourPhase', () => {
   it('runs 0 to 1 through each hour, backwards turns included', () => {
@@ -18,21 +18,28 @@ describe('hourPhase', () => {
 
 describe('hammerAngle', () => {
   it('reaches the gong a fraction into the strike window', () => {
-    expect(hammerAngle(0.15 * STRIKE_WINDOW, 0.14)).toBeCloseTo(0.14, 9);
+    expect(hammerAngle(0.15 * STRIKE_WINDOW, 0.14, 0.084)).toBeCloseTo(0.14, 9);
   });
   it('falls back to its banking by the end of the window', () => {
-    expect(hammerAngle(STRIKE_WINDOW, 0.14)).toBeCloseTo(0, 9);
+    expect(hammerAngle(STRIKE_WINDOW, 0.14, 0.084)).toBeCloseTo(0, 9);
   });
   it('is drawn back steadily through the rest of the hour', () => {
-    let prev = hammerAngle(STRIKE_WINDOW, 0.14);
+    let prev = hammerAngle(STRIKE_WINDOW, 0.14, 0.084);
     for (let p = 0.02; p < 1; p += 0.01) {
-      const a = hammerAngle(p, 0.14);
+      const a = hammerAngle(p, 0.14, 0.084);
       expect(a).toBeLessThan(prev);
       prev = a;
     }
   });
+  it('is drawn back by the cock depth at the hour, away from the gong whichever way it strikes', () => {
+    expect(hammerAngle(1 - 1e-9, 0.14, 0.3)).toBeCloseTo(-0.3, 6);
+    expect(hammerAngle(1 - 1e-9, -0.04, 0.3)).toBeCloseTo(0.3, 6);
+    expect(hammerAngle(0.15 * STRIKE_WINDOW, -0.04, 0.3)).toBeCloseTo(-0.04, 9);
+    // Most of the draw comes late in the hour: at a seventh of it the hammer has barely left its banking.
+    expect(Math.abs(hammerAngle(1 / 7, 0.14, 0.3))).toBeLessThan(0.3 * 0.03);
+  });
   it('is continuous across the hour', () => {
-    expect(hammerAngle(1 - 1e-9, 0.14)).toBeCloseTo(hammerAngle(0, 0.14), 6);
+    expect(hammerAngle(1 - 1e-9, 0.14, 0.084)).toBeCloseTo(hammerAngle(0, 0.14, 0.084), 6);
   });
 });
 
@@ -96,7 +103,7 @@ describe("the solver's strike", () => {
         lever('lever'), lever('hammer'), lever('switch'), lever('indicator'),
         { id: 'column', mechanism: 'strike', side: 'dial', pos: { x: 5, y: 0, z: -2 }, explode: { dz: -1 }, material: 'steel', shape: { kind: 'cam', teeth: 8, radius: 1.5, thickness: 0.3 }, provenance: est },
       ],
-      couplings: [...c.couplings, { type: 'strike', snail: 'snail', lever: 'lever', hammer: 'hammer', lift: 0.35, swing: 0.14, silence: { wheel: 'column', switch: 'switch', indicator: 'indicator', turn: 0.6, retreat: 0.3 } }],
+      couplings: [...c.couplings, { type: 'strike', snail: 'snail', lever: 'lever', hammer: 'hammer', lift: 0.35, swing: 0.14, cock: 0.084, silence: { wheel: 'column', switch: 'switch', indicator: 'indicator', turn: 0.6, retreat: 0.3 } }],
     };
   };
   it("poses every strike part from the snail arbor's angle and the presses", () => {

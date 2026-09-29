@@ -9,7 +9,7 @@ import { registry } from './registry';
 
 export function PartMesh({ part, onPick, layersOverride, materialsOverride }: { part: Part; onPick: (focus: string) => void; layersOverride?: Layer[]; materialsOverride?: Partial<Record<MovementMaterial, THREE.MeshPhysicalMaterial>> }) {
   const materials = useMaterials();
-  const layers = useMemo(() => layersOverride ?? buildShape(part.shape, part.material), [part, layersOverride]);
+  const layers = useMemo(() => layersOverride ?? buildShape(part.shape, part.material, part.side), [part, layersOverride]);
   // Caliber part shapes only ever produce movement materials; watch materials belong to the exterior.
   const mats = useMemo(() => layers.map((l) => (materialsOverride?.[l.material as MovementMaterial] ?? materials[l.material as MovementMaterial]).clone()), [layers, materials, materialsOverride]);
   const ref = useRef<THREE.Group>(null);

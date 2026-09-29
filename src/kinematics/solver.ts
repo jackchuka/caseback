@@ -172,7 +172,7 @@ export function buildSolver(c: Caliber): Solver {
     ? {
         snailKey: key(strikeCp.snail),
         keys: { lever: key(strikeCp.lever), hammer: key(strikeCp.hammer), wheel: key(strikeCp.silence.wheel), switch: key(strikeCp.silence.switch), indicator: key(strikeCp.silence.indicator) } satisfies Record<keyof StrikePose, string>,
-        geometry: { lift: strikeCp.lift, swing: strikeCp.swing, turn: strikeCp.silence.turn, retreat: strikeCp.silence.retreat, wheelTeeth: teeth(strikeCp.silence.wheel) },
+        geometry: { lift: strikeCp.lift, swing: strikeCp.swing, cock: strikeCp.cock, turn: strikeCp.silence.turn, retreat: strikeCp.silence.retreat, wheelTeeth: teeth(strikeCp.silence.wheel) },
       }
     : null;
 

@@ -3,6 +3,7 @@ import { calibers } from '../index';
 import { caliberKit, TAU } from '../testkit';
 import { centerDistance } from '../../../src/kinematics/gearMath';
 import { toothCount } from '../../../src/model/validate';
+import { snailPoints } from '../../../src/geometry/parts';
 
 const { c, solve, part, angle, turns } = caliberKit('cw-fs01');
 const strike = c.couplings.find((cp) => cp.type === 'strike')!;
@@ -93,13 +94,15 @@ describe('FS01 strike', () => {
     expect(angle('hammer', HOUR + 0.15 * 36)).toBeCloseTo(strike.swing, 4);
   });
   it('lifts the lever steadily through the hour and drops it on the hour', () => {
-    let prev = angle('strike-lever', HOUR + 1);
+    // Measured the way the lever rises: the lift's sign is its direction.
+    const rise = (t: number) => Math.sign(strike.lift) * angle('strike-lever', t);
+    let prev = rise(HOUR + 1);
     for (let s = 60; s < 3600; s += 60) {
-      const a = angle('strike-lever', HOUR + s);
+      const a = rise(HOUR + s);
       expect(a).toBeGreaterThan(prev);
       prev = a;
     }
-    expect(angle('strike-lever', HOUR + 3600 + 0.5)).toBeLessThan(0.01);
+    expect(Math.abs(angle('strike-lever', HOUR + 3600 + 0.5))).toBeLessThan(0.01);
   });
   it('never reaches the gong while silent', () => {
     for (let s = 0; s < 36; s += 0.25) expect(toward(angle('hammer', HOUR + s, { chime: 1 }))).toBeLessThan(reach - 0.1);
@@ -147,19 +150,46 @@ describe('FS01 strike', () => {
     expect(wrapped).toBeGreaterThan(g.shape.from);
     expect(wrapped).toBeLessThan(g.shape.to);
   });
-  it('reads the snail through the strike lever\'s tip, dropping off its step on the hour', () => {
+  // The strike lever's tip (its outline point nearest the snail at rest) turned with the lever at time t, and the snail
+  // rim's radius under it: the rim point, from the built outline, whose polar angle in the snail's frame is nearest.
+  const follower = (t: number) => {
     const sn = part('snail');
-    if (sn.shape.kind !== 'snail') throw new Error('snail');
     const lever = part('strike-lever');
-    if (lever.shape.kind !== 'lever') throw new Error('lever');
-    // The lever's tip: its outline point nearest the snail.
-    const tip = lever.shape.outline.map((p) => ({ x: p.x + lever.pos.x, y: p.y + lever.pos.y })).reduce((a, b) => (Math.hypot(a.x, a.y) < Math.hypot(b.x, b.y) ? a : b));
-    expect(Math.hypot(tip.x - sn.pos.x, tip.y - sn.pos.y)).toBeCloseTo(sn.shape.rMax, 1);
-    // The step (the snail's local +X) faces the tip on the hour.
-    expect(Math.atan2(tip.y - sn.pos.y, tip.x - sn.pos.x)).toBeCloseTo(sn.rest ?? 0, 1);
-    // Over the hour the lever follows the rim's fall from rMax to rMin.
-    const len = Math.hypot(tip.x - lever.pos.x, tip.y - lever.pos.y);
-    expect(strike.lift * len).toBeCloseTo(sn.shape.rMax - sn.shape.rMin, 1);
+    if (sn.shape.kind !== 'snail' || lever.shape.kind !== 'lever') throw new Error('shapes');
+    const tip0 = lever.shape.outline.reduce((a, b) => (Math.hypot(a.x + lever.pos.x, a.y + lever.pos.y) < Math.hypot(b.x + lever.pos.x, b.y + lever.pos.y) ? a : b));
+    const a = angle('strike-lever', t);
+    const tip = { x: lever.pos.x + tip0.x * Math.cos(a) - tip0.y * Math.sin(a), y: lever.pos.y + tip0.x * Math.sin(a) + tip0.y * Math.cos(a) };
+    const local = Math.atan2(tip.y - sn.pos.y, tip.x - sn.pos.x) - (sn.rest ?? 0) - angle('snail', t);
+    const rim = snailPoints(sn.shape.rMin, sn.shape.rMax, 3600, sn.shape.reverse).slice(1, -1);
+    const off = (p: [number, number]) => Math.abs(Math.atan2(Math.sin(Math.atan2(p[1], p[0]) - local), Math.cos(Math.atan2(p[1], p[0]) - local)));
+    const under = rim.reduce((m, p) => (off(p) < off(m) ? p : m));
+    return { tipR: Math.hypot(tip.x - sn.pos.x, tip.y - sn.pos.y), rimR: Math.hypot(...under), shape: sn.shape };
+  };
+  it('rides the strike lever\'s tip up the snail\'s rim through the hour, dropping off the step on the hour', () => {
+    let prev = -Infinity;
+    for (const p of [0.02, 0.2, 0.4, 0.6, 0.8, 0.98]) {
+      const f = follower(HOUR + p * 3600);
+      expect(f.rimR, `p=${p}`).toBeGreaterThan(prev);
+      expect(Math.abs(f.tipR - f.rimR), `p=${p}`).toBeLessThan(0.1);
+      prev = f.rimR;
+    }
+    // The tip's arc carries it 1.8° round the arbor over the hour, so the step reaches it some 18 s before the hour.
+    const before = follower(HOUR + 3600 - 60), after = follower(HOUR + 3600 + 5);
+    expect(before.rimR).toBeCloseTo(before.shape.rMax, 1);
+    expect(after.rimR).toBeCloseTo(after.shape.rMin, 1);
+    expect(after.tipR).toBeLessThan(before.tipR - 1);
+  });
+  it('shows the lever\'s tip through the keyhole, on the snail\'s low point on the hour', () => {
+    const f = follower(HOUR + 1);
+    expect(f.tipR).toBeCloseTo(f.shape.rMin, 1);
+  });
+  it('swings the hammer head at least 2 mm from full cock onto the gong', () => {
+    // The blade's striking corner, followed from full cock to the blow.
+    const struckAll = hammerPoints(strike.swing);
+    const i = struckAll.reduce((m, p, k) => (gongDist(p) > gongDist(struckAll[m]!) ? k : m), 0);
+    const struck = struckAll[i]!, cocked = hammerPoints(-Math.sign(strike.swing) * strike.cock)[i]!;
+    expect(Math.hypot(cocked.x - struck.x, cocked.y - struck.y)).toBeGreaterThan(2);
+    expect(toward(angle('hammer', HOUR + 3600 - 1))).toBeCloseTo(-strike.cock, 2);
   });
 });
 

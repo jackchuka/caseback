@@ -42,6 +42,18 @@ describe('buildShape', () => {
     expect(layers.length).toBe(1 + 2 * bridge.shape.jewels.length + 2 * bridge.shape.screws.length);
     expect(layers.filter((l) => l.material === 'ruby').length).toBe(bridge.shape.jewels.length);
   });
+  it('sets a dial-side bridge\'s jewels and screws on its dial face, a back-side one\'s on its back face', () => {
+    const shape = { kind: 'bridge' as const, thickness: 0.4, lobes: [{ x: 0, y: 0, r: 1 }, { x: 2, y: 0, r: 1 }], jewels: [{ x: 0, y: 0 }], screws: [{ x: 2, y: 0 }] };
+    const centreZ = (g: THREE.BufferGeometry) => { g.computeBoundingBox(); return g.boundingBox!.getCenter(new THREE.Vector3()).z; };
+    const back = buildShape(shape, 'rhodium');
+    const dial = buildShape(shape, 'rhodium', 'dial');
+    expect(buildShape(shape, 'rhodium', 'back')).toBe(back);
+    expect(dial[0]!.geometry).toBe(back[0]!.geometry);
+    for (let i = 1; i < back.length; i++) {
+      expect(centreZ(back[i]!.geometry)).toBeGreaterThan(0.2);
+      expect(centreZ(dial[i]!.geometry)).toBeCloseTo(-centreZ(back[i]!.geometry), 6);
+    }
+  });
   it('sizes a wheel by its tooth count and module', () => {
     const [layer] = buildShape({ kind: 'wheel', teeth: 80, module: 0.085, thickness: 0.28, spokes: 4 }, 'gilt');
     expect(maxRadius(layer!.geometry)).toBeCloseTo(3.4 + 1.25 * 0.085 + 0.03, 1);
@@ -135,6 +147,17 @@ describe('snail and gong', () => {
     // The step: the last point sits at +X, straight out from the first.
     expect(Math.atan2(pts.at(-1)![1], pts.at(-1)![0])).toBeCloseTo(0, 6);
     const [layer] = buildShape({ kind: 'snail', rMin: 1.6, rMax: 2.8, thickness: 0.3 }, 'steel');
+    expect(maxRadius(layer!.geometry)).toBeCloseTo(2.8, 1);
+  });
+  it('climbs a reversed snail\'s rim the other way round, from +X toward −Y, its step still at +X', () => {
+    const fwd = snailPoints(1.6, 2.8, 96);
+    const rev = snailPoints(1.6, 2.8, 96, true);
+    // A quarter turn in, the forward rim is at +Y (local angle +90°), the reversed one at −Y.
+    expect(fwd[24]![1]).toBeGreaterThan(0);
+    expect(rev[24]![1]).toBeLessThan(0);
+    rev.forEach(([x, y], i) => expect(Math.hypot(x, y)).toBeCloseTo(Math.hypot(...fwd[i]!), 9));
+    expect(Math.atan2(rev.at(-1)![1], rev.at(-1)![0])).toBeCloseTo(0, 6);
+    const [layer] = buildShape({ kind: 'snail', rMin: 1.6, rMax: 2.8, thickness: 0.3, reverse: true }, 'steel');
     expect(maxRadius(layer!.geometry)).toBeCloseTo(2.8, 1);
   });
   const gong = { kind: 'gong' as const, outer: 14.9, inner: 13.9, from: -0.84, to: 3.7, width: 0.35, thickness: 0.5 };

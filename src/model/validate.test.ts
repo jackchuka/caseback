@@ -68,7 +68,7 @@ const strikeCaliber = (): Caliber => {
       lever('lever'), lever('hammer'), lever('switch'), lever('indicator'),
       { id: 'column', mechanism: 'strike', side: 'dial', pos: { x: 5, y: 0, z: -2 }, explode: { dz: -1 }, material: 'steel', shape: { kind: 'cam', teeth: 8, radius: 1.5, thickness: 0.3 }, provenance: est },
     ],
-    couplings: [...c.couplings, { type: 'strike', snail: 'snail', lever: 'lever', hammer: 'hammer', lift: 0.35, swing: 0.14, silence: { wheel: 'column', switch: 'switch', indicator: 'indicator', turn: 0.6, retreat: 0.3 } }],
+    couplings: [...c.couplings, { type: 'strike', snail: 'snail', lever: 'lever', hammer: 'hammer', lift: 0.35, swing: 0.14, cock: 0.084, silence: { wheel: 'column', switch: 'switch', indicator: 'indicator', turn: 0.6, retreat: 0.3 } }],
     exterior: { ...c.exterior, pushers: [{ action: 'chime', hour: 4, z: -2 }] },
   };
 };
@@ -84,6 +84,14 @@ describe('strike coupling', () => {
     };
     expect(() => CaliberSchema.parse(withSwing(-0.14))).not.toThrow();
     expect(() => CaliberSchema.parse(withSwing(0))).toThrow();
+  });
+  it('takes a signed lift, the lever\'s direction as the snail raises it, but never a zero one', () => {
+    const withLift = (lift: number) => {
+      const c = strikeCaliber();
+      return { ...c, couplings: c.couplings.map((cp) => (cp.type === 'strike' ? { ...cp, lift } : cp)) };
+    };
+    expect(() => CaliberSchema.parse(withLift(-0.2))).not.toThrow();
+    expect(() => CaliberSchema.parse(withLift(0))).toThrow();
   });
   it('needs a snail and a cam of the right kinds', () => {
     const c = strikeCaliber();

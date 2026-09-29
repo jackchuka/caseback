@@ -33,7 +33,9 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   // A switching cam: ratchet teeth that a push steps one at a time, and a lobed rim that the levers read.
   z.object({ kind: z.literal('cam'), teeth: int, radius: pos, thickness: pos }),
   // A snail cam: its rim climbs from rMin to rMax over a turn and drops back at local +X, where a follower falls off.
-  z.object({ kind: z.literal('snail'), rMin: pos, rMax: pos, thickness: pos }),
+  // It climbs from +X toward +Y, or toward −Y when `reverse`: a follower rides up the rim when the snail turns against
+  // the climb.
+  z.object({ kind: z.literal('snail'), rMin: pos, rMax: pos, thickness: pos, reverse: z.boolean().optional() }),
   // A gong: a flat band bent into two arcs round the part's centre, at radii `outer` and `inner`, from angle `from` to
   // `to` (rad, local +X toward +Y). A hairpin joins them at `from`; the outer arc ends at `to` in a foot screwed to
   // the plate and the inner one ends free.
@@ -105,9 +107,10 @@ export const CouplingSchema = z.discriminatedUnion('type', [
     hammers: z.array(z.string()).min(1),
     stroke: pos,
   }),
-  // A passing strike. The `snail` on the minute arbor lifts the `lever` through each hour; on the hour the lever drops
-  // off the snail's step and releases the `hammer`, which swings `swing` rad onto the gong and back (its sign is the
-  // direction of the blow: positive turns +X toward +Y, clockwise seen from the dial). The `silence`
+  // A passing strike. The `snail` on the minute arbor lifts the `lever` `lift` rad through each hour; on the hour the
+  // lever drops off the snail's step and releases the `hammer`, drawn back `cock` rad by then, which swings `swing`
+  // rad onto the gong and back to its banking. The signs of `lift` and `swing` are the directions of the lever's rise
+  // and of the blow (positive turns +X toward +Y, clockwise seen from the dial); `cock` draws against the blow. The `silence`
   // column wheel, stepped a tooth a push, turns the `indicator` by `turn` and, through the `switch` lever, draws the
   // hammer `retreat` rad back out of the gong's reach.
   z.object({
@@ -115,8 +118,9 @@ export const CouplingSchema = z.discriminatedUnion('type', [
     snail: z.string(),
     lever: z.string(),
     hammer: z.string(),
-    lift: pos,
+    lift: z.number().refine((v) => v !== 0, 'a strike lever needs a lift'),
     swing: z.number().refine((v) => v !== 0, 'a strike needs a swing'),
+    cock: pos,
     silence: z.object({ wheel: z.string(), switch: z.string(), indicator: z.string(), turn: pos, retreat: pos }),
   }),
   // Seiko's Magic Lever: the eccentric drives the lever to and fro; one claw pulls, the other pushes, so the wheel

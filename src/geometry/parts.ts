@@ -16,11 +16,14 @@ type Bridge = Extract<Shape, { kind: 'bridge' }>;
 
 const cache = new Map<string, Layer[]>();
 
-export function buildShape(shape: Shape, material: MaterialKey): Layer[] {
-  const key = `${material}:${JSON.stringify(shape)}`;
+// `side` is the movement face the part belongs to. A dial-side bridge is seen from the dial, so its jewels and screws
+// go on its −Z face; every other shape builds the same either way.
+export function buildShape(shape: Shape, material: MaterialKey, side: 'dial' | 'back' = 'back'): Layer[] {
+  const dialBridge = side === 'dial' && shape.kind === 'bridge';
+  const key = `${material}:${dialBridge ? 'dial:' : ''}${JSON.stringify(shape)}`;
   let layers = cache.get(key);
   if (!layers) {
-    layers = build(shape, material);
+    layers = dialBridge ? [buildShape(shape, material)[0]!, ...bridgeFeatures(shape, -1)] : build(shape, material);
     cache.set(key, layers);
   }
   return layers;
@@ -115,7 +118,7 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
         { geometry: disc(0.35, shape.thickness + 0.1, 24), material: 'blued' },
       ];
     case 'snail':
-      return [{ geometry: extrudeCentered(snailOutline(shape.rMin, shape.rMax), shape.thickness, 0.02), material }];
+      return [{ geometry: extrudeCentered(snailOutline(shape.rMin, shape.rMax, shape.reverse), shape.thickness, 0.02), material }];
     case 'gong': {
       // The foot at the arcs' end, flush with the band's outer edge so it stays within the gong's round.
       const footR = shape.width * 1.8;
@@ -337,17 +340,23 @@ export function blendedOutline(lobes: Bridge['lobes'], k: number, step = 0.05): 
 }
 
 function bridge(shape: Bridge, material: MaterialKey): Layer[] {
-  const top = shape.thickness / 2;
   const outline = shape.blend === undefined ? bridgeOutline(shape.lobes) : blendedOutline(shape.lobes, shape.blend);
-  const layers: Layer[] = [{ geometry: extrudeCentered(outline, shape.thickness, 0.08), material }];
+  return [{ geometry: extrudeCentered(outline, shape.thickness, 0.08), material }, ...bridgeFeatures(shape, 1)];
+}
+
+// A bridge's jewels (with their chatons) and screws (with their slots) on the face toward `face` × Z. Each feature is
+// symmetric in z, so the dial face's are the back face's moved across.
+function bridgeFeatures(shape: Bridge, face: 1 | -1): Layer[] {
+  const top = shape.thickness / 2;
+  const layers: Layer[] = [];
   for (const j of shape.jewels) {
-    layers.push({ geometry: disc(0.36, 0.2).translate(j.x, j.y, top + 0.03), material: 'ruby' });
-    layers.push({ geometry: new THREE.TorusGeometry(0.42, 0.06, 12, 48).translate(j.x, j.y, top + 0.03), material: 'steel' });
+    layers.push({ geometry: disc(0.36, 0.2).translate(j.x, j.y, face * (top + 0.03)), material: 'ruby' });
+    layers.push({ geometry: new THREE.TorusGeometry(0.42, 0.06, 12, 48).translate(j.x, j.y, face * (top + 0.03)), material: 'steel' });
   }
   for (const sc of shape.screws) {
     // Screw heads stand just proud of the bridge; the automatic works sweep close over them.
-    layers.push({ geometry: disc(0.42, 0.28).translate(sc.x, sc.y, top + 0.05), material: 'blued' });
-    layers.push({ geometry: new THREE.BoxGeometry(0.85, 0.09, 0.12).rotateZ(sc.x).translate(sc.x, sc.y, top + 0.17), material: 'slot' });
+    layers.push({ geometry: disc(0.42, 0.28).translate(sc.x, sc.y, face * (top + 0.05)), material: 'blued' });
+    layers.push({ geometry: new THREE.BoxGeometry(0.85, 0.09, 0.12).rotateZ(sc.x).translate(sc.x, sc.y, face * (top + 0.17)), material: 'slot' });
   }
   return layers;
 }
@@ -436,17 +445,18 @@ function dateRing(teeth: number, rIn: number, rOut: number, thickness: number, p
 
 type Gong = Extract<Shape, { kind: 'gong' }>;
 
-// A snail's rim from its low point at +X round a full turn to its high point, back at +X: the step.
-export function snailPoints(rMin: number, rMax: number, n = 96): Array<[number, number]> {
+// A snail's rim from its low point at +X round a full turn to its high point, back at +X: the step. It climbs toward
+// +Y, or toward −Y when `reverse`.
+export function snailPoints(rMin: number, rMax: number, n = 96, reverse = false): Array<[number, number]> {
   return Array.from({ length: n + 1 }, (_, i) => {
     const a = (2 * Math.PI * i) / n;
     const r = rMin + ((rMax - rMin) * i) / n;
-    return [r * Math.cos(a), r * Math.sin(a)];
+    return [r * Math.cos(a), (reverse ? -1 : 1) * r * Math.sin(a)];
   });
 }
 
-function snailOutline(rMin: number, rMax: number): THREE.Shape {
-  const s = new THREE.Shape(snailPoints(rMin, rMax).map(([x, y]) => new THREE.Vector2(x, y)));
+function snailOutline(rMin: number, rMax: number, reverse?: boolean): THREE.Shape {
+  const s = new THREE.Shape(snailPoints(rMin, rMax, 96, reverse).map(([x, y]) => new THREE.Vector2(x, y)));
   s.holes.push(new THREE.Path().absarc(0, 0, 0.2, 0, Math.PI * 2, true));
   return s;
 }

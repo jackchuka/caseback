@@ -6,10 +6,8 @@ const TAU = Math.PI * 2;
 export const STRIKE_WINDOW = 0.01;
 // Share of the window the hammer takes to reach the gong; it spends the rest falling back to its banking.
 const BLOW = 0.15;
-// How far the hammer's tail is drawn back by the end of the hour, as a share of its swing.
-const COCK = 0.6;
 
-export type StrikeGeometry = { lift: number; swing: number; turn: number; retreat: number; wheelTeeth: number };
+export type StrikeGeometry = { lift: number; swing: number; cock: number; turn: number; retreat: number; wheelTeeth: number };
 export type StrikePose = { lever: number; hammer: number; wheel: number; switch: number; indicator: number };
 
 // Where in the hour the minute arbor stands: 0 on the hour, rising to 1.
@@ -25,12 +23,13 @@ export function silence(presses: number): number {
   return n % 2 === 0 ? e : 1 - e;
 }
 
-// The hammer from its banking: drawn back as the hour passes, then on the hour flung onto the gong (`swing`) and
-// falling back.
-export function hammerAngle(p: number, swing: number): number {
-  if (p >= STRIKE_WINDOW) return -COCK * swing * ((p - STRIKE_WINDOW) / (1 - STRIKE_WINDOW));
+// The hammer from its banking: drawn back `cock` rad against the blow as the hour passes, slowly at first and most in
+// its last minutes, then on the hour flung onto the gong (`swing`) and falling back.
+export function hammerAngle(p: number, swing: number, cock: number): number {
+  const back = -Math.sign(swing) * cock;
+  if (p >= STRIKE_WINDOW) return back * ((p - STRIKE_WINDOW) / (1 - STRIKE_WINDOW)) ** 2;
   const u = p / STRIKE_WINDOW;
-  if (u < BLOW) return -COCK * swing + (1 + COCK) * swing * smoothstep(u / BLOW);
+  if (u < BLOW) return back + (swing - back) * smoothstep(u / BLOW);
   return swing * (1 - smoothstep((u - BLOW) / (1 - BLOW)));
 }
 
@@ -42,7 +41,7 @@ export function strikePose(minuteAngle: number, presses: number, g: StrikeGeomet
   const s = silence(presses);
   return {
     lever: g.lift * p,
-    hammer: hammerAngle(p, g.swing) - Math.sign(g.swing) * g.retreat * s,
+    hammer: hammerAngle(p, g.swing, g.cock) - Math.sign(g.swing) * g.retreat * s,
     wheel: (presses * TAU) / g.wheelTeeth,
     switch: g.retreat * s,
     indicator: g.turn * s,

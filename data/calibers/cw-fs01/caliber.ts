@@ -118,12 +118,27 @@ const hammerSwing = (() => {
   }
   return (lo + hi) / 2;
 })();
-// The snail (photo:front, Azzurro): read through the keyhole below the centre by the strike lever's tip, which rests
-// on its high point, so its step faces the tip on the hour; the lever follows the rim's fall over the hour.
-const SNAIL_RIM = { rMin: 1.6, rMax: 2.8 };
-const LEVER_TIP: P2 = { x: -0.55, y: 2.75 };
+// The snail, read through the keyhole below the centre by the strike lever's tip (photo:front, Azzurro). Its rim
+// climbs against the minute arbor's turn, so the tip rides up it through the hour and drops off the step on the hour;
+// its step faces the tip then. Sized so the tip stays in the keyhole all hour (est).
+const SNAIL_RIM = { rMin: 2.2, rMax: 3.4, reverse: true };
+const LEVER_TIP: P2 = { x: SNAIL_RIM.rMin * Math.cos(deg(101.3)), y: SNAIL_RIM.rMin * Math.sin(deg(101.3)) };
 const snailRest = Math.atan2(LEVER_TIP.y, LEVER_TIP.x);
-const leverLift = (SNAIL_RIM.rMax - SNAIL_RIM.rMin) / Math.hypot(LEVER_TIP.x - leverPivot.x, LEVER_TIP.y - leverPivot.y);
+// The lever's rise over the hour: it turns counter-clockwise (negative), carrying its tip out from the low point to the
+// high one. Found by bisection on the tip's distance from the snail's arbor.
+const leverLift = (() => {
+  const [dx, dy] = [LEVER_TIP.x - leverPivot.x, LEVER_TIP.y - leverPivot.y];
+  const tipR = (a: number) => Math.hypot(leverPivot.x + dx * Math.cos(a) - dy * Math.sin(a), leverPivot.y + dx * Math.sin(a) + dy * Math.cos(a));
+  let [lo, hi] = [-0.5, 0];
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (tipR(mid) > SNAIL_RIM.rMax) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+})();
+// How far the lever draws the hammer back by the hour, so the blow is a swing the eye can follow (est).
+const HAMMER_COCK = 0.25;
 
 // The sub-dial bridge's arch (photo:front, Azzurro): at each end, below 9 and 3, a pointed block round its screw;
 // from it a slim arm rises under the chapter ring to a boss round the sub-dial's jewel. ARCH lists the pairs of lobes
@@ -245,7 +260,8 @@ const parts: Part[] = [
     provenance: estimated(SILENCE, 'deployant'),
   },
   {
-    id: 'indicator', mechanism: 'strike', side: 'dial', pos: at(indicatorPivot, D.cocks - 0.3), explode: { dz: -6.5 }, material: 'ruby',
+    // In front of its cock's jewel, which now stands on the cock's dial face.
+    id: 'indicator', mechanism: 'strike', side: 'dial', pos: at(indicatorPivot, D.cocks - 0.45), explode: { dz: -6.5 }, material: 'ruby',
     // photo:front (Azzurro): the red arrow, pointing at the printed wave while the strike is on.
     shape: { kind: 'lever', outline: local(indicatorPivot, [[7.55, 6.85], [10.4, 6.38], [8.0, 8.2]]), thickness: 0.15, hole: 0.12 },
     provenance: estimated(SILENCE, 'cw-loupe'),
@@ -293,7 +309,7 @@ const caliber: Caliber = {
     { type: 'mesh', a: 'intermediate-wheel', b: 'sub-center-wheel' },
     { type: 'mesh', a: 'sub-cannon-pinion', b: 'sub-minute-wheel' },
     { type: 'mesh', a: 'sub-minute-pinion', b: 'sub-hour-wheel' },
-    { type: 'strike', snail: 'snail', lever: 'strike-lever', hammer: 'hammer', lift: leverLift, swing: hammerSwing, silence: { wheel: 'column-wheel', switch: 'switch-lever', indicator: 'indicator', turn: INDICATOR_TURN, retreat: 0.3 } },
+    { type: 'strike', snail: 'snail', lever: 'strike-lever', hammer: 'hammer', lift: leverLift, swing: hammerSwing, cock: HAMMER_COCK, silence: { wheel: 'column-wheel', switch: 'switch-lever', indicator: 'indicator', turn: INDICATOR_TURN, retreat: 0.3 } },
     { type: 'mesh', a: 'rotor-pinion', b: 'reverser-a' },
     { type: 'one-way', input: 'reverser-a', output: 'reverser-b' },
     { type: 'mesh', a: 'reverser-b', b: 'reduction-wheel' },
