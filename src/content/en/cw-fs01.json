@@ -1,0 +1,309 @@
+{
+  "chapters": {
+    "time": {
+      "title": "Keeping time"
+    },
+    "auto": {
+      "title": "Self-winding"
+    },
+    "crown": {
+      "title": "Crown"
+    },
+    "hands": {
+      "title": "Moving the hands"
+    },
+    "chime": {
+      "title": "Striking the hour"
+    }
+  },
+  "steps": {
+    "time-overview": {
+      "kicker": "Overview",
+      "title": "From power to time",
+      "body": "The force of the mainspring turns into speed as it passes through the wheels, and is finally sliced into equal beats by the balance. Follow the light to trace the flow."
+    },
+    "time-barrel": {
+      "kicker": "1 · Power",
+      "body": "The coiled mainspring inside wants to unwind. That urge powers the entire watch and stores about {{specs.powerReserveH}} hours of energy."
+    },
+    "time-center": {
+      "kicker": "2 · Going train",
+      "body": "Pushed by the barrel, it turns exactly once an hour and, through the wheels on the dial, drives the minute hand. From here on, every wheel turns faster than the last."
+    },
+    "time-third": {
+      "kicker": "3 · Going train",
+      "body": "Its {{parts.third-wheel.teeth}} teeth drive a pinion of {{parts.fourth-pinion.teeth}} leaves, trading force for speed. It links the center wheel and the fourth wheel."
+    },
+    "time-fourth": {
+      "kicker": "4 · Going train",
+      "body": "It turns exactly once a minute. The seconds hand takes its motion from this wheel."
+    },
+    "time-escape": {
+      "kicker": "5 · Escapement",
+      "body": "The last wheel of the train. Left alone it would spin away; the pallet fork stops and releases it one tooth at a time. This is where the tick-tock comes from."
+    },
+    "time-fork": {
+      "kicker": "6 · Escapement",
+      "body": "Two ruby pallet stones lock the escape wheel in turn, and at each release give the balance a small push that keeps it swinging."
+    },
+    "time-balance": {
+      "kicker": "7 · Regulator",
+      "body": "Paired with its hairspring, it beats {{specs.beatsPerSecond}} times a second ({{specs.hz}} full swings). This steady period sets the pace of the whole watch."
+    },
+    "auto-rotor": {
+      "kicker": "Automatic",
+      "body": "A half-moon weight that swings as your wrist moves. Whichever way it turns, it winds the mainspring."
+    },
+    "auto-reversers": {
+      "kicker": "1 · Automatic",
+      "body": "Two wheels turn the rotor's back-and-forth swing into rotation in one direction: each takes one direction, so together they wind both ways."
+    },
+    "auto-reduction": {
+      "kicker": "2 · Automatic",
+      "body": "It slows the rectified rotation down a lot, trading speed for the force needed to wind."
+    },
+    "auto-ratchet": {
+      "kicker": "3 · Power",
+      "body": "Turning with the barrel arbor, it winds the mainspring — about {{hoursPerTurn}} hours per turn. That energy flows back into the going train."
+    },
+    "crown-stem": {
+      "kicker": "1 · Keyless works",
+      "body": "The stem behind the crown. How far you pull it decides what it does. Pick a position below and turn the crown."
+    },
+    "crown-hacking": {
+      "kicker": "3 · Hacking",
+      "body": "Pulled to position 2, the balance stops (hacking seconds). Set the hands, push the crown in, and it starts again. Avoid quick-setting the date (position 1) between 22:00 and 02:00."
+    },
+    "hands-overview": {
+      "kicker": "Motion works",
+      "title": "Up to the dial at 12",
+      "body": "The hands aren't at the centre. Wheels on top of the dial carry the centre wheel's turn up to a small dial at 12 o'clock, where it is split into minutes and hours."
+    },
+    "hands-cannon": {
+      "kicker": "1 · Motion works",
+      "body": "Rides the centre wheel's arbor, once an hour. The cannon pinion turns the minute wheel, and the {{parts.module-center-wheel.teeth}}-tooth wheel above starts the train that carries the time to 12. The strike's snail shares this arbor."
+    },
+    "hands-intermediate": {
+      "kicker": "2 · Motion works",
+      "body": "A large {{parts.intermediate-wheel.teeth}}-tooth wheel bridging the centre and 12 o'clock. Two meshes put the turn back the right way round."
+    },
+    "hands-sub": {
+      "kicker": "3 · Motion works",
+      "body": "{{parts.sub-center-wheel.teeth}} teeth, the same as the centre wheel, so it too turns once an hour. It carries the minute hand."
+    },
+    "hands-sub-minute-wheel": {
+      "kicker": "4 · Motion works",
+      "body": "Behind the small dial, it slows the minutes' turn by three."
+    },
+    "hands-hour": {
+      "kicker": "5 · Motion works",
+      "body": "Turns once in 12 hours and carries the hour hand, on the same axis as the minute hand."
+    },
+    "chime-overview": {
+      "kicker": "Strike",
+      "title": "One note on the hour",
+      "body": "The works on the dial strike a gong once every hour. The energy doesn't come from a separate spring: it is drawn little by little over the hour from the barrel that runs the watch."
+    },
+    "chime-snail": {
+      "kicker": "1 · Strike",
+      "body": "A spiral cam on the minute hand's arbor, once an hour. Its radius grows steadily and steps back down on the hour."
+    },
+    "chime-lever": {
+      "kicker": "2 · Strike",
+      "body": "Rides the snail's rim and is pushed up over the hour, winding the hammer's spring as it goes. On the hour it drops off the snail's step and lets the stored energy go at once."
+    },
+    "chime-hammer": {
+      "kicker": "3 · Strike",
+      "body": "The hammer, shaped like a bird's tail. Released, it hits the gong and falls straight back to its banking. The real blow takes an instant; here it is slowed down."
+    },
+    "chime-gong": {
+      "kicker": "4 · Strike",
+      "body": "A mirror-polished steel band that runs round the dial and doubles back. The hammer rings it. Christopher Ward tried more than 80 springs and hammers to choose this sound."
+    },
+    "chime-silence": {
+      "kicker": "5 · Silence",
+      "body": "Each press of the pusher at 4 steps this column wheel on a tooth. Silenced, a lever draws the whole hammer back from the gong and the red arrow points to silent. The spring still winds and releases every hour."
+    },
+    "crown-sliding": {
+      "kicker": "2 · Keyless works",
+      "body": "A small pinion that turns with the stem. At position 0 it winds; at 2 it meshes with the minute wheel to set the hands. Turn them past the hour and the gong sounds."
+    }
+  },
+  "parts": {
+    "plate": {
+      "name": "Main plate",
+      "en": "Main plate",
+      "body": "The foundation every part sits on. The small overlapping circles are a decorative finish called perlage."
+    },
+    "barrel": {
+      "name": "Barrel",
+      "en": "Barrel",
+      "body": "The drum that holds the mainspring. Its toothed rim sends power into the going train."
+    },
+    "ratchet": {
+      "name": "Ratchet wheel",
+      "en": "Ratchet wheel",
+      "body": "Turns with the barrel arbor to wind the mainspring."
+    },
+    "center": {
+      "name": "Center wheel",
+      "en": "Center wheel",
+      "body": "Turns once an hour and, through the wheels on the dial, drives the minute hand."
+    },
+    "third": {
+      "name": "Third wheel",
+      "en": "Third wheel",
+      "body": "The intermediate wheel between the center and fourth wheels."
+    },
+    "fourth": {
+      "name": "Fourth wheel",
+      "en": "Fourth wheel",
+      "body": "Turns once a minute and drives the seconds."
+    },
+    "escape": {
+      "name": "Escape wheel",
+      "en": "Escape wheel",
+      "body": "The last wheel of the train, released one tooth at a time by the pallet fork."
+    },
+    "fork": {
+      "name": "Pallet fork",
+      "en": "Pallet fork",
+      "body": "The lever that locks and releases the escape wheel and impulses the balance."
+    },
+    "balance": {
+      "name": "Balance wheel",
+      "en": "Balance wheel",
+      "body": "The oscillator that, with its hairspring, swings at a constant period."
+    },
+    "train-bridge": {
+      "name": "Train bridge",
+      "en": "Train bridge",
+      "body": "Holds the wheel arbors from above. The stripes are Côtes de Genève; the bearings are rubies."
+    },
+    "barrel-bridge": {
+      "name": "Barrel bridge",
+      "en": "Barrel bridge",
+      "body": "The large bridge that holds the barrel and ratchet wheel."
+    },
+    "balance-cock": {
+      "name": "Balance cock",
+      "en": "Balance cock",
+      "body": "Supports the balance from one side only."
+    },
+    "cannon": {
+      "name": "Cannon pinion",
+      "en": "Cannon pinion",
+      "body": "The friction-fitted pinion on the centre wheel arbor that starts the motion works."
+    },
+    "minute-wheel": {
+      "name": "Minute wheel",
+      "en": "Minute wheel",
+      "body": "Slows the cannon pinion down on its way to the hour wheel."
+    },
+    "rotor": {
+      "name": "Rotor",
+      "en": "Rotor",
+      "body": "The half-moon weight turned by your wrist."
+    },
+    "reversers": {
+      "name": "Reversing wheels",
+      "en": "Reversing wheels",
+      "body": "Two wheels that turn both rotor directions into one."
+    },
+    "reduction": {
+      "name": "Reduction wheel",
+      "en": "Reduction wheel",
+      "body": "Slows the winding rotation down."
+    },
+    "stem": {
+      "name": "Winding stem",
+      "en": "Winding stem",
+      "body": "Connected to the crown; its position selects winding, date or time setting."
+    },
+    "sliding-pinion": {
+      "name": "Sliding pinion",
+      "en": "Sliding pinion",
+      "body": "Slides along the stem to change what it meshes with."
+    },
+    "setting-wheel": {
+      "name": "Setting wheel",
+      "en": "Setting wheel",
+      "body": "Passes the stem's rotation to the minute wheel when setting the time."
+    },
+    "snail": {
+      "name": "Snail",
+      "en": "Snail",
+      "body": "A spiral cam turning once an hour. It lifts the strike lever and drops it on the hour."
+    },
+    "intermediate-wheel": {
+      "name": "Intermediate wheel",
+      "en": "Intermediate wheel",
+      "body": "The large wheel that carries the time from the centre up to the small dial at 12."
+    },
+    "sub-minute": {
+      "name": "Sub-dial minute wheel",
+      "en": "Sub-dial minute wheel",
+      "body": "Turns with the centre wheel and carries the minute hand."
+    },
+    "sub-minute-wheel": {
+      "name": "Sub-dial reduction wheel",
+      "en": "Sub-dial reduction wheel",
+      "body": "Slows the minutes' turn to the hours' pace."
+    },
+    "sub-hour": {
+      "name": "Sub-dial hour wheel",
+      "en": "Sub-dial hour wheel",
+      "body": "Turns once in 12 hours and carries the hour hand."
+    },
+    "sub-bridge": {
+      "name": "Sub-dial bridge",
+      "en": "Sub-dial bridge",
+      "body": "Arches from 9 to 3 o'clock and holds the small dial at 12 up off the plate."
+    },
+    "strike-lever": {
+      "name": "Strike lever",
+      "en": "Strike lever",
+      "body": "Rides the snail up over the hour, winding the hammer's spring."
+    },
+    "hammer": {
+      "name": "Hammer",
+      "en": "Hammer",
+      "body": "Shaped like a bird's tail. Released on the hour, it strikes the gong."
+    },
+    "gong": {
+      "name": "Gong",
+      "en": "Gong",
+      "body": "A steel band round the dial that rings a D when the hammer strikes it."
+    },
+    "column-wheel": {
+      "name": "Column wheel",
+      "en": "Column wheel",
+      "body": "Steps a tooth with each press of the pusher at 4 to switch between chime and silent."
+    },
+    "switch-lever": {
+      "name": "Switch lever",
+      "en": "Switch lever",
+      "body": "Reads the column wheel and, when silent, draws the hammer back from the gong."
+    },
+    "indicator": {
+      "name": "Indicator",
+      "en": "Indicator",
+      "body": "The red arrow, the bird's beak: it points to chime or silent."
+    },
+    "hammer-cock": {
+      "name": "Hammer cock",
+      "en": "Hammer cock",
+      "body": "Holds the hammer in its jewel."
+    },
+    "indicator-cock": {
+      "name": "Indicator cock",
+      "en": "Indicator cock",
+      "body": "Holds the indicator."
+    },
+    "lever-cock": {
+      "name": "Lever cock",
+      "en": "Lever cock",
+      "body": "Holds the strike lever's arbor."
+    }
+  }
+}

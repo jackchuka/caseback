@@ -51,7 +51,9 @@
     "position": "Position",
     "chrono": "Chronograph",
     "counters": "Counters",
-    "hearts": "Hearts"
+    "hearts": "Hearts",
+    "chime": "Chime",
+    "strikes": "Strikes"
   },
   "fallback": {
     "title": "3D is not available",
@@ -93,6 +95,11 @@
     "watchCount_other": "{{count}} watches",
     "watchTotal_one": "{{count}} watch",
     "watchTotal_other": "{{count}} watches"
+  },
+  "chime": {
+    "on": "Chiming",
+    "silent": "Silent",
+    "pusher": "Pusher at 4 o'clock"
   },
   "notice": {
     "full": "An unofficial educational project. Not affiliated with, endorsed or sponsored by any watch brand or manufacturer shown; trademarks belong to their respective owners. The 3D models are approximate reconstructions from public information and photos, and do not accurately reproduce the real watches' shape, dimensions, specifications or design.",
