@@ -97,6 +97,8 @@ export function validateCaliber(c: Caliber): string[] {
         if (p && p.shape.kind !== k) errors.push(`strike: ${id} is not a ${k}`);
       };
       kind(cp.snail, 'snail');
+      const snail = byId.get(cp.snail);
+      if (snail && !snail.arbor) errors.push(`strike: snail ${cp.snail} has no arbor`);
       for (const id of [cp.lever, cp.hammer, cp.silence.switch, cp.silence.indicator]) kind(id, 'lever');
       kind(cp.silence.wheel, 'cam');
     } else if (cp.type === 'chronograph') {

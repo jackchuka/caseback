@@ -52,7 +52,7 @@
     "chrono": "クロノグラフ",
     "counters": "積算計",
     "hearts": "ハートカム",
-    "chime": "打鐘",
+    "chime": "打鐘モード",
     "strikes": "打数"
   },
   "fallback": {

@@ -77,6 +77,15 @@ describe('strike coupling', () => {
   it('accepts a strike with its chime pusher', () => {
     expect(validateCaliber(strikeCaliber())).toEqual([]);
   });
+  it('rejects a snail without an arbor', () => {
+    const c = strikeCaliber();
+    const parts = c.parts.map((p) => {
+      if (p.id !== 'snail') return p;
+      const { arbor: _arbor, ...rest } = p;
+      return rest as Part;
+    });
+    expect(validateCaliber({ ...c, parts })).toContain('strike: snail snail has no arbor');
+  });
   it('takes a signed swing, the blow\'s direction, but never a zero one', () => {
     const withSwing = (swing: number) => {
       const c = strikeCaliber();

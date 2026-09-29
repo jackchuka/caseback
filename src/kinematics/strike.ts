@@ -16,11 +16,14 @@ export const hourPhase = (angle: number) => {
   return f - Math.floor(f);
 };
 
+// An odd press count leaves the strike silent.
+export const isSilent = (presses: number): boolean => presses % 2 === 1;
+
 // 0 while chiming, 1 while silent, easing between as the pushed column wheel turns: each whole press toggles.
 export function silence(presses: number): number {
   const n = Math.floor(presses);
   const e = smoothstep(presses - n);
-  return n % 2 === 0 ? e : 1 - e;
+  return isSilent(n) ? 1 - e : e;
 }
 
 // The hammer from its banking: drawn back `cock` rad against the blow as the hour passes, slowly at first and most in

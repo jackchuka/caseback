@@ -12,7 +12,7 @@
 ![React Three Fiber](https://img.shields.io/badge/React_Three_Fiber-9-000000?logo=three.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 
-<img src="public/thumbs/calibers/eta-2824-2-480.webp" width="32%" alt="ETA 2824-2"> <img src="public/thumbs/calibers/seiko-nh35a-480.webp" width="32%" alt="Seiko NH35A"> <img src="public/thumbs/calibers/valjoux-7750-480.webp" width="32%" alt="Valjoux 7750"> <img src="public/thumbs/calibers/cw-fs01-480.webp" width="32%" alt="Christopher Ward FS01">
+<img src="public/thumbs/calibers/eta-2824-2-480.webp" width="24%" alt="ETA 2824-2"> <img src="public/thumbs/calibers/seiko-nh35a-480.webp" width="24%" alt="Seiko NH35A"> <img src="public/thumbs/calibers/valjoux-7750-480.webp" width="24%" alt="Valjoux 7750"> <img src="public/thumbs/calibers/cw-fs01-480.webp" width="24%" alt="Christopher Ward FS01">
 
 </div>
 

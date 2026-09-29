@@ -32,14 +32,14 @@ reference/<brand>/<model>/         参考写真（gitignore。リポジトリに
 
 `ExteriorBuilder` は `{ geometry, materials }` の組。
 
-- `geometry(ctx)`: `{ parts, anchors }` を返す。`ctx.movement`（MovementFrame）はムーブメントの高さや窓の位置を持つ（`frontZ`、`dialZ`、`secondsZ`、`stemZ`、`plateFrontZ`、`rotorBackZ`、`dateWindow`、`dayWindow`、`extraHands`、`pushers`）。
+- `geometry(ctx)`: `{ parts, anchors }` を返す。`ctx.movement`（MovementFrame）はムーブメントの高さや窓の位置を持つ（`frontZ`、`dialZ`、`secondsZ`、`stemZ`、`plateFrontZ`、`rotorBackZ`、`stemAngle`、`outerRadius`、`dateWindow`、`dayWindow`、`extraHands`、`pushers`）。
   - **Web Worker で実行される**ので、DOM と canvas には触れない。canvas テクスチャは `materials` 側で作る。
   - ジオメトリの属性はインターリーブしない。インターリーブした属性があると `transfer.ts` がエラーを出す。
 - `materials()`: `Record<string, () => THREE.Material>`。遅延生成にする。
 - `parts`:
-  - `case`、`bezel`、`dial`、`crystal`、`strap`、`caseback`、`crown`、`hands`（`hour`、`minute`、`seconds`。必要に応じて `extra`）、`pushers`（クロノグラフのみ）。
+  - `case`、`bezel`、`dial`、`crystal`、`strap`、`caseback`、`crown`、`hands`（`hour`、`minute`、`seconds`。必要に応じて `extra`）、`pushers`（クロノグラフのプッシャー、または打鐘機構のチャイムプッシャー）。
   - 空の配列でもよい。
-- `anchors`: `{ seatRadius, crownX, caseBackZ, casebackTurns }`
+- `anchors`: `{ seatRadius, crownRadius, caseBackZ, casebackTurns }`
   - `casebackTurns`: ねじ込み式の丸い裏蓋は `true`。ねじで留めて持ち上げるだけのものは `false`。
 - 守ること:
   - ケースの中心はムーブメントの中心に合わせる。文字盤は −Z 側。

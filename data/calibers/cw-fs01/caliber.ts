@@ -94,7 +94,7 @@ const deg = (d: number) => (d * Math.PI) / 180;
 const local = (pivot: P2, pts: Array<[number, number]>) => pts.map(([x, y]) => ({ x: x - pivot.x, y: y - pivot.y }));
 
 // The gong (photo:front, Azzurro): wires 0.62 wide at 15.32 and 16.8 mm, the hairpin at −41.5°, the outer wire's
-// free end at 186°.
+// foot at 186°.
 const GONG_SHAPE = { outer: 16.8, inner: 15.32, from: deg(-41.5), to: deg(186), width: 0.62, thickness: 0.5 };
 // The hammer (photo:front, Azzurro): a wide blade reaching up toward 8 o'clock, its corner just inside the gong's
 // inner wire, and a short tail toward the centre.

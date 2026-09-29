@@ -4,6 +4,7 @@ import { caliberVars } from '../i18n/caliberVars';
 import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
 import { ChimePusher } from './ChimePusher';
+import { isSilent } from '../kinematics/strike';
 import { ChronoPushers } from './ChronoPushers';
 import { panelModel } from './panel';
 import { useOccluder } from './useOccluder';
@@ -87,7 +88,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
                     : s.value === 'live:chrono'
                       ? t(`ui:chrono.${chrono === 'reset' ? 'zero' : chrono}`)
                       : s.value === 'live:chime'
-                        ? t(chimePresses % 2 === 1 ? 'ui:chime.silent' : 'ui:chime.on')
+                        ? t(isSilent(chimePresses) ? 'ui:chime.silent' : 'ui:chime.on')
                         : s.value}
               </b>
             </div>

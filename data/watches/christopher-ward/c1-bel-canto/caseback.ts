@@ -8,7 +8,7 @@ const C = P.caseback;
 // How deep the plate's back face sits behind the seat: the rotor turns in the pocket in front of it.
 const POCKET_DEPTH = 0.6;
 
-// The stamped soundwave (photo:caseback-viola): a small ring at the centre, then rings spreading out, each broken on
+// The stamped soundwave (photo:caseback): a small ring at the centre, then rings spreading out, each broken on
 // the diagonals into four arcs centred on 3, 6, 9 and 12 o'clock; the gaps, 1.2 to 2.4 mm across, widen a little
 // outward. Angles in radians from 3 o'clock toward 6, radii in mm.
 export function soundwaveArcs(): Array<{ radius: number; from: number; to: number }> {

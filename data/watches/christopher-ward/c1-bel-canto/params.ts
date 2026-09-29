@@ -78,7 +78,7 @@ export const P = {
   // polished faceted tip starting at 21.55 and narrowing to a 5.1 mm end face; est: height, how deep it sits in the
   // case band, travel.
   pusher: { width: 6.9, height: 2.6, inner: 19.8, tipFrom: 21.55, end: 22.35, endWidth: 5.1, endHeight: 1.6, travel: 0.5 },
-  // photo:caseback-viola: a raised plate with a bevelled edge on a flange held by four screws at 1:30, 4:30, 7:30 and
+  // photo:caseback: a raised plate with a bevelled edge on a flange held by four screws at 1:30, 4:30, 7:30 and
   // 10:30 (angles from 3 o'clock toward 6); est: sizes.
   caseback: { thickness: 2.0, flange: 19.6, flangeThickness: 0.7, bevelFrom: 17.9, plate: 16.9, pocket: 13.4, screwAt: 18.75, screwRadius: 0.75, screws: [-135, -45, 45, 135] },
 

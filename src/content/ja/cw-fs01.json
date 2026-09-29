@@ -36,7 +36,7 @@
     },
     "time-fourth": {
       "kicker": "4 · Going train",
-      "body": "1分でちょうど1回転する。秒針はこの車の回転から取り出される。"
+      "body": "1分でちょうど1回転する。この車が脱進車を回す。この機構に秒針はない。"
     },
     "time-escape": {
       "kicker": "5 · Escapement",
@@ -158,7 +158,7 @@
     "fourth": {
       "name": "四番車",
       "en": "Fourth wheel",
-      "body": "1分で1回転する車。秒針の回転のもとになる。"
+      "body": "1分で1回転して脱進車を回す車。"
     },
     "escape": {
       "name": "ガンギ車",

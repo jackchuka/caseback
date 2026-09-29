@@ -36,7 +36,7 @@
     },
     "time-fourth": {
       "kicker": "4 · Going train",
-      "body": "It turns exactly once a minute. The seconds hand takes its motion from this wheel."
+      "body": "It turns exactly once a minute. It drives the escape wheel; this movement shows no seconds."
     },
     "time-escape": {
       "kicker": "5 · Escapement",
@@ -158,7 +158,7 @@
     "fourth": {
       "name": "Fourth wheel",
       "en": "Fourth wheel",
-      "body": "Turns once a minute and drives the seconds."
+      "body": "Turns once a minute and drives the escape wheel."
     },
     "escape": {
       "name": "Escape wheel",
