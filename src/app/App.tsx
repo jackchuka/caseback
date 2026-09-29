@@ -2,7 +2,6 @@ import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { i18n } from 'i18next';
 import { Suspense, use, useMemo } from 'react';
-import * as THREE from 'three';
 import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { CameraRig } from '../scene/CameraRig';
@@ -14,6 +13,7 @@ import { movementFrame } from '../scene/exterior/frame';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
+import { TONE_MAPPING } from '../scene/looks';
 import { Movement } from '../scene/Movement';
 import { Studio } from '../scene/Studio';
 import { useApp } from '../state/app';
@@ -41,10 +41,10 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
         dpr={quality === 'high' ? [1, 2] : [1, 1.5]}
         camera={{ fov: 26, near: 0.5, far: 400, position: [-24, 52, 62] }}
         // The effect composer multisamples its own buffer on high; the canvas's MSAA would only be discarded.
-        gl={{ antialias: quality !== 'high', toneMapping: THREE.ACESFilmicToneMapping }}
+        gl={{ antialias: quality !== 'high', toneMapping: TONE_MAPPING }}
       >
         <MaterialsProvider>
-          <Studio />
+          <Studio composer={quality === 'high'} />
           <Suspense fallback={null}>
             <Scene caliber={caliber} watch={watch} exterior={exterior} />
           </Suspense>

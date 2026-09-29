@@ -14,14 +14,14 @@ const shotModules = import.meta.glob<Shot[]>('../../data/watches/*/*/shots.ts', 
 const shotsFor = (id: string) => shotModules[`../../data/watches/${id}/shots.ts`] ?? [];
 
 // /dev/compare                      → list of watches
-// /dev/compare/<brand>/<model>?shot=<id>&view=front|side|three-quarter&mode=overlay|side|diff|model
+// /dev/compare/<brand>/<model>?shot=<id>&view=front|side|three-quarter&mode=overlay|side|diff|model&theme=dark|light
 export async function startCompare(base: string) {
   const rel = location.pathname.slice(`${base}dev/compare`.length).replace(/^\/+|\/+$/g, '');
   const q = new URLSearchParams(location.search);
   const watch = rel ? watches[rel] : undefined;
   const caliber = calibers[watch?.caliberId ?? Object.keys(calibers)[0]!]!;
   // Intro mode shows the finished watch with the caseback on and the rotor hidden; paused keeps it still.
-  initAppStore(caliber, { mode: 'intro', stepIndex: 0, lang: 'en', theme: 'dark', quality: 'high', paused: true });
+  initAppStore(caliber, { mode: 'intro', stepIndex: 0, lang: 'en', theme: q.get('theme') === 'light' ? 'light' : 'dark', quality: 'high', paused: true });
   const i18n = await createI18n('en');
   const view = (['front', 'side', 'three-quarter'] as const).find((v) => v === q.get('view')) ?? 'front';
   const mode = (['overlay', 'side', 'diff', 'model'] as const).find((m) => m === q.get('mode')) ?? 'overlay';
