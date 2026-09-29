@@ -16,6 +16,8 @@
 
 ## 構成
 
+時計の追加手順は [docs/adding-a-watch.md](docs/adding-a-watch.md) を参照。
+
 - `data/calibers/<id>/caliber.ts` — キャリバー定義（部品・歯数・噛み合い・ツアー・出典）。読み込み時にzodで検証
 - `src/kinematics` — 歯数比のグラフと脱進機から、各部品の角度を計算
 - `src/geometry` — 歯車・ガンギ車・アンクル・テンプ・受けの手続き生成
