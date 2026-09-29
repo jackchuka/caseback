@@ -39,9 +39,9 @@ describe('FS01 going train (SW200-1)', () => {
       expect(Math.hypot(p.pos.x, p.pos.y), p.id).toBeLessThan(limit);
     }
   });
-  it('points the stem at the crown, 25° above 3 o\'clock', () => {
+  it('points the stem at the crown, 25.3° above 3 o\'clock', () => {
     const stem = part('stem');
-    expect(stem.yaw).toBeCloseTo((-25 * Math.PI) / 180, 9);
+    expect(stem.yaw).toBeCloseTo((-25.3 * Math.PI) / 180, 9);
     expect(Math.atan2(stem.pos.y, stem.pos.x)).toBeCloseTo(stem.yaw!, 9);
   });
 });

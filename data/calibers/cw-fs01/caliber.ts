@@ -10,8 +10,8 @@ const HAMMER = 'The hammer and its spring are named by Christopher Ward and Depl
 const GONG = 'Christopher Ward: a mirror-polished steel spring round the dial, doubled back on itself (Fratello says titanium). Radii from the Azzurro front photo, estimated.';
 const SILENCE = 'Deployant: a column wheel, turned by the pusher at 4, sets a lever that lifts the hammer away from the gong. Tooth count and sizes are estimates.';
 
-// The base sits turned in the case so its stem points at the crown, 25° above 3 o'clock (photo:front, Azzurro).
-const BASE_TURN = (-25 * Math.PI) / 180;
+// The base sits turned in the case so its stem points at the crown, 25.3° above 3 o'clock (photo:front, Azzurro).
+const BASE_TURN = (-25.3 * Math.PI) / 180;
 const turn = (p: P2): P2 => ({ x: p.x * Math.cos(BASE_TURN) - p.y * Math.sin(BASE_TURN), y: p.x * Math.sin(BASE_TURN) + p.y * Math.cos(BASE_TURN) });
 
 // SW200-1 going train and self-winding, laid out as the 2824-2's, then turned.
@@ -215,7 +215,8 @@ const caliber: Caliber = {
     diameterMm: 25.6, heightMm: 4.6, jewels: 29, vph: 28800, powerReserveH: 38, hacking: true, quickDate: false,
     sourceIds: ['sellita-doctec', 'cw-handbook'],
   },
-  exterior: { frontZ: DIAL, secondsZ: -4.6, dialZ: DIAL, moduleDiameterMm: 32, pushers: [{ action: 'chime', hour: 4, z: -2.9 }] },
+  // The chime pusher Christopher Ward places at 4 o'clock sits 25° below 3 o'clock (photo:front, Azzurro), nearly mirroring the crown.
+  exterior: { frontZ: DIAL, secondsZ: -4.6, dialZ: DIAL, moduleDiameterMm: 32, pushers: [{ action: 'chime', hour: 3 + 25 / 30, z: -2.9 }] },
   parts,
   couplings: [
     { type: 'mesh', a: 'barrel', b: 'center-pinion' },
