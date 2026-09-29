@@ -4,6 +4,16 @@ import { movementFrame } from './frame';
 
 describe('movementFrame', () => {
   const c = calibers['eta-2824-2']!;
+  it('reports an unturned stem as stemAngle 0', () => {
+    expect(movementFrame(c).stemAngle).toBe(0);
+  });
+  it('reports a turned stem\'s angle and measures its end along it', () => {
+    const yaw = -0.4;
+    const turned = c.parts.map((p) => (p.axis === 'x' ? { ...p, yaw, pos: { ...p.pos, x: p.pos.x * Math.cos(yaw), y: p.pos.x * Math.sin(yaw) } } : p));
+    const f = movementFrame({ ...c, parts: turned });
+    expect(f.stemAngle).toBe(yaw);
+    expect(f.stemEnd).toBeCloseTo(16.1, 6);
+  });
   it('reads the ETA 2824-2 heights and date window from its parts', () => {
     const f = movementFrame(c);
     expect(f.diameterMm).toBe(25.6);

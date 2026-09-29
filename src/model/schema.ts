@@ -62,6 +62,8 @@ export const PartSchema = z.object({
   arbor: z.string().optional(),
   focus: z.string().optional(),
   axis: z.enum(['z', 'x']).optional(),
+  // Turns an axis-'x' part (a stem and the pinions on it) about Z, from pointing at 3 o'clock toward 6 (rad).
+  yaw: z.number().optional(),
   rest: z.number().optional(),
   side: z.enum(['back', 'dial']),
   pos: Vec3Schema,

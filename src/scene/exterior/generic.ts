@@ -31,7 +31,7 @@ export const genericCase: ExteriorBuilder = {
         hands: { hour: [], minute: [], seconds: [] },
         pushers: m.pushers.map((p) => ({ action: p.action, radius: r + 4.2, travel: 0.6, layers: [{ geometry: new THREE.CylinderGeometry(1.0, 1.0, 2.0, 40), material: 'case' }] })),
       },
-      anchors: { seatRadius: inner, crownX: r + 4.3, caseBackZ: top, casebackTurns: true },
+      anchors: { seatRadius: inner, crownRadius: r + 4.3, caseBackZ: top, casebackTurns: true },
     };
   },
 };

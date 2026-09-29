@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { crownX, tudorCrown } from './crown';
+import { crownRadius, tudorCrown } from './crown';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { caseFront, caseShape } from './case';
@@ -24,7 +24,7 @@ describe('Tudor 79220B crown', () => {
     const tube = layers.find((l) => l.material === 'steel')!.geometry;
     tube.computeBoundingBox();
     expect(tube.boundingBox!.min.y).toBeGreaterThan(0);
-    expect(crownX() - T.crownLength / 2).toBeGreaterThan(T.caseRadius);
+    expect(crownRadius() - T.crownLength / 2).toBeGreaterThan(T.caseRadius);
   });
   it('sits at the measured depth on the flank, 4.4 mm behind the case front', () => {
     expect(m.stemZ - caseFront(m)).toBeCloseTo(4.4, 1);

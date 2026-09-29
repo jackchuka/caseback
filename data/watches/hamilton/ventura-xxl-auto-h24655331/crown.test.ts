@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { caseBack } from './case';
-import { crownX, venturaCrown } from './crown';
+import { crownRadius, venturaCrown } from './crown';
 import { V } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
@@ -25,7 +25,7 @@ describe('Ventura crown', () => {
     expect(Math.max(...radii(b.min.y - 0.01, b.min.y + 0.05))).toBeLessThan(V.crownEndDiameter / 2 + 0.3);
   });
   it('starts at the housing\'s outer face and ends 46 mm from the 9 o\'clock tip', () => {
-    expect(crownX() - V.crownLength / 2).toBeCloseTo(V.housing.collar[1], 5);
+    expect(crownRadius() - V.crownLength / 2).toBeCloseTo(V.housing.collar[1], 5);
   });
   it('sits on the stem axis inside the housing\'s height', () => {
     expect(m.stemZ - V.crownDiameter / 2).toBeGreaterThan(V.housing.top);

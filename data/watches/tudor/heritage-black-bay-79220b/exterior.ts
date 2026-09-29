@@ -3,7 +3,7 @@ import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { tudorBezel } from './bezel';
 import { tudorBracelet } from './bracelet';
 import { caseShape, tudorCase, tudorCaseback } from './case';
-import { crownX, tudorCrown } from './crown';
+import { crownRadius, tudorCrown } from './crown';
 import { tudorCrystal } from './crystal';
 import { tudorDial } from './dial';
 import { tudorHands } from './hands';
@@ -23,7 +23,7 @@ const tudor79220b: ExteriorBuilder = {
       crown: tudorCrown(),
       hands: tudorHands(T.dialRadius),
     },
-    anchors: { seatRadius: T.bore, crownX: crownX(), caseBackZ: caseShape(m).back, casebackTurns: true },
+    anchors: { seatRadius: T.bore, crownRadius: crownRadius(), caseBackZ: caseShape(m).back, casebackTurns: true },
   }),
   materials: tudorMaterials,
 };

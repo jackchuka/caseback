@@ -2,7 +2,7 @@ import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
 import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { presageBezel } from './bezel';
 import { caseBack, presageCase, presageCaseback } from './case';
-import { crownX, presageCrown } from './crown';
+import { crownRadius, presageCrown } from './crown';
 import { presageCrystal } from './crystal';
 import { presageDial } from './dial';
 import { presageHands } from './hands';
@@ -23,7 +23,7 @@ const srpb43: ExteriorBuilder = {
       crown: presageCrown(),
       hands: presageHands(P.dialRadius),
     },
-    anchors: { seatRadius: P.bore, crownX: crownX(), caseBackZ: caseBack(m), casebackTurns: true },
+    anchors: { seatRadius: P.bore, crownRadius: crownRadius(), caseBackZ: caseBack(m), casebackTurns: true },
   }),
   materials: presageMaterials,
 };

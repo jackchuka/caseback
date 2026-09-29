@@ -138,6 +138,7 @@ export function buildSolver(c: Caliber): Solver {
   const slip = slipCp ? { aKey: key(slipCp.a), bKey: key(slipCp.b), bTeeth: toothCount(byId.get(slipCp.b)!.shape) ?? 1 } : null;
   const cannonFactor = slip ? bfs(slip.bKey) : new Map<string, number>();
   const keylessCp = couplingOf(c, 'keyless');
+  const stemYaw = keylessCp ? (byId.get(keylessCp.stem)!.yaw ?? 0) : 0;
   const keyless = keylessCp
     ? {
         stemKey: key(keylessCp.stem),
@@ -244,9 +245,14 @@ export function buildSolver(c: Caliber): Solver {
       byKey.set(keyless.slidingKey, crownRot);
       byKey.set(keyless.windingKey, windRot);
       byKey.set(keyless.settingKey, -setRot * (keyless.slidingTeeth / keyless.settingTeeth));
-      dx.set(keyless.stemKey, crownPos * keyless.pull);
+      // Pulled along the stem's own axis.
+      const along = (key: string, d: number) => {
+        dx.set(key, d * Math.cos(stemYaw) + 0);
+        dy.set(key, d * Math.sin(stemYaw) + 0);
+      };
+      along(keyless.stemKey, crownPos * keyless.pull);
       // At position 2 the sliding pinion moves inward onto the setting wheel.
-      dx.set(keyless.slidingKey, crownPos * keyless.pull + (crownPos === 2 ? -keyless.slidingThrow : 0));
+      along(keyless.slidingKey, crownPos * keyless.pull + (crownPos === 2 ? -keyless.slidingThrow : 0));
     }
     const out = new Map<string, PartTransform>();
     for (const p of c.parts) {

@@ -123,8 +123,10 @@ export function Movement({ caliber, handLayers, discMaterials, timeOverride, chi
       const tr = transforms.get(id);
       if (!tr) continue;
       if (entry.part.axis === 'x') {
-        entry.group.rotation.x = tr.angle;
+        // Spin about the part's own axis, then turn that axis to the stem's direction.
+        entry.group.rotation.set(tr.angle, 0, entry.part.yaw ?? 0, 'ZYX');
         entry.group.position.x = entry.part.pos.x + tr.dx;
+        entry.group.position.y = entry.part.pos.y + tr.dy;
       } else {
         entry.group.rotation.z = (entry.part.rest ?? 0) + tr.angle;
         entry.group.position.x = entry.part.pos.x + tr.dx;

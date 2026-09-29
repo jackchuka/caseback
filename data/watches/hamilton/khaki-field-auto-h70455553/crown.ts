@@ -7,7 +7,7 @@ import { H } from './params';
 export const CROWN_FLUTES = 20;
 
 // Distance of the crown's centre from the watch centre along the stem: past the case wall and the neck.
-export const crownX = () => H.caseRadius + H.neckLength + H.crownLength / 2;
+export const crownRadius = () => H.caseRadius + H.neckLength + H.crownLength / 2;
 
 // The push-pull crown: a flat end face inside a polished bevel (its engraved logo left off), a deeply knurled grip,
 // and a short neck into the case. Local axis Y, +Y toward the case.

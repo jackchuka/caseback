@@ -3,8 +3,8 @@ export function casingRing(movementRadius: number, inner: number): { rIn: number
   return inner - movementRadius > 0.5 ? { rIn: movementRadius + 0.05, rOut: inner } : null;
 }
 
-export function stemExtension(stemEnd: number, crownX: number, crownLength: number): { from: number; to: number } {
-  return { from: stemEnd, to: Math.max(stemEnd, crownX - crownLength / 2) };
+export function stemExtension(stemEnd: number, crownRadius: number, crownLength: number): { from: number; to: number } {
+  return { from: stemEnd, to: Math.max(stemEnd, crownRadius - crownLength / 2) };
 }
 
 // The casing ring fills the gap between a small movement and the case wall over the movement's depth, but never past

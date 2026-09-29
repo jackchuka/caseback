@@ -22,14 +22,16 @@ export function movementFrame(c: Caliber): MovementFrame {
     const s = p.shape as { thickness?: number; length?: number };
     return (s.thickness ?? s.length ?? 0) / 2;
   };
+  const stemAngle = stem?.yaw ?? 0;
   return {
     diameterMm: c.specs.diameterMm,
     frontZ: c.exterior.frontZ,
     secondsZ: c.exterior.secondsZ,
     dialZ: c.exterior.dialZ ?? (ring ? (ring.pos.z + hour.pos.z) / 2 : hour.pos.z + DIAL_CLEARANCE),
     stemZ: stem?.pos.z ?? 0,
-    stemEnd: stem && stemShape ? stem.pos.x + stemShape.length / 2 : null,
+    stemEnd: stem && stemShape ? stem.pos.x * Math.cos(stemAngle) + stem.pos.y * Math.sin(stemAngle) + stemShape.length / 2 : null,
     stemRadius: stemShape?.radius ?? DEFAULT_STEM_RADIUS,
+    stemAngle,
     // Over the middle of the ring's printed band at 3 o'clock.
     dateWindow: ringShape ? { x: (ringShape.innerRadius + ringShape.outerRadius) / 2, ...(c.exterior.dateWindow ?? WINDOW) } : null,
     // Over the day ring's names where they pass 3 o'clock.

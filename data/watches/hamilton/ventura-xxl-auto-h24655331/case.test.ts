@@ -8,7 +8,7 @@ import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { expectRotorClears, rotorOf, zRange } from '../../../../src/test/geometry';
 import { caseBack, caseFront, caseShape, crystalFront, venturaCase } from './case';
 import { casebackOuter, venturaCaseback } from './caseback';
-import { crownX } from './crown';
+import { crownRadius } from './crown';
 import { venturaCrystal } from './crystal';
 import ventura from './exterior';
 import { mirrored, PHOTO, TRACE, V } from './params';
@@ -23,7 +23,7 @@ describe('Ventura plan', () => {
     const all = [...outlines.tier0, ...outlines.tier1, ...outlines.tier2];
     const ys = all.map(([, y]) => y), xs = all.map(([x]) => x);
     expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(V.height, 0);
-    expect(crownX() + V.crownLength / 2 - Math.min(...xs)).toBeCloseTo(V.width, 0);
+    expect(crownRadius() + V.crownLength / 2 - Math.min(...xs)).toBeCloseTo(V.width, 0);
   });
   it('closes each traced half across the 3–9 line into a mirror-symmetric outline', () => {
     const o = mirrored(TRACE.tier0);

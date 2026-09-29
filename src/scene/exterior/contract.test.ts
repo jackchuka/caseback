@@ -95,9 +95,11 @@ describe('exterior contract', () => {
       });
 
       it('the crown sits outside the case on the stem axis, beyond the stem end', () => {
-        const flank = vertices(p.case).filter((v) => Math.abs(v.y) < 0.5);
-        expect(b.anchors.crownX).toBeGreaterThan(Math.max(...flank.map((v) => v.x)));
-        expect(b.anchors.crownX).toBeGreaterThanOrEqual(FRAME.stemEnd!);
+        const dir = { x: Math.cos(FRAME.stemAngle), y: Math.sin(FRAME.stemAngle) };
+        const along = (v: THREE.Vector3) => v.x * dir.x + v.y * dir.y;
+        const flank = vertices(p.case).filter((v) => Math.abs(v.y * dir.x - v.x * dir.y) < 0.5 && along(v) > 0);
+        expect(b.anchors.crownRadius).toBeGreaterThan(Math.max(...flank.map(along)));
+        expect(b.anchors.crownRadius).toBeGreaterThanOrEqual(FRAME.stemEnd!);
       });
 
       it('hour and minute hands point to 12 and fit within the dial', () => {

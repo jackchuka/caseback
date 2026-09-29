@@ -61,7 +61,7 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
     s.absarc(0, 0, 1.2, Math.PI, 0, true);
     return extrudeCentered(s, 0.45, 0.06);
   }, [r]);
-  const { crownX } = build.anchors;
+  const { crownRadius } = build.anchors;
   const keyless = caliber.couplings.find((cp) => cp.type === 'keyless');
   const pull = keyless?.type === 'keyless' ? keyless.pull : 0;
   const casing = casingRing(r, build.anchors.seatRadius);
@@ -69,7 +69,7 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
   // Seen from both the caseback and the dial side, so it needs both faces.
   const casingMat = useMemo(() => Object.assign(movementMaterials.plate.clone(), { side: THREE.DoubleSide }), [movementMaterials]);
   // The stem runs on into the crown's centre, where the crown hides its end.
-  const stemExt = frame.stemEnd === null ? null : stemExtension(frame.stemEnd, crownX, 0);
+  const stemExt = frame.stemEnd === null ? null : stemExtension(frame.stemEnd, crownRadius, 0);
   const stemTube = useRef<THREE.Group>(null);
   const back = useRef<THREE.Group>(null);
   const rotor = useRef<THREE.Group>(null);
@@ -110,7 +110,7 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
       rotor.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.7) * 1.4 + Math.sin(state.clock.elapsedTime * 0.23) * 0.8;
     }
     if (crown.current) {
-      crown.current.position.x = crownX + s.crownPos * pull;
+      crown.current.position.x = crownRadius + s.crownPos * pull;
       crownEuler(crownState.rot, crown.current.rotation);
     }
     if (stemTube.current) {
@@ -155,8 +155,17 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
   return (
     <group>
       <Layers layers={p.case} pick={pick} name="case" shadows />
-      <group ref={crown} position={[crownX, 0, frame.stemZ]} rotation={[0, 0, Math.PI / 2, 'ZYX']}>
-        {p.crown.map((l, i) => <mesh key={i} geometry={l.geometry} material={pick(l)} castShadow />)}
+      <group rotation-z={frame.stemAngle}>
+        <group ref={crown} position={[crownRadius, 0, frame.stemZ]} rotation={[0, 0, Math.PI / 2, 'ZYX']}>
+          {p.crown.map((l, i) => <mesh key={i} geometry={l.geometry} material={pick(l)} castShadow />)}
+        </group>
+        {stemExt && stemExt.to > stemExt.from && (
+          <group ref={stemTube}>
+            <mesh position={[(stemExt.from + stemExt.to) / 2, 0, frame.stemZ]} rotation-z={Math.PI / 2} material={movementMaterials.steel}>
+              <cylinderGeometry args={[frame.stemRadius, frame.stemRadius, stemExt.to - stemExt.from, 24]} />
+            </mesh>
+          </group>
+        )}
       </group>
       {casing && (
         <mesh rotation-x={Math.PI / 2} position-z={(span.from + span.to) / 2} material={casingMat} receiveShadow>
@@ -167,13 +176,6 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
         <mesh position-z={span.from} material={casingMat} receiveShadow>
           <ringGeometry args={[casing.rIn, casing.rOut, 160]} />
         </mesh>
-      )}
-      {stemExt && stemExt.to > stemExt.from && (
-        <group ref={stemTube}>
-          <mesh position={[(stemExt.from + stemExt.to) / 2, 0, frame.stemZ]} rotation-z={Math.PI / 2} material={movementMaterials.steel}>
-            <cylinderGeometry args={[frame.stemRadius, frame.stemRadius, stemExt.to - stemExt.from, 24]} />
-          </mesh>
-        </group>
       )}
       {pushers.map((ps, i) => (
         <group

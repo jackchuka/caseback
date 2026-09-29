@@ -2,7 +2,7 @@ import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
 import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { caseBack, venturaCase } from './case';
 import { venturaCaseback } from './caseback';
-import { crownX, venturaCrown } from './crown';
+import { crownRadius, venturaCrown } from './crown';
 import { venturaCrystal } from './crystal';
 import { venturaDial } from './dial';
 import { venturaHands } from './hands';
@@ -24,7 +24,7 @@ const ventura: ExteriorBuilder = {
       crown: venturaCrown(),
       hands: venturaHands(),
     },
-    anchors: { seatRadius: V.seat, crownX: crownX(), caseBackZ: caseBack(), casebackTurns: false },
+    anchors: { seatRadius: V.seat, crownRadius: crownRadius(), caseBackZ: caseBack(), casebackTurns: false },
   }),
   materials: venturaMaterials,
 };

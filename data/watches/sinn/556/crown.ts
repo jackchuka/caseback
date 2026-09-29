@@ -6,7 +6,7 @@ import { S } from './params';
 const NOTCH_CLEARANCE = 0.3;
 
 // Distance of the crown's centre from the watch centre along the stem.
-export const crownX = () => S.caseRadius + NOTCH_CLEARANCE + S.crownLength / 2;
+export const crownRadius = () => S.caseRadius + NOTCH_CLEARANCE + S.crownLength / 2;
 
 // A long screw-down crown: coin-edge flutes along the whole side and a rounded end (its engraved S is left off).
 export function sinnCrown(): ExteriorLayer[] {

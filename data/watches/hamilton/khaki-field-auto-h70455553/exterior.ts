@@ -3,7 +3,7 @@ import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { hamiltonBezel } from './bezel';
 import { caseBack, hamiltonCase } from './case';
 import { hamiltonCaseback } from './caseback';
-import { crownX, hamiltonCrown } from './crown';
+import { crownRadius, hamiltonCrown } from './crown';
 import { hamiltonCrystal } from './crystal';
 import { hamiltonDial } from './dial';
 import { hamiltonHands } from './hands';
@@ -25,7 +25,7 @@ const khakiField: ExteriorBuilder = {
       crown: hamiltonCrown(),
       hands: hamiltonHands(),
     },
-    anchors: { seatRadius: H.bore, crownX: crownX(), caseBackZ: caseBack(m), casebackTurns: true },
+    anchors: { seatRadius: H.bore, crownRadius: crownRadius(), caseBackZ: caseBack(m), casebackTurns: true },
   }),
   materials: hamiltonMaterials,
 };

@@ -3,7 +3,7 @@ import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { sinnBezel, sinnCrystal } from './bezel';
 import { sinnBracelet } from './bracelet';
 import { caseBack, sinnCase, sinnCaseback } from './case';
-import { crownX, sinnCrown } from './crown';
+import { crownRadius, sinnCrown } from './crown';
 import { sinnDial } from './dial';
 import { sinnHands } from './hands';
 import { sinnMaterials } from './materials';
@@ -22,7 +22,7 @@ const sinn556: ExteriorBuilder = {
       crown: sinnCrown(),
       hands: sinnHands(),
     },
-    anchors: { seatRadius: S.bore, crownX: crownX(), caseBackZ: caseBack(m), casebackTurns: true },
+    anchors: { seatRadius: S.bore, crownRadius: crownRadius(), caseBackZ: caseBack(m), casebackTurns: true },
   }),
   materials: sinnMaterials,
 };

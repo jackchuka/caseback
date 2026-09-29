@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { caseFront, caseShape } from './case';
-import { CROWN_FLUTES, crownX, hamiltonCrown } from './crown';
+import { CROWN_FLUTES, crownRadius, hamiltonCrown } from './crown';
 import { H } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
@@ -22,7 +22,7 @@ describe('Khaki Field crown', () => {
     expect(CROWN_FLUTES).toBe(20);
   });
   it('ends 4.1 mm past the case, as on the front photo', () => {
-    expect(crownX() + H.crownLength / 2 - H.caseRadius).toBeCloseTo(4.1, 1);
+    expect(crownRadius() + H.crownLength / 2 - H.caseRadius).toBeCloseTo(4.1, 1);
   });
   it('sits on the flank, inside the case middle\'s height', () => {
     expect(m.stemZ - H.crownDiameter / 2).toBeGreaterThan(caseFront(m));

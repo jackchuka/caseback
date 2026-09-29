@@ -5,7 +5,7 @@ import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { layersBox, radii } from '../../../../src/test/geometry';
 import { bezelMarks, sinnBezel, sinnCrystal } from './bezel';
 import { bezelTop, caseFront, crystalTop } from './case';
-import { crownX, pusherRadius, sinnCrown, sinnPushers } from './crown';
+import { crownRadius, pusherRadius, sinnCrown, sinnPushers } from './crown';
 import { openings, sinnDial } from './dial';
 import { sinnHands } from './hands';
 import { P } from './params';
@@ -76,7 +76,7 @@ describe('Sinn 103 hands', () => {
 describe('Sinn 103 crown and pushers', () => {
   it('ends the crown where the front photo does', () => {
     const b = layersBox(sinnCrown());
-    expect(crownX() - b.min.y).toBeCloseTo(24.45, 1);
+    expect(crownRadius() - b.min.y).toBeCloseTo(24.45, 1);
   });
   it('puts a pusher at each of the movement\'s pusher positions, ending where the front photo does', () => {
     const ps = sinnPushers();

@@ -29,6 +29,8 @@ export type MovementFrame = {
   stemZ: number;
   stemEnd: number | null;
   stemRadius: number;
+  // The stem's direction, from 3 o'clock toward 6 (radians); the crown sits along it.
+  stemAngle: number;
   dateWindow: { x: number; width: number; height: number } | null;
   // A day window beside the date, over the day ring's names at 3 o'clock.
   dayWindow: { x: number; width: number; height: number } | null;
@@ -70,10 +72,11 @@ export type ExteriorGeometry = {
     // sits `radius` from the watch centre; a push moves it `travel` toward the case.
     pushers?: Array<{ action: PusherAction; radius: number; travel: number; layers: ExteriorLayer[] }>;
   };
-  // seatRadius: the round movement seat's radius, which drives the casing ring in Exterior.tsx. caseBackZ: the case
-  // middle's back face (the caseback's seat), where the casing ring must stop. casebackTurns: a screw-down back
-  // unscrews as it lifts; a back held by screws (any non-round one) lifts straight off.
-  anchors: { seatRadius: number; crownX: number; caseBackZ: number; casebackTurns: boolean };
+  // seatRadius: the round movement seat's radius, which drives the casing ring in Exterior.tsx. crownRadius: the
+  // crown centre's distance from the watch centre along the stem. caseBackZ: the case middle's back face (the
+  // caseback's seat), where the casing ring must stop. casebackTurns: a screw-down back unscrews as it lifts; a back
+  // held by screws (any non-round one) lifts straight off.
+  anchors: { seatRadius: number; crownRadius: number; caseBackZ: number; casebackTurns: boolean };
 };
 
 export const DISC_MATERIALS = ['date', 'day'] as const;

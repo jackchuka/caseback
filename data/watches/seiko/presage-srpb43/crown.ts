@@ -4,7 +4,7 @@ import { cutFlutes } from '../../../../src/scene/exterior/kit/flutes';
 import { P } from './params';
 
 // Distance of the crown's centre from the watch centre along the stem: past the case wall and the exposed tube.
-export const crownX = () => P.caseRadius + P.tubeLength + P.crownLength / 2 - 0.1;
+export const crownRadius = () => P.caseRadius + P.tubeLength + P.crownLength / 2 - 0.1;
 
 // The large push-in crown: a slightly domed end face (its engraved "S" is left off), a band of coarse rounded
 // scallops, and a short tube into the case. Local axis Y, +Y toward the case.

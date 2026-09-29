@@ -53,3 +53,21 @@ describe('quick-set release', () => {
     expect(settleQuick(0.6 * TAU, 1 / 60)).toBeGreaterThanOrEqual(0.6 * TAU);
   });
 });
+
+describe('a turned stem', () => {
+  it('pulls the stem and sliding pinion along its own axis', () => {
+    const c = getCaliber('eta-2824-2')!;
+    const yaw = -0.4;
+    const turned = { ...c, parts: c.parts.map((p) => (p.axis === 'x' ? { ...p, yaw } : p)) };
+    const tr = buildSolver(turned)({ t: 0, explode: 0, crownPos: 2 });
+    expect(tr.get('stem')!.dx).toBeCloseTo(2 * 0.7 * Math.cos(yaw), 9);
+    expect(tr.get('stem')!.dy).toBeCloseTo(2 * 0.7 * Math.sin(yaw), 9);
+    const slide = 2 * 0.7 - 1.05;
+    expect(tr.get('sliding-pinion')!.dx).toBeCloseTo(slide * Math.cos(yaw), 9);
+    expect(tr.get('sliding-pinion')!.dy).toBeCloseTo(slide * Math.sin(yaw), 9);
+  });
+  it('leaves an unturned stem moving along X only', () => {
+    const tr = buildSolver(getCaliber('eta-2824-2')!)({ t: 0, explode: 0, crownPos: 1 });
+    expect(tr.get('stem')!.dy).toBe(0);
+  });
+});

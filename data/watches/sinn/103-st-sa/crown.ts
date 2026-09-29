@@ -9,7 +9,7 @@ import { P } from './params';
 const NOTCH_CLEARANCE = 0.4;
 
 // Distance of the crown's centre from the watch centre along the stem.
-export const crownX = () => P.caseRadius + NOTCH_CLEARANCE + P.crownLength / 2;
+export const crownRadius = () => P.caseRadius + NOTCH_CLEARANCE + P.crownLength / 2;
 
 // A screw-down crown: coin-edge flutes along its side and a domed end (its engraved logo is left off).
 export function sinnCrown(): ExteriorLayer[] {

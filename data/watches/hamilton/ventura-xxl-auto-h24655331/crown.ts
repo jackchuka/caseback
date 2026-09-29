@@ -4,7 +4,7 @@ import { cutFlutes } from '../../../../src/scene/exterior/kit/flutes';
 import { V } from './params';
 
 // The crown's centre on the stem axis: it starts at the housing's outer face.
-export const crownX = () => V.housing.collar[1] + V.crownLength / 2;
+export const crownRadius = () => V.housing.collar[1] + V.crownLength / 2;
 
 // The fluted crown: full diameter at the housing, a rounded shoulder a third of the way out, then tapering to a
 // smaller flat end (its engraved logo left off). Local axis Y, +Y toward the case.
