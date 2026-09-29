@@ -171,12 +171,10 @@ describe('Seiko NH35A depth', () => {
   const bottom = (id: string) => part(id).pos.z - thick(id) / 2;
   const frame = movementFrame(c);
 
-  it('measures about 5.5 mm from the dial support surface to the rotor back (SII: 5.32; see the rotor clearance)', () => {
-    // The model stands 0.18 mm over SII's figure: the rotor keeps a real gap over the automatic bridge's screw heads.
-    // The tight band catches any stack change that would drift further from the published height.
+  it('measures 5.32 mm from the dial support surface to the rotor back, as SII publishes', () => {
     const support = frame.dialZ + 0.2;
-    expect(frame.rotorBackZ - support).toBeGreaterThan(5.5 - 0.05);
-    expect(frame.rotorBackZ - support).toBeLessThan(5.5 + 0.2);
+    expect(frame.rotorBackZ - support).toBeGreaterThan(5.32 - 0.1);
+    expect(frame.rotorBackZ - support).toBeLessThan(5.32 + 0.1);
   });
   it('sets the dial, hands and stem at SII\'s heights from the dial support surface', () => {
     const support = frame.dialZ + 0.2;

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { WHITE_ON_BLACK, dateDisc } from '../../../../src/scene/exterior/kit/calendar';
 import { glass } from '../../../../src/scene/exterior/kit/glass';
 import { lumeMaterial } from '../../../../src/scene/lume';
 import { withPolish } from '../../../../src/scene/exterior/kit/polish';
@@ -22,5 +23,7 @@ export function sinnMaterials(): Record<string, () => THREE.Material> {
     // Separate from the movement lume so it fades with the dial; same colour so dial and hands match.
     'dial-lume': () => lumeMaterial(S.lume),
     'caseback-metal': satin,
+    // Black like the dial, so the window reads as a cut-out rather than a white patch.
+    date: () => dateDisc({ ...WHITE_ON_BLACK, size: S.dateSize }),
   };
 }

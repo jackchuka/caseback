@@ -64,17 +64,18 @@ export function paintDial() {
   return canvasTexture(size, size, (g) => {
     const R = size / 2;
     const k = R / H.dialRadius;
-    g.fillStyle = '#b4b9be';
+    const Z = H.dialZones;
+    g.fillStyle = Z.track;
     g.fillRect(0, 0, size, size);
     g.translate(R, R);
     const disc = (r: number, fill: string) => { g.beginPath(); g.arc(0, 0, r * k, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); };
     // Minute track: grained; hour ring: lighter, turned in fine circles; centre: sunray.
-    disc(H.dialRadius, '#b4b9be');
-    disc(H.trackInner, '#d6d9dc');
+    disc(H.dialRadius, Z.track);
+    disc(H.trackInner, Z.ring);
     g.strokeStyle = 'rgba(255,255,255,0.10)';
     g.lineWidth = 1.5;
     for (let r = H.hourInner; r < H.trackInner; r += 0.09) { g.beginPath(); g.arc(0, 0, r * k, 0, Math.PI * 2); g.stroke(); }
-    disc(H.hourInner, '#b0b6bc');
+    disc(H.hourInner, Z.centre);
     for (let i = 0; i < 720; i++) {
       const a = (i / 720) * Math.PI * 2;
       g.strokeStyle = `rgba(255,255,255,${0.04 + 0.05 * Math.abs(Math.sin(a * 2))})`;
@@ -130,4 +131,31 @@ export function paintDial() {
     ring(print.hours, H.hourNumeralAt, H.hourNumeral, 700, false, true);
     ring(print.day, H.dayNumeralAt, H.dayNumeral, 600, false);
   }, 8);
+}
+
+// The dial's brushing as an anisotropy map (RG: direction in the disc's UV frame, B: strength). The sunray centre is
+// brushed along the radii, so its sheen stretches round the circle; the hour ring is turned in circles, so its sheen
+// runs along the radii; the grained track barely stretches it.
+export function paintDialGrain() {
+  const size = 512;
+  const t = canvasTexture(size, size, (g) => {
+    const img = g.createImageData(size, size);
+    const k = size / (2 * H.dialRadius);
+    for (let py = 0; py < size; py++)
+      for (let px = 0; px < size; px++) {
+        const x = (px + 0.5) / k - H.dialRadius, y = (py + 0.5) / k - H.dialRadius;
+        const r = Math.hypot(x, y) || 1;
+        const [ux, uy] = [x / r, y / r];
+        // Canvas rows run down the texture; UV v runs up.
+        const [dx, dy, strength] = r < H.hourInner ? [-uy, ux, 0.9] : r < H.trackInner ? [ux, uy, 0.7] : [ux, uy, 0.15];
+        const i = (py * size + px) * 4;
+        img.data[i] = Math.round((dx * 0.5 + 0.5) * 255);
+        img.data[i + 1] = Math.round((-dy * 0.5 + 0.5) * 255);
+        img.data[i + 2] = Math.round(strength * 255);
+        img.data[i + 3] = 255;
+      }
+    g.putImageData(img, 0, 0);
+  });
+  t.colorSpace = THREE.NoColorSpace;
+  return t;
 }

@@ -1,17 +1,12 @@
 import * as THREE from 'three';
+import { WHITE_ON_BLACK, dateDisc, dayDisc } from '../../../../src/scene/exterior/kit/calendar';
 import { glass } from '../../../../src/scene/exterior/kit/glass';
 import { lumeMaterial } from '../../../../src/scene/lume';
-import { dateNumbers, dayNames } from '../../../../src/scene/textures';
 import { paintInsert } from './bezel';
 import { paintDial } from './dial';
 import { P } from './params';
 
 const STEEL = 0xe2e4e8;
-const WHITE_ON_BLACK = { ground: '#0c0c0d', ink: '#f1f1ee' };
-const disc = (map: THREE.Texture) => {
-  map.wrapS = map.wrapT = THREE.ClampToEdgeWrapping;
-  return new THREE.MeshPhysicalMaterial({ map, roughness: 0.6, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.3 });
-};
 const polished = () => new THREE.MeshPhysicalMaterial({ color: STEEL, metalness: 1, roughness: 0.08, envMapIntensity: 1.5 });
 
 export function sinnMaterials(): Record<string, () => THREE.Material> {
@@ -39,7 +34,7 @@ export function sinnMaterials(): Record<string, () => THREE.Material> {
     stitch: () => new THREE.MeshPhysicalMaterial({ color: 0xe8e2d0, roughness: 0.8 }),
     'caseback-metal': polished,
     // Sinn prints its day and date white on black.
-    date: () => disc(dateNumbers(31, { ...WHITE_ON_BLACK, size: 1.35 })),
-    day: () => disc(dayNames(WHITE_ON_BLACK)),
+    date: () => dateDisc({ ...WHITE_ON_BLACK, size: 1.35 }),
+    day: () => dayDisc(WHITE_ON_BLACK),
   };
 }

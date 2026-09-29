@@ -67,6 +67,11 @@ export const V = {
     hub: 1.6, // photo:front: the black disc round the pivot the arms meet in
     mesh: 0.72, // photo:front: pitch of the diamond grille
   },
+  // spec: the H24655331's H-10 is a "three-hand movement" with no date (Hamilton,
+  // https://www.hamiltonwatch.com/en-int/h24655331-ventura-xxl-auto.html), and photo:front shows only dark movement
+  // behind the grille, no date figures. est: a band a little wider than the 2824-2's date ring (r 9.3–12.3), between
+  // the grille (dialZ + 0.08) and the ring's face (dialZ + 0.22).
+  dateShade: { inner: 9.1, outer: 12.5, depth: 0.15 },
   track: { inset: 0.35, length: 2.5, width: 0.28, fiveWidth: 0.38 }, // photo:front: ticks from the dial edge inward
   red: { from: 0.8, to: 15.5, gap: [3.8, 6.2] as P2 }, // photo:front: minutes the red hatch spans, and the gap at the 1 o'clock lance
   lance: { length: 6.2, width: 1.25 }, // photo:front: the applied lances at the triangle's corners

@@ -39,6 +39,10 @@ export const H = {
   flangeInner: 14.1, // photo:front
   lumeDotAt: 13.8, lumeDot: 0.2, // photo:front: dot centre radius and radius
   trackInner: 12.3, hourInner: 8.5, // photo:front: dial zone boundaries
+  // photo:gnomon-2/3/4 (daylight, dark ground): a neutral silver (blue minus red within 2 of 255), the turned hour ring
+  // lightest, the sunray centre next, the grained track darkest; Hamilton's own render (front) has the same order but
+  // a cool cast. The lit colour also carries the metal's sheen, so these sit a little under the photos' values.
+  dialZones: { track: '#bfbfbe', ring: '#dcdcdb', centre: '#cdcdcc' },
   tickOuter: 13.95, longTickFrom: 12.45, shortTickFrom: 13.35, // photo:front, gnomon-2: minute ticks run across the track, fifths on its outer half
   hourNumeralAt: 10.4, hourNumeral: 2.4, // photo:front: numeral centre radius and height
   dayNumeralAt: 7.3, dayNumeral: 0.95, // photo:front: 13–24 numerals
