@@ -1,0 +1,46 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    reviewers:
+      - "jackchuka"
+    labels:
+      - "dependencies"
+      - "javascript"
+    target-branch: "main"
+    groups:
+      # oxlint-tsgolint embeds a typescript-go build whose version tracks the compiler; move them together.
+      typescript-toolchain:
+        patterns:
+          - "typescript"
+          - "oxlint"
+          - "oxlint-tsgolint"
+      react-three:
+        patterns:
+          - "three"
+          - "@types/three"
+          - "@react-three/*"
+          - "postprocessing"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    reviewers:
+      - "jackchuka"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    target-branch: "main"

@@ -14,7 +14,7 @@
 
 ## 確認
 
-- [ ] `npm run typecheck` と `npm test` が通る
+- [ ] `npm run typecheck`・`npm run lint`・`npm test` が通る
 - [ ] 値を変えた・足した場合、出典を `sources` に書き、確認できない値は `estimated` にした
 - [ ] 文言を変えた場合、`ja` と `en` の両方を更新した
 - [ ] 外装を変えた場合、`npm run compare` の重ね合わせ画像を下に貼った

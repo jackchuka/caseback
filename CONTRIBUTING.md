@@ -60,6 +60,7 @@ Node.js 22 以上が必要です。
 npm install
 npm run dev        # http://localhost:5173
 npm run typecheck
+npm run lint
 npm test
 ```
 

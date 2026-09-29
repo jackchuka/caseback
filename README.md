@@ -75,6 +75,7 @@ npm run dev        # http://localhost:5173
 | --- | --- |
 | `npm test` | Vitest（運動学・データ・形状・i18n・URL） |
 | `npm run typecheck` | 型チェック |
+| `npm run lint` | oxlint（型情報つき） |
 | `npm run e2e` | Playwright フルスイート |
 | `npm run e2e:quick` | 主要シナリオのみ（`@quick`）。日々の変更確認に |
 | `npm run e2e:fast` | `dist/` が `src/`・`data/` より新しければビルドを省略してフルスイートを実行 |
