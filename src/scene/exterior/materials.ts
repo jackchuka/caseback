@@ -1,6 +1,7 @@
 import type * as THREE from 'three';
 import { EXTRA_MOVEMENT_MATERIALS } from '../../geometry/parts';
 import { MaterialKeySchema } from '../../model/schema';
+import { honourEnvMapIntensity } from '../envIntensity';
 import type { ExteriorBuild, ExteriorLayer } from './contract';
 
 // Built by Exterior.tsx because they depend on the caliber (the engraving) and fade with the opening.
@@ -14,7 +15,7 @@ export function resolveMaterial(key: string, own: Record<string, THREE.Material>
 }
 
 export function instantiate(b: ExteriorBuild): Record<string, THREE.Material> {
-  return Object.fromEntries(Object.entries(b.materials).map(([k, make]) => [k, make()]));
+  return Object.fromEntries(Object.entries(b.materials).map(([k, make]) => [k, honourEnvMapIntensity(make())]));
 }
 
 export function materialKeys(layers: ExteriorLayer[]): string[] {

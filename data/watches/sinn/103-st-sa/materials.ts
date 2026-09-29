@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { glass } from '../../../../src/scene/exterior/kit/glass';
+import { lumeMaterial } from '../../../../src/scene/lume';
 import { dateNumbers, dayNames } from '../../../../src/scene/textures';
 import { paintInsert } from './bezel';
 import { paintDial } from './dial';
@@ -33,7 +34,7 @@ export function sinnMaterials(): Record<string, () => THREE.Material> {
     },
     print: () => new THREE.MeshPhysicalMaterial({ color: P.print, roughness: 0.7, emissive: P.print, emissiveIntensity: 0.35 }),
     // Separate from the movement lume so it fades with the dial; same colour so dial and hands match.
-    'dial-lume': () => new THREE.MeshPhysicalMaterial({ color: 0xf2eee2, roughness: 0.5, metalness: 0 }),
+    'dial-lume': () => lumeMaterial(),
     strap: () => new THREE.MeshPhysicalMaterial({ color: 0x0c0c0e, roughness: 0.45, clearcoat: 0.6, clearcoatRoughness: 0.3 }),
     stitch: () => new THREE.MeshPhysicalMaterial({ color: 0xe8e2d0, roughness: 0.8 }),
     'caseback-metal': polished,
