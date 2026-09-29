@@ -14,9 +14,38 @@ export const P = {
   stepBevel: 0.25, // est: the polished line along the step
   backChamfer: 0.4, // est
   edge: 0.15, // est
-  bore: 16.4, // est: the seat for the 32 mm module (outerRadius 16), with clearance
-  flangeTop: 17.4, // photo:front: the polished flange slopes out from the bore to here, just under the case front
-  flangeFoot: 0.3, // est: the flange starts this far in front of the dial plate
+  // photo:front: past the gong's outer wire the blue plate ends at 17.45; a step rises from there to 18.05 (the
+  // dial's), and a steeper polished wall from 18.05 to 18.55 (the case's) meets the bezel.
+  bore: 18.05, // photo:front: where the case's flange takes over from the dial's step; clears the 35 mm module
+  flangeTop: 18.55, // photo:front: the polished flange's outer edge, just under the case front
+  flangeFoot: 0.6, // est: the dial's step rises this far in front of the plate, where the case's flange starts
+
+  // The dial is the FS01's module plate (photo:front): blue sunray, with the strike parts standing on its face and
+  // openings only where the mechanism below must show. Its print: the wave (chiming) and the flat line (silent) by the
+  // red indicator.
+  dialRadius: 17.45, // photo:front: the blue plate's edge, 0.34 mm outside the gong's outer wire
+  dialThickness: 0.25, // est
+  centreHole: 0.6, // est: round the minute arbor
+  // photo:front: the keyhole below the centre, a rounded trapezoid from just under the centre wheel (1.95 mm, 2.1
+  // across) to 7.8 mm (3.9 across); est: the window onto the snail it must hold, radius r round (x, y).
+  keyhole: { x: 0, y: 3.6, r: 1.2, top: 1.95, topHalf: 1.05, bottom: 7.8, bottomHalf: 1.95, corner: 0.45 },
+  dialColor: '#1b5286', // photo:front: the plate's mid blue between its sunray's light (0d6ba1) and dark (0a2645)
+  printColor: '#6aa6c8', // photo:front: the pale blue of the wave and line
+  // photo:front: the wave, a zigzag of 4 turns 0.7 either side of its axis; the line, a curve through three points;
+  // both 0.15 wide. The arrow points 8° short of each mark's middle, the wave's below and the line's above.
+  marks: { wave: { from: [10.75, 4.6], to: [11.15, 6.95], amp: 0.7, turns: 4 }, line: [[11.1, 7.25], [10.9, 8.8], [10.05, 10.15]], width: 0.15 },
+  ringColor: '#d4d7da', // photo:front: the ring's brushed silver
+
+  // photo:front: the floating chapter ring, fitted as a circle round the sub-dial's arbor: 8.45 mm out, open inside
+  // 5.85; est: its height, floated between the sub-dial bridge and the hour hand.
+  ring: { outer: 8.45, inner: 5.85, bevel: 0.15, back: -1.37, thickness: 0.17 },
+  // photo:front: baton indexes 0.85 mm wide from 5.9 to 8.2 mm, doubled at 12 (bars 0.8 wide, 0.28 apart);
+  // est: raised 0.08 over the ring, a lume strip 0.3 wide in each.
+  index: { from: 5.9, to: 8.2, width: 0.85, pairWidth: 0.8, pairGap: 0.28, height: 0.08, lume: 0.3 },
+  ticks: { from: 6.35, to: 6.8, width: 0.07 }, // photo:front: the minute track's dashes
+
+  // photo:front: skeleton batons, hour to 5.6 mm and 0.8 wide, minute to 7.9 mm and 0.65 wide; est: frame, tail, hub.
+  hands: { hour: 5.6, minute: 7.9, hourWidth: 0.8, minuteWidth: 0.65, shaft: 0.35, lumeFrom: 1.3, frame: 0.12, tail: 0.9, thickness: 0.12, hub: 0.55 },
 
   // photo:front: the lug's outer edge leaves the drum at |y| = 12 and converges on 13.5 mm at the tip as
   // ((tip − y) / run)^1.78, until |y| = 22.3; from there the tip curves in through the measured (x, |y|) points to

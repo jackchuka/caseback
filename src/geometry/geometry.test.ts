@@ -148,6 +148,13 @@ describe('snail and gong', () => {
     expect(layers.length).toBe(2);
     expect(maxRadius(layers[0]!.geometry)).toBeCloseTo(14.9 + 0.175, 1);
   });
+  it('keeps the foot inside the band\'s outer edge, at the end of its arcs', () => {
+    const foot = buildShape(gong, 'steel')[1]!.geometry;
+    expect(maxRadius(foot)).toBeLessThanOrEqual(14.9 + 0.175 + 1e-6);
+    foot.computeBoundingBox();
+    const c = foot.boundingBox!.getCenter(new THREE.Vector3());
+    expect(Math.atan2(c.y, c.x)).toBeCloseTo(Math.atan2(Math.sin(3.7), Math.cos(3.7)), 6);
+  });
 });
 
 describe('blended bridge outline', () => {

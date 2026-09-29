@@ -117,10 +117,13 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
     case 'snail':
       return [{ geometry: extrudeCentered(snailOutline(shape.rMin, shape.rMax), shape.thickness, 0.02), material }];
     case 'gong': {
-      const foot = { x: shape.outer * Math.cos(shape.to), y: shape.outer * Math.sin(shape.to) };
+      // The foot at the arcs' end, flush with the band's outer edge so it stays within the gong's round.
+      const footR = shape.width * 1.8;
+      const at = shape.outer + shape.width / 2 - footR;
+      const foot = { x: at * Math.cos(shape.to), y: at * Math.sin(shape.to) };
       return [
         { geometry: extrudeCentered(new THREE.Shape(gongPoints(shape).map(([x, y]) => new THREE.Vector2(x, y))), shape.thickness, 0.02), material },
-        { geometry: disc(shape.width * 1.8, shape.thickness + 0.1, 24).translate(foot.x, foot.y, 0), material },
+        { geometry: disc(footR, shape.thickness + 0.1, 24).translate(foot.x, foot.y, 0), material },
       ];
     }
     case 'lever': {

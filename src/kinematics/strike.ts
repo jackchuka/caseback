@@ -35,13 +35,14 @@ export function hammerAngle(p: number, swing: number): number {
 }
 
 // Every strike part's angle from the minute arbor's and the pushes. The lever and the hammer's spring work on whether
-// or not the strike is silenced; silenced, the switch lever draws the hammer back out of the gong's reach.
+// or not the strike is silenced; silenced, the switch lever draws the hammer back out of the gong's reach, against
+// the direction of its blow.
 export function strikePose(minuteAngle: number, presses: number, g: StrikeGeometry): StrikePose {
   const p = hourPhase(minuteAngle);
   const s = silence(presses);
   return {
     lever: g.lift * p,
-    hammer: hammerAngle(p, g.swing) - g.retreat * s,
+    hammer: hammerAngle(p, g.swing) - Math.sign(g.swing) * g.retreat * s,
     wheel: (presses * TAU) / g.wheelTeeth,
     switch: g.retreat * s,
     indicator: g.turn * s,

@@ -27,8 +27,9 @@ describe('Bel Canto case', () => {
     while (s.sdf(dir[0] * r, dir[1] * r, z) < 0) r += 0.005;
     return r;
   };
+  // From the lug's inner edge, or from outside the opening where the drum is that far out.
   const outerX = (y: number) => {
-    let x = lw + 0.3;
+    let x = Math.max(lw + 0.3, Math.sqrt(Math.max(0, (P.flangeTop + 0.2) ** 2 - y ** 2)));
     while (s.sdf(x, y, lugMid(y)) < 0) x += 0.005;
     return x;
   };

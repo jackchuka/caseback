@@ -77,6 +77,14 @@ describe('strike coupling', () => {
   it('accepts a strike with its chime pusher', () => {
     expect(validateCaliber(strikeCaliber())).toEqual([]);
   });
+  it('takes a signed swing, the blow\'s direction, but never a zero one', () => {
+    const withSwing = (swing: number) => {
+      const c = strikeCaliber();
+      return { ...c, couplings: c.couplings.map((cp) => (cp.type === 'strike' ? { ...cp, swing } : cp)) };
+    };
+    expect(() => CaliberSchema.parse(withSwing(-0.14))).not.toThrow();
+    expect(() => CaliberSchema.parse(withSwing(0))).toThrow();
+  });
   it('needs a snail and a cam of the right kinds', () => {
     const c = strikeCaliber();
     const bad = { ...c, parts: c.parts.map((p) => (p.id === 'snail' ? { ...p, shape: { kind: 'heart' as const, radius: 1, thickness: 0.3 } } : p)) };

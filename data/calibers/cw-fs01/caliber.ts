@@ -67,27 +67,82 @@ const D = {
 };
 
 // The time display at 12: a wheel on the minute arbor drives, through an intermediate wheel, an equal wheel on the
-// sub-dial's arbor, which turns with it once an hour and carries a 1:12 motion works of its own.
-const T = { center: 30, intermediate: 70, subCenter: 30, subCannon: 12, subMinuteWheel: 36, subMinutePinion: 10, subHourWheel: 40 };
-const mTime = 0.1;
+// sub-dial's arbor, which turns with it once an hour and carries a 1:12 motion works of its own. The sub-dial's arbor
+// stands 9.15 mm above the centre and the intermediate wheel halfway (photo:front, Azzurro); the module is what puts
+// them there, and the centre and intermediate wheels' sizes are the photo's (tips 1.95 and 2.8 mm).
+const T = { center: 40, intermediate: 60, subCenter: 40, subCannon: 12, subMinuteWheel: 36, subMinutePinion: 10, subHourWheel: 40 };
+const SUB_ABOVE = 9.15; // photo:front (Azzurro)
+const mTime = (2 * SUB_ABOVE) / (T.center + 2 * T.intermediate + T.subCenter);
+const mSub = 0.1;
 const mSubHour = 0.096;
 const intermediate = place(center, centerDistance(mTime, T.center, T.intermediate), -90);
 const SUB = place(intermediate, centerDistance(mTime, T.intermediate, T.subCenter), -90);
-const subMinuteWheel = place(SUB, centerDistance(mTime, T.subCannon, T.subMinuteWheel), -30);
+const subMinuteWheel = place(SUB, centerDistance(mSub, T.subCannon, T.subMinuteWheel), -30);
 
-// Strike works, from the CAD render and the front photo (mm, 12 o'clock −Y).
-const hammerPivot: P2 = { x: -6.0, y: 6.6 };
-const leverPivot: P2 = { x: 6.6, y: 2.7 };
-const columnWheel: P2 = { x: 10.2, y: 1.2 };
-const switchPivot: P2 = { x: 8.2, y: 3.9 };
-const indicatorPivot: P2 = { x: 8.4, y: 6.7 };
-const GONG_CENTER: P2 = { x: 0, y: 1.0 };
+// Strike works, from the CAD render and the front photo (mm, 12 o'clock −Y). Pivots sit at the photo's jewels.
+const hammerPivot: P2 = { x: -7.85, y: 7.5 }; // photo:front (Azzurro)
+const leverPivot: P2 = { x: 5.95, y: 3.45 }; // photo:front (Azzurro)
+const columnWheel: P2 = { x: 10.05, y: 2.55 }; // photo:front (Azzurro)
+const switchPivot: P2 = { x: 6.45, y: 1.25 }; // photo:front (Azzurro): the pin by the lever's nose
+const indicatorPivot: P2 = { x: 7.55, y: 7.6 }; // photo:front (Azzurro)
+// photo:front (Azzurro): silenced, the indicator turns from the printed wave down to the printed line, 40° on.
+const INDICATOR_TURN = (40 * Math.PI) / 180;
+// photo:front (Azzurro): both wires fitted as circles, within 0.1 mm, round one centre just off the dial's.
+const GONG_CENTER: P2 = { x: -0.18, y: -0.04 };
 const deg = (d: number) => (d * Math.PI) / 180;
 // Outlines drawn in movement coordinates, carried into each lever's own frame (pivot at the origin).
 const local = (pivot: P2, pts: Array<[number, number]>) => pts.map(([x, y]) => ({ x: x - pivot.x, y: y - pivot.y }));
 
-// The sub-dial bridge's arch, as the pairs of lobes it webs together.
-const ARCH: Array<[P2, P2]> = [[{ x: -12.6, y: -7.6 }, { x: -8.4, y: -8.6 }], [{ x: -8.4, y: -8.6 }, SUB], [SUB, { x: 8.4, y: -8.6 }], [{ x: 8.4, y: -8.6 }, { x: 12.6, y: -7.6 }]];
+// The gong (photo:front, Azzurro): wires 0.62 wide at 15.32 and 16.8 mm, the hairpin at −41.5°, the outer wire's
+// free end at 186°.
+const GONG_SHAPE = { outer: 16.8, inner: 15.32, from: deg(-41.5), to: deg(186), width: 0.62, thickness: 0.5 };
+// The hammer (photo:front, Azzurro): a wide blade reaching up toward 8 o'clock, its corner just inside the gong's
+// inner wire, and a short tail toward the centre.
+const HAMMER_OUTLINE: Array<[number, number]> = [
+  [-14.66, 2.86], [-11.06, 1.34], [-10.2, 3.6], [-8.95, 6.25], [-7.3, 6.6], [-5.95, 5.2], [-5.35, 5.4], [-5.5, 6.0],
+  [-6.8, 7.3], [-7.6, 8.55], [-8.6, 8.45], [-9.3, 7.95], [-12.0, 5.7],
+];
+// The swing that lands the blade's corner on the inner wire's inner face: counter-clockwise, so negative. Found by
+// bisection on the farthest the turned outline reaches from the gong's centre.
+const hammerSwing = (() => {
+  const face = GONG_SHAPE.inner - GONG_SHAPE.width / 2;
+  const reach = (a: number) => Math.max(...HAMMER_OUTLINE.map(([x, y]) => {
+    const [dx, dy] = [x - hammerPivot.x, y - hammerPivot.y];
+    return Math.hypot(hammerPivot.x + dx * Math.cos(a) - dy * Math.sin(a) - GONG_CENTER.x, hammerPivot.y + dx * Math.sin(a) + dy * Math.cos(a) - GONG_CENTER.y);
+  }));
+  let [lo, hi] = [-0.3, 0];
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (reach(mid) > face) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+})();
+// The snail (photo:front, Azzurro): read through the keyhole below the centre by the strike lever's tip, which rests
+// on its high point, so its step faces the tip on the hour; the lever follows the rim's fall over the hour.
+const SNAIL_RIM = { rMin: 1.6, rMax: 2.8 };
+const LEVER_TIP: P2 = { x: -0.55, y: 2.75 };
+const snailRest = Math.atan2(LEVER_TIP.y, LEVER_TIP.x);
+const leverLift = (SNAIL_RIM.rMax - SNAIL_RIM.rMin) / Math.hypot(LEVER_TIP.x - leverPivot.x, LEVER_TIP.y - leverPivot.y);
+
+// The sub-dial bridge's arch (photo:front, Azzurro): at each end, below 9 and 3, a pointed block round its screw;
+// from it a slim arm rises under the chapter ring to a boss round the sub-dial's jewel. ARCH lists the pairs of lobes
+// its arms web together.
+const ARCH_LEFT: P2[] = [{ x: -13.9, y: -3.0 }, { x: -12.6, y: -6.8 }, { x: -11.5, y: -6.4 }, { x: -9.1, y: -6.3 }, { x: -9.3, y: -8.8 }, { x: -7.0, y: -9.45 }, { x: -4.4, y: -9.8 }, { x: -2.1, y: -9.7 }];
+const ARCH_RIGHT: P2[] = ARCH_LEFT.map((p) => ({ x: -p.x, y: p.y }));
+const ARCH: Array<[P2, P2]> = [ARCH_LEFT, ARCH_RIGHT].flatMap((side) => [...side, SUB].slice(0, -1).map((p, i): [P2, P2] => [p, [...side, SUB][i + 1]!]));
+const ARCH_R = [0.6, 0.8, 1.35, 0.65, 0.7, 0.45, 0.45, 0.5];
+// Discs every 0.4 mm from a to b: a slimmer web than `chain`'s, for the arch's arms.
+const rod = (a: P2, b: P2, r: number) => {
+  const n = Math.max(1, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / 0.4));
+  return Array.from({ length: n - 1 }, (_, i) => ({ x: a.x + ((b.x - a.x) * (i + 1)) / n, y: a.y + ((b.y - a.y) * (i + 1)) / n, r }));
+};
+// The songbird's wings (photo:front, Azzurro): chevron cocks from a jewel down to the V at 6, screwed near its foot;
+// `side` −1 for the left wing, 1 for the right.
+const wing = (jewel: P2, side: -1 | 1) => {
+  const pts: Array<P2 & { r: number }> = [{ ...jewel, r: 1.15 }, { x: side * 4.65, y: 9.6, r: 1.25 }, { x: side * 1.85, y: 11.45, r: 1.3 }, { x: side * 1.65, y: 13.1, r: 1.05 }];
+  return [...pts, ...pts.slice(1).flatMap((p, i) => chain(pts[i]!, p, 0.9))];
+};
 
 const parts: Part[] = [
   { id: 'plate', mechanism: 'frame', side: 'back', pos: at(center, -0.6), explode: { dz: -0.5 }, material: 'plate', shape: { kind: 'plate', radius: 12.8, thickness: 1.1 }, provenance: sourced('sellita-doctec') },
@@ -143,67 +198,74 @@ const parts: Part[] = [
   // The base's motion works keep only the cannon pinion and minute wheel: the hours are told on the sub-dial.
   { id: 'cannon-pinion', arbor: 'cannon', mechanism: 'motion-works', side: 'dial', pos: at(center, -1.6), explode: { dz: -2.4 }, material: 'steel', shape: { kind: 'pinion', leaves: MW.cannon, module: mMotion, length: 0.8 }, provenance: estimated(TRAIN) },
   { id: 'minute-wheel', arbor: 'minute-wheel', mechanism: 'motion-works', side: 'dial', pos: at(minuteWheel, -1.6), explode: { dz: -3.2 }, material: 'gilt', shape: { kind: 'wheel', teeth: MW.minuteWheel, module: mMotion, thickness: 0.18, spokes: 0 }, provenance: estimated(TRAIN) },
-  { id: 'snail', arbor: 'cannon', focus: 'snail', mechanism: 'strike', side: 'dial', pos: at(center, D.snail), explode: { dz: -2.8 }, material: 'steel', shape: { kind: 'snail', rMin: 1.6, rMax: 2.8, thickness: 0.25 }, provenance: estimated(SNAIL, 'deployant', 'sjx', 'kaminsky') },
+  { id: 'snail', arbor: 'cannon', focus: 'snail', mechanism: 'strike', side: 'dial', pos: at(center, D.snail), rest: snailRest, explode: { dz: -2.8 }, material: 'steel', shape: { kind: 'snail', ...SNAIL_RIM, thickness: 0.25 }, provenance: estimated(SNAIL, 'deployant', 'sjx', 'kaminsky') },
   // FS01 time display.
   { id: 'module-center-wheel', arbor: 'cannon', mechanism: 'motion-works', side: 'dial', pos: at(center, D.trainWheels), explode: { dz: -4 }, material: 'rhodium', shape: { kind: 'wheel', teeth: T.center, module: mTime, thickness: 0.2, spokes: 0 }, provenance: estimated(MODULE, 'watchfinder') },
   { id: 'intermediate-wheel', mechanism: 'motion-works', side: 'dial', pos: at(intermediate, D.trainWheels), explode: { dz: -4 }, material: 'rhodium', shape: { kind: 'wheel', teeth: T.intermediate, module: mTime, thickness: 0.2, spokes: 4 }, provenance: estimated(MODULE, 'watchfinder') },
   { id: 'sub-center-wheel', arbor: 'sub-minute', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.trainWheels), explode: { dz: -4 }, material: 'rhodium', shape: { kind: 'wheel', teeth: T.subCenter, module: mTime, thickness: 0.2, spokes: 0 }, provenance: estimated(MODULE) },
-  { id: 'sub-cannon-pinion', arbor: 'sub-minute', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.subCannon), explode: { dz: -5.5 }, material: 'steel', shape: { kind: 'pinion', leaves: T.subCannon, module: mTime, length: 0.6 }, provenance: estimated(MODULE) },
-  { id: 'sub-minute-wheel', arbor: 'sub-minute-wheel', mechanism: 'motion-works', side: 'dial', pos: at(subMinuteWheel, D.subCannon), explode: { dz: -5.5 }, material: 'rhodium', shape: { kind: 'wheel', teeth: T.subMinuteWheel, module: mTime, thickness: 0.18, spokes: 0 }, provenance: estimated(MODULE) },
+  { id: 'sub-cannon-pinion', arbor: 'sub-minute', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.subCannon), explode: { dz: -5.5 }, material: 'steel', shape: { kind: 'pinion', leaves: T.subCannon, module: mSub, length: 0.6 }, provenance: estimated(MODULE) },
+  { id: 'sub-minute-wheel', arbor: 'sub-minute-wheel', mechanism: 'motion-works', side: 'dial', pos: at(subMinuteWheel, D.subCannon), explode: { dz: -5.5 }, material: 'rhodium', shape: { kind: 'wheel', teeth: T.subMinuteWheel, module: mSub, thickness: 0.18, spokes: 0 }, provenance: estimated(MODULE) },
   { id: 'sub-minute-pinion', arbor: 'sub-minute-wheel', mechanism: 'motion-works', side: 'dial', pos: at(subMinuteWheel, D.subHour), explode: { dz: -5.5 }, material: 'steel', shape: { kind: 'pinion', leaves: T.subMinutePinion, module: mSubHour, length: 0.5 }, provenance: estimated(MODULE) },
   { id: 'sub-hour-wheel', arbor: 'sub-hour', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.subHour), explode: { dz: -6 }, material: 'rhodium', shape: { kind: 'wheel', teeth: T.subHourWheel, module: mSubHour, thickness: 0.16, spokes: 5 }, provenance: estimated(MODULE) },
-  { id: 'hour-hand', arbor: 'sub-hour', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.hourHand), explode: { dz: -9 }, material: 'steel', shape: { kind: 'hand', length: 5.4, width: 0.5, thickness: 0.1 }, provenance: estimated(MODULE) },
-  { id: 'minute-hand', arbor: 'sub-minute', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.minuteHand), explode: { dz: -10 }, material: 'steel', shape: { kind: 'hand', length: 7.6, width: 0.4, thickness: 0.1 }, provenance: estimated(MODULE) },
+  { id: 'hour-hand', arbor: 'sub-hour', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.hourHand), explode: { dz: -9 }, material: 'steel', shape: { kind: 'hand', length: 5.6, width: 0.5, thickness: 0.1 }, provenance: estimated(MODULE) },
+  { id: 'minute-hand', arbor: 'sub-minute', mechanism: 'motion-works', side: 'dial', pos: at(SUB, D.minuteHand), explode: { dz: -10 }, material: 'steel', shape: { kind: 'hand', length: 7.9, width: 0.4, thickness: 0.1 }, provenance: estimated(MODULE) },
   {
     id: 'sub-bridge', mechanism: 'frame', side: 'dial', pos: at(center, D.subBridge), explode: { dz: -7 }, material: 'rhodium',
     shape: {
-      kind: 'bridge', thickness: 0.4, blend: BLEND,
-      lobes: [{ x: -12.6, y: -7.6, r: 1.4 }, { x: -8.4, y: -8.6, r: 1.2 }, { ...SUB, r: 2.0 }, { x: 8.4, y: -8.6, r: 1.2 }, { x: 12.6, y: -7.6, r: 1.4 }, ...ARCH.flatMap(([a, b]) => chain(a, b, 0.9))],
+      kind: 'bridge', thickness: 0.4, blend: 0.6,
+      lobes: [...[ARCH_LEFT, ARCH_RIGHT].flatMap((side) => side.map((p, i) => ({ ...p, r: ARCH_R[i]! }))), { ...SUB, r: 1.6 }, ...ARCH.flatMap(([a, b]) => rod(a, b, 0.45))],
       jewels: [SUB],
-      screws: [{ x: -11.4, y: -7.4 }, { x: 11.4, y: -7.4 }],
+      // photo:front (Azzurro)
+      screws: [{ x: -11.5, y: -6.4 }, { x: 11.5, y: -6.4 }],
     },
     provenance: estimated(MODULE, 'abtw'),
   },
   // Strike works.
   {
     id: 'strike-lever', mechanism: 'strike', side: 'dial', pos: at(leverPivot, D.strike), explode: { dz: -4.5 }, material: 'steel',
-    shape: { kind: 'lever', outline: local(leverPivot, [[7.2, 2.3], [7.2, 3.1], [2.9, 2.7], [2.4, 2.1], [2.9, 1.9]]), thickness: 0.2, hole: 0.18 },
+    // photo:front (Azzurro): an arm running left from its jewel over the keyhole, its finger reaching up into it.
+    shape: { kind: 'lever', outline: local(leverPivot, [[6.6, 2.7], [6.9, 3.9], [5.6, 4.4], [3.3, 4.5], [0.2, 5.2], [-0.9, 5.2], [-0.9, 4.4], [LEVER_TIP.x - 0.2, LEVER_TIP.y + 0.05], [LEVER_TIP.x, LEVER_TIP.y], [-0.1, 4.2], [3.3, 3.6], [5.3, 2.9]]), thickness: 0.2, hole: 0.18 },
     provenance: estimated(MODULE, 'deployant', 'sjx'),
   },
   {
     id: 'hammer', mechanism: 'strike', side: 'dial', pos: at(hammerPivot, D.strike), explode: { dz: -4.5 }, material: 'steel',
-    shape: { kind: 'lever', outline: local(hammerPivot, [[-5.4, 7.1], [-3.2, 5.9], [-3.3, 5.3], [-5.8, 6.0], [-10.2, 2.2], [-12.4, 1.6], [-12.8, 3.0], [-11.2, 4.6], [-6.6, 7.2]]), thickness: 0.25, hole: 0.2 },
+    shape: { kind: 'lever', outline: local(hammerPivot, HAMMER_OUTLINE), thickness: 0.25, hole: 0.2 },
     provenance: estimated(HAMMER, 'cw-loupe', 'deployant'),
   },
   {
     id: 'gong', mechanism: 'strike', side: 'dial', pos: at(GONG_CENTER, D.gong), explode: { dz: -3.5 }, material: 'steel',
-    shape: { kind: 'gong', outer: 14.9, inner: 13.9, from: deg(-48), to: deg(212), width: 0.35, thickness: 0.5 },
+    shape: { kind: 'gong', ...GONG_SHAPE },
     provenance: estimated(GONG, 'cw-handbook', 'cw-classic'),
   },
-  { id: 'column-wheel', mechanism: 'strike', side: 'dial', pos: at(columnWheel, D.strike), explode: { dz: -4.5 }, material: 'steel', shape: { kind: 'cam', teeth: 8, radius: 1.8, thickness: 0.3 }, provenance: estimated(SILENCE, 'deployant') },
+  { id: 'column-wheel', mechanism: 'strike', side: 'dial', pos: at(columnWheel, D.strike), explode: { dz: -4.5 }, material: 'steel', shape: { kind: 'cam', teeth: 6, radius: 1.9, thickness: 0.3 }, provenance: estimated(SILENCE, 'deployant') },
   {
-    id: 'switch-lever', mechanism: 'strike', side: 'dial', pos: at(switchPivot, D.strike), explode: { dz: -4.5 }, material: 'steel',
-    shape: { kind: 'lever', outline: local(switchPivot, [[8.7, 4.3], [9.6, 2.5], [9.0, 2.1], [7.8, 3.6]]), thickness: 0.2, hole: 0.15 },
+    // Behind the strike lever, between it and the module plate. photo:front (Azzurro): the nose on the column wheel.
+    id: 'switch-lever', mechanism: 'strike', side: 'dial', pos: at(switchPivot, DIAL - 0.1), explode: { dz: -4.5 }, material: 'steel',
+    shape: { kind: 'lever', outline: local(switchPivot, [[6.1, 1.0], [7.3, 0.95], [8.5, 2.1], [7.0, 2.6], [6.2, 1.9]]), thickness: 0.15, hole: 0.15 },
     provenance: estimated(SILENCE, 'deployant'),
   },
   {
     id: 'indicator', mechanism: 'strike', side: 'dial', pos: at(indicatorPivot, D.cocks - 0.3), explode: { dz: -6.5 }, material: 'ruby',
-    shape: { kind: 'lever', outline: local(indicatorPivot, [[8.1, 6.4], [11.2, 5.7], [8.3, 7.1]]), thickness: 0.15, hole: 0.12 },
+    // photo:front (Azzurro): the red arrow, pointing at the printed wave while the strike is on.
+    shape: { kind: 'lever', outline: local(indicatorPivot, [[7.55, 6.85], [10.4, 6.38], [8.0, 8.2]]), thickness: 0.15, hole: 0.12 },
     provenance: estimated(SILENCE, 'cw-loupe'),
   },
   {
     id: 'hammer-cock', mechanism: 'frame', side: 'dial', pos: at(center, D.cocks), explode: { dz: -6 }, material: 'rhodium',
-    shape: { kind: 'bridge', thickness: 0.4, blend: BLEND, lobes: [{ ...hammerPivot, r: 1.1 }, { x: -3.3, y: 10.6, r: 1.2 }, { x: -0.8, y: 12.0, r: 1.0 }, ...chain(hammerPivot, { x: -3.3, y: 10.6 }, 0.9), ...chain({ x: -3.3, y: 10.6 }, { x: -0.8, y: 12.0 }, 0.9)], jewels: [hammerPivot], screws: [{ x: -3.3, y: 10.6 }] },
+    // photo:front (Azzurro): the songbird's left wing, from the hammer's jewel down to the V at 6.
+    shape: { kind: 'bridge', thickness: 0.4, blend: BLEND, lobes: wing(hammerPivot, -1), jewels: [hammerPivot], screws: [{ x: -1.85, y: 11.4 }] },
     provenance: estimated(MODULE, 'deployant'),
   },
   {
     id: 'indicator-cock', mechanism: 'frame', side: 'dial', pos: at(center, D.cocks), explode: { dz: -6 }, material: 'rhodium',
-    shape: { kind: 'bridge', thickness: 0.4, blend: BLEND, lobes: [{ ...indicatorPivot, r: 1.1 }, { x: 3.3, y: 10.6, r: 1.2 }, { x: 0.8, y: 12.0, r: 1.0 }, ...chain(indicatorPivot, { x: 3.3, y: 10.6 }, 0.9), ...chain({ x: 3.3, y: 10.6 }, { x: 0.8, y: 12.0 }, 0.9)], jewels: [indicatorPivot], screws: [{ x: 3.3, y: 10.6 }] },
+    // photo:front (Azzurro): the right wing, from the indicator's jewel down to the V at 6.
+    shape: { kind: 'bridge', thickness: 0.4, blend: BLEND, lobes: wing(indicatorPivot, 1), jewels: [indicatorPivot], screws: [{ x: 1.65, y: 11.4 }] },
     provenance: estimated(MODULE, 'deployant'),
   },
   {
     id: 'lever-cock', mechanism: 'frame', side: 'dial', pos: at(center, D.cocks), explode: { dz: -6 }, material: 'rhodium',
-    shape: { kind: 'bridge', thickness: 0.35, lobes: [{ ...leverPivot, r: 0.9 }, { x: 5.2, y: 4.4, r: 0.8 }], jewels: [leverPivot], screws: [{ x: 5.2, y: 4.4 }] },
+    // photo:front (Azzurro): round the lever's jewel and down to a screwed block.
+    shape: { kind: 'bridge', thickness: 0.35, blend: BLEND, lobes: [{ ...leverPivot, r: 0.85 }, { x: 6.1, y: 4.7, r: 0.6 }, { x: 5.25, y: 5.95, r: 0.9 }, { x: 4.3, y: 6.7, r: 0.6 }, ...chain(leverPivot, { x: 6.1, y: 4.7 }, 0.6), ...chain({ x: 6.1, y: 4.7 }, { x: 5.25, y: 5.95 }, 0.6), ...chain({ x: 5.25, y: 5.95 }, { x: 4.3, y: 6.7 }, 0.6)], jewels: [leverPivot], screws: [{ x: 5.25, y: 5.95 }] },
     provenance: estimated(MODULE),
   },
 ];
@@ -216,7 +278,8 @@ const caliber: Caliber = {
     sourceIds: ['sellita-doctec', 'cw-handbook'],
   },
   // The chime pusher Christopher Ward places at 4 o'clock sits 25° below 3 o'clock (photo:front, Azzurro), nearly mirroring the crown.
-  exterior: { frontZ: DIAL, secondsZ: -4.6, dialZ: DIAL, moduleDiameterMm: 32, pushers: [{ action: 'chime', hour: 3 + 25 / 30, z: -2.9 }] },
+  // The module plate runs out to 17.45 mm, past the gong's outer wire (photo:front, Azzurro).
+  exterior: { frontZ: DIAL, secondsZ: -4.6, dialZ: DIAL, moduleDiameterMm: 35, pushers: [{ action: 'chime', hour: 3 + 25 / 30, z: -2.9 }] },
   parts,
   couplings: [
     { type: 'mesh', a: 'barrel', b: 'center-pinion' },
@@ -230,7 +293,7 @@ const caliber: Caliber = {
     { type: 'mesh', a: 'intermediate-wheel', b: 'sub-center-wheel' },
     { type: 'mesh', a: 'sub-cannon-pinion', b: 'sub-minute-wheel' },
     { type: 'mesh', a: 'sub-minute-pinion', b: 'sub-hour-wheel' },
-    { type: 'strike', snail: 'snail', lever: 'strike-lever', hammer: 'hammer', lift: 0.35, swing: 0.14, silence: { wheel: 'column-wheel', switch: 'switch-lever', indicator: 'indicator', turn: 0.6, retreat: 0.3 } },
+    { type: 'strike', snail: 'snail', lever: 'strike-lever', hammer: 'hammer', lift: leverLift, swing: hammerSwing, silence: { wheel: 'column-wheel', switch: 'switch-lever', indicator: 'indicator', turn: INDICATOR_TURN, retreat: 0.3 } },
     { type: 'mesh', a: 'rotor-pinion', b: 'reverser-a' },
     { type: 'one-way', input: 'reverser-a', output: 'reverser-b' },
     { type: 'mesh', a: 'reverser-b', b: 'reduction-wheel' },
@@ -254,9 +317,9 @@ const caliber: Caliber = {
     { id: 'time-fork', chapter: 'time', focus: 'fork', side: 'back', speed: 0.1, xray: true, rotor: 'hide', cameraOffset: [-7, 12, 14], stats: [{ label: 'pallets', value: '2' }, { label: 'lift', value: '50°' }] },
     { id: 'time-balance', chapter: 'time', focus: 'balance', side: 'back', speed: 0.1, xray: false, rotor: 'hide', cameraOffset: [-12, 19, 21], stats: [{ label: 'vph', value: '28,800' }, { label: 'frequency', value: '4 Hz' }] },
     { id: 'hands-overview', chapter: 'hands', focus: null, side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-16, 30, 32], stats: [{ label: 'ratio', value: '12 : 1' }, { label: 'wheels', value: '6' }] },
-    { id: 'hands-cannon', chapter: 'hands', focus: 'cannon', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-9, 16, 17], stats: [{ label: 'teeth', value: '12 / 30' }, { label: 'rotation', value: '1 rph' }] },
-    { id: 'hands-intermediate', chapter: 'hands', focus: 'intermediate-wheel', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-9, 16, 17], stats: [{ label: 'teeth', value: '70' }, { label: 'rotation', value: '3/7 rph' }] },
-    { id: 'hands-sub', chapter: 'hands', focus: 'sub-minute', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-9, 14, 18], stats: [{ label: 'teeth', value: '30 / 12' }, { label: 'rotation', value: '1 rph' }] },
+    { id: 'hands-cannon', chapter: 'hands', focus: 'cannon', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-9, 16, 17], stats: [{ label: 'teeth', value: '12 / 40' }, { label: 'rotation', value: '1 rph' }] },
+    { id: 'hands-intermediate', chapter: 'hands', focus: 'intermediate-wheel', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-9, 16, 17], stats: [{ label: 'teeth', value: '60' }, { label: 'rotation', value: '2/3 rph' }] },
+    { id: 'hands-sub', chapter: 'hands', focus: 'sub-minute', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-9, 14, 18], stats: [{ label: 'teeth', value: '40 / 12' }, { label: 'rotation', value: '1 rph' }] },
     { id: 'hands-sub-minute-wheel', chapter: 'hands', focus: 'sub-minute-wheel', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-8, 12, 16], stats: [{ label: 'teeth', value: '36 / 10' }, { label: 'reduction', value: '1 : 3' }] },
     { id: 'hands-hour', chapter: 'hands', focus: 'sub-hour', side: 'dial', speed: 60, xray: false, rotor: 'hide', cameraOffset: [-9, 14, 18], stats: [{ label: 'teeth', value: '40' }, { label: 'rotation', value: '12 h' }] },
     { id: 'chime-overview', chapter: 'chime', focus: null, side: 'dial', speed: 120, xray: false, rotor: 'hide', ctl: 'chime', cameraOffset: [-16, 30, 32], stats: [{ label: 'chime', value: 'live:chime' }, { label: 'strikes', value: '1 / h' }] },
@@ -264,7 +327,7 @@ const caliber: Caliber = {
     { id: 'chime-lever', chapter: 'chime', focus: 'strike-lever', side: 'dial', speed: 120, xray: true, rotor: 'hide', ctl: 'chime', cameraOffset: [-8, 14, 16], stats: [{ label: 'chime', value: 'live:chime' }, { label: 'strikes', value: '1 / h' }] },
     { id: 'chime-hammer', chapter: 'chime', focus: 'hammer', side: 'dial', speed: 120, xray: true, rotor: 'hide', ctl: 'chime', cameraOffset: [-10, 16, 18], stats: [{ label: 'chime', value: 'live:chime' }, { label: 'strikes', value: '1 / h' }] },
     { id: 'chime-gong', chapter: 'chime', focus: 'gong', side: 'dial', speed: 120, xray: false, rotor: 'hide', ctl: 'chime', cameraOffset: [-16, 28, 30], stats: [{ label: 'chime', value: 'live:chime' }, { label: 'strikes', value: '1 / h' }] },
-    { id: 'chime-silence', chapter: 'chime', focus: 'column-wheel', side: 'dial', speed: 120, xray: false, rotor: 'hide', ctl: 'chime', cameraOffset: [-8, 14, 16], stats: [{ label: 'chime', value: 'live:chime' }, { label: 'teeth', value: '8' }] },
+    { id: 'chime-silence', chapter: 'chime', focus: 'column-wheel', side: 'dial', speed: 120, xray: false, rotor: 'hide', ctl: 'chime', cameraOffset: [-8, 14, 16], stats: [{ label: 'chime', value: 'live:chime' }, { label: 'teeth', value: '6' }] },
     { id: 'auto-rotor', chapter: 'auto', focus: 'rotor', side: 'back', speed: 0.1, xray: false, rotor: 'show', cameraOffset: [-18, 30, 32], stats: [{ label: 'direction', value: '⟲ ⟳' }, { label: 'powerReserve', value: 'live:reserve' }] },
     { id: 'auto-reversers', chapter: 'auto', focus: 'reversers', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-12, 22, 24], stats: [{ label: 'system', value: 'ratchet' }, { label: 'powerReserve', value: 'live:reserve' }] },
     { id: 'auto-reduction', chapter: 'auto', focus: 'reduction', side: 'back', speed: 0.1, xray: false, rotor: 'xray', cameraOffset: [-12, 22, 24], stats: [{ label: 'teeth', value: '22 / 9' }, { label: 'powerReserve', value: 'live:reserve' }] },

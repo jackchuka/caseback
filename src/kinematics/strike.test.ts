@@ -60,6 +60,14 @@ describe('strikePose', () => {
   it('keeps the hammer off the gong while silent', () => {
     for (let p = 0; p < 1; p += 0.0005) expect(strikePose(TAU * p, 1, G).hammer).toBeLessThan(G.swing - 0.1);
   });
+  it('mirrors the blow and the silencing retreat for a hammer that swings the other way', () => {
+    const ccw = { ...G, swing: -G.swing };
+    for (let p = 0; p < 1; p += 0.0005) {
+      expect(strikePose(TAU * p, 0, ccw).hammer).toBeCloseTo(-strikePose(TAU * p, 0, G).hammer, 12);
+      expect(strikePose(TAU * p, 1, ccw).hammer).toBeGreaterThan(-G.swing + 0.1);
+    }
+    expect(strikePose(0, 1, ccw).switch).toBeCloseTo(strikePose(0, 1, G).switch, 12);
+  });
   it('steps the column wheel a tooth a press and swings the indicator', () => {
     expect(strikePose(0, 1, G).wheel).toBeCloseTo(TAU / 8, 9);
     expect(strikePose(0, 1, G).indicator).toBeCloseTo(0.6, 9);

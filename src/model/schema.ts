@@ -106,7 +106,8 @@ export const CouplingSchema = z.discriminatedUnion('type', [
     stroke: pos,
   }),
   // A passing strike. The `snail` on the minute arbor lifts the `lever` through each hour; on the hour the lever drops
-  // off the snail's step and releases the `hammer`, which swings `swing` rad onto the gong and back. The `silence`
+  // off the snail's step and releases the `hammer`, which swings `swing` rad onto the gong and back (its sign is the
+  // direction of the blow: positive turns +X toward +Y, clockwise seen from the dial). The `silence`
   // column wheel, stepped a tooth a push, turns the `indicator` by `turn` and, through the `switch` lever, draws the
   // hammer `retreat` rad back out of the gong's reach.
   z.object({
@@ -115,7 +116,7 @@ export const CouplingSchema = z.discriminatedUnion('type', [
     lever: z.string(),
     hammer: z.string(),
     lift: pos,
-    swing: pos,
+    swing: z.number().refine((v) => v !== 0, 'a strike needs a swing'),
     silence: z.object({ wheel: z.string(), switch: z.string(), indicator: z.string(), turn: pos, retreat: pos }),
   }),
   // Seiko's Magic Lever: the eccentric drives the lever to and fro; one claw pulls, the other pushes, so the wheel
