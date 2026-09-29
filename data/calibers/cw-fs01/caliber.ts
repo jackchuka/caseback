@@ -123,7 +123,7 @@ const parts: Part[] = [
       jewels: [barrel],
       screws: [turn(offset(raw.barrel, -3.2, 2.6)), turn(offset(raw.barrel, 3.5, -3.6))],
     },
-    provenance: sourced('sellita-doctec'),
+    provenance: estimated(LAYOUT, 'sellita-doctec'),
   },
   {
     id: 'balance-cock', mechanism: 'frame', side: 'back', pos: at(center, H.balanceCock), explode: { dz: 13 }, material: 'rhodium',

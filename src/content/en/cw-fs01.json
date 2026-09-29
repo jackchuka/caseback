@@ -72,7 +72,7 @@
     },
     "crown-hacking": {
       "kicker": "3 · Hacking",
-      "body": "Pulled to position 2, the balance stops (hacking seconds). Set the hands, push the crown in, and it starts again. Avoid quick-setting the date (position 1) between 22:00 and 02:00."
+      "body": "Pulled to position 2, the balance stops (hacking seconds). Set the hands, push the crown in, and it starts again. Position 1 does nothing: this watch has no date."
     },
     "hands-overview": {
       "kicker": "Motion works",
@@ -198,7 +198,7 @@
     "minute-wheel": {
       "name": "Minute wheel",
       "en": "Minute wheel",
-      "body": "Slows the cannon pinion down on its way to the hour wheel."
+      "body": "Meshes the cannon pinion and, when the hands are set, takes the drive from the setting wheel."
     },
     "rotor": {
       "name": "Rotor",
@@ -218,7 +218,7 @@
     "stem": {
       "name": "Winding stem",
       "en": "Winding stem",
-      "body": "Connected to the crown; its position selects winding, date or time setting."
+      "body": "Connected to the crown; its position selects winding or setting the hands."
     },
     "sliding-pinion": {
       "name": "Sliding pinion",
