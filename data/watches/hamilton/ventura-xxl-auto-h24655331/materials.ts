@@ -19,6 +19,8 @@ export function venturaMaterials(): Record<string, () => THREE.Material> {
       mask.wrapS = mask.wrapT = THREE.RepeatWrapping;
       return new THREE.MeshPhysicalMaterial({ color: 0x5b5f66, metalness: 0.8, roughness: 0.35, alphaMap: mask, alphaTest: 0.5, side: THREE.DoubleSide });
     },
+    // photo:front: what shows behind the grille where a date ring would be is near-black, a dull metal.
+    'dial-shade': () => new THREE.MeshPhysicalMaterial({ color: 0x141517, metalness: 0.4, roughness: 0.6 }),
     strap: () => new THREE.MeshPhysicalMaterial({ color: 0x1b1c1e, roughness: 0.62, sheen: 0.3, sheenColor: new THREE.Color(0x55585e) }),
     'caseback-metal': () => new THREE.MeshPhysicalMaterial({ color: STEEL, metalness: 1, roughness: 0.2, envMapIntensity: 1.5 }),
   };

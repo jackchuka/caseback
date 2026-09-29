@@ -105,11 +105,15 @@ function lance(angle: number, outer: number, z: number) {
 // movement, and three faceted lances mark the triangle's corners. Ticks and the red hatch are printed (paintDial).
 export function venturaDial(m: MovementFrame): ExteriorLayer[] {
   const panels = dialPanels();
+  const shade = V.dateShade;
   const layers: ExteriorLayer[] = [
     { geometry: flat(outlines.dial, panels, m.dialZ), material: 'dial', name: 'dial' },
     // The grille sits a little behind the dial's face, cut by its texture's alpha so the movement shows through. It is
     // part of the dial, and named so for hit tests.
     ...panels.map((p): ExteriorLayer => ({ geometry: flat(p, [], m.dialZ + 0.08), material: 'dial-grille', name: 'dial' })),
+    // The H-10 in this watch has no date, but the shared 2824-2 model carries a date ring: a dark band behind the grille
+    // hides it, and fades with the dial so the movement itself stays whole.
+    { geometry: new THREE.RingGeometry(shade.inner, shade.outer, 180).rotateX(Math.PI).translate(0, 0, m.dialZ + shade.depth), material: 'dial-shade', name: 'dial', castShadow: false },
   ];
   const angles = cornerAngles();
   const outer = [V.lanceOuter.nine, V.lanceOuter.corner, V.lanceOuter.corner];

@@ -9,6 +9,15 @@ import { outlines } from './plan';
 const caliber = calibers['eta-2824-2']!;
 const m = movementFrame(caliber);
 
+const inside = (poly: [number, number][], x: number, y: number) => {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i]!, [xj, yj] = poly[j]!;
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+};
+
 describe('Ventura dial', () => {
   const layers = venturaDial(m);
   const cast = (material: string, x: number, y: number) => {
@@ -55,6 +64,32 @@ describe('Ventura dial', () => {
     const ring = caliber.parts.find((p) => p.id === 'date-ring')!;
     expect(g.boundingBox!.min.z).toBeGreaterThan(m.dialZ);
     expect(g.boundingBox!.max.z).toBeLessThan(ring.pos.z - 0.08);
+  });
+  it('shows no date through the grille: the H-10 here is a no-date calibre, so the date ring is shaded out', () => {
+    const ring = caliber.parts.find((p) => p.id === 'date-ring')!;
+    if (ring.shape.kind !== 'date-ring') throw new Error('shape');
+    const { innerRadius, outerRadius } = ring.shape;
+    const shade = layers.filter((l) => l.material === 'dial-shade');
+    expect(shade.length).toBeGreaterThan(0);
+    for (const l of shade) {
+      l.geometry.computeBoundingBox();
+      const b = l.geometry.boundingBox!;
+      // Behind the grille, in front of the ring's face.
+      expect(b.min.z).toBeGreaterThan(m.dialZ + 0.08);
+      expect(b.max.z).toBeLessThan(ring.pos.z - ring.shape.thickness / 2);
+    }
+    // Every panel point over the ring is covered, from the 3 o'clock window round the whole ring.
+    for (const p of dialPanels()) {
+      for (let a = 0; a < 2 * Math.PI; a += Math.PI / 90) {
+        for (const r of [innerRadius + 0.05, (innerRadius + outerRadius) / 2, outerRadius - 0.05]) {
+          const x = r * Math.cos(a), y = r * Math.sin(a);
+          if (!inside(p, x, y)) continue;
+          expect(cast('dial-shade', x, y)).toBe(1);
+        }
+      }
+    }
+    // The motion works inside the ring still show.
+    expect(cast('dial-shade', -4, 3)).toBe(0);
   });
   it('places a faceted lance at each corner of the triangle, pointing at the pivot', () => {
     const lances = layers.filter((l) => l.name === 'lance');
