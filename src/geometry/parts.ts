@@ -114,6 +114,15 @@ function build(shape: Shape, material: MaterialKey): Layer[] {
         { geometry: extrudeCentered(camOutline(shape.teeth, shape.radius), shape.thickness, 0.02), material },
         { geometry: disc(0.35, shape.thickness + 0.1, 24), material: 'blued' },
       ];
+    case 'snail':
+      return [{ geometry: extrudeCentered(snailOutline(shape.rMin, shape.rMax), shape.thickness, 0.02), material }];
+    case 'gong': {
+      const foot = { x: shape.outer * Math.cos(shape.to), y: shape.outer * Math.sin(shape.to) };
+      return [
+        { geometry: extrudeCentered(new THREE.Shape(gongPoints(shape).map(([x, y]) => new THREE.Vector2(x, y))), shape.thickness, 0.02), material },
+        { geometry: disc(shape.width * 1.8, shape.thickness + 0.1, 24).translate(foot.x, foot.y, 0), material },
+      ];
+    }
     case 'lever': {
       const s = new THREE.Shape(shape.outline.map((p) => new THREE.Vector2(p.x, p.y)));
       s.holes.push(new THREE.Path().absarc(0, 0, shape.hole, 0, Math.PI * 2, true));
@@ -420,4 +429,50 @@ function dateRing(teeth: number, rIn: number, rOut: number, thickness: number, p
     layers.push({ geometry: new THREE.BoxGeometry(0.34, 0.7, thickness).rotateZ(-a).translate(Math.sin(a) * (rIn - 0.25), Math.cos(a) * (rIn - 0.25), 0), material: 'steel' });
   }
   return layers;
+}
+
+type Gong = Extract<Shape, { kind: 'gong' }>;
+
+// A snail's rim from its low point at +X round a full turn to its high point, back at +X: the step.
+export function snailPoints(rMin: number, rMax: number, n = 96): Array<[number, number]> {
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const a = (2 * Math.PI * i) / n;
+    const r = rMin + ((rMax - rMin) * i) / n;
+    return [r * Math.cos(a), r * Math.sin(a)];
+  });
+}
+
+function snailOutline(rMin: number, rMax: number): THREE.Shape {
+  const s = new THREE.Shape(snailPoints(rMin, rMax).map(([x, y]) => new THREE.Vector2(x, y)));
+  s.holes.push(new THREE.Path().absarc(0, 0, 0.2, 0, Math.PI * 2, true));
+  return s;
+}
+
+// The gong band's outline, once round: out along the outer arc's outside edge to the hairpin, round it, along the
+// inner arc's inside edge to its free end, and back along the other two edges. The hairpin bulges back past `from`.
+export function gongPoints({ outer, inner, from, to, width }: Gong): Array<[number, number]> {
+  const w = width / 2;
+  const n = Math.max(8, Math.ceil(Math.abs(to - from) / (Math.PI / 90)));
+  const arc = (r: number, a0: number, a1: number): Array<[number, number]> =>
+    Array.from({ length: n + 1 }, (_, i) => {
+      const a = a0 + ((a1 - a0) * i) / n;
+      return [r * Math.cos(a), r * Math.sin(a)];
+    });
+  const mid = (outer + inner) / 2;
+  const u = { x: Math.cos(from), y: Math.sin(from) };
+  const back = { x: Math.sin(from), y: -Math.cos(from) };
+  const bend = (r: number, t0: number, t1: number): Array<[number, number]> =>
+    Array.from({ length: 17 }, (_, i) => {
+      const t = t0 + ((t1 - t0) * i) / 16;
+      return [mid * u.x + r * (u.x * Math.cos(t) + back.x * Math.sin(t)), mid * u.y + r * (u.y * Math.cos(t) + back.y * Math.sin(t))];
+    });
+  const half = (outer - inner) / 2;
+  return [
+    ...arc(outer + w, to, from),
+    ...bend(half + w, 0, Math.PI).slice(1, -1),
+    ...arc(inner - w, from, to),
+    ...arc(inner + w, to, from),
+    ...bend(half - w, Math.PI, 0).slice(1, -1),
+    ...arc(outer - w, from, to),
+  ];
 }

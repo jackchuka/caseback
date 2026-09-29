@@ -32,6 +32,12 @@ export const ShapeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('heart'), radius: pos, thickness: pos }),
   // A switching cam: ratchet teeth that a push steps one at a time, and a lobed rim that the levers read.
   z.object({ kind: z.literal('cam'), teeth: int, radius: pos, thickness: pos }),
+  // A snail cam: its rim climbs from rMin to rMax over a turn and drops back at local +X, where a follower falls off.
+  z.object({ kind: z.literal('snail'), rMin: pos, rMax: pos, thickness: pos }),
+  // A gong: a flat band bent into two arcs round the part's centre, at radii `outer` and `inner`, from angle `from` to
+  // `to` (rad, local +X toward +Y). A hairpin joins them at `from`; the outer arc ends at `to` in a foot screwed to
+  // the plate and the inner one ends free.
+  z.object({ kind: z.literal('gong'), outer: pos, inner: pos, from: z.number(), to: z.number(), width: pos, thickness: pos }),
   // A flat lever cut to `outline` around its pivot at the origin, with a pivot hole of radius `hole`.
   z.object({ kind: z.literal('lever'), outline: z.array(Point).min(3), thickness: pos, hole: pos }),
   // A cam disc whose centre sits `throw` off its arbor along local +X.

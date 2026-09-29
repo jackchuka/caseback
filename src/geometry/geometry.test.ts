@@ -126,7 +126,30 @@ describe('Magic Lever and plate shapes', () => {
   });
 });
 
-import { blendedOutline } from './parts';
+import { blendedOutline, gongPoints, snailPoints } from './parts';
+describe('snail and gong', () => {
+  it('builds a snail whose rim climbs from rMin to rMax over a turn', () => {
+    const pts = snailPoints(1.6, 2.8);
+    expect(Math.hypot(...pts[0]!)).toBeCloseTo(1.6, 6);
+    expect(Math.hypot(...pts.at(-1)!)).toBeCloseTo(2.8, 6);
+    // The step: the last point sits at +X, straight out from the first.
+    expect(Math.atan2(pts.at(-1)![1], pts.at(-1)![0])).toBeCloseTo(0, 6);
+    const [layer] = buildShape({ kind: 'snail', rMin: 1.6, rMax: 2.8, thickness: 0.3 }, 'steel');
+    expect(maxRadius(layer!.geometry)).toBeCloseTo(2.8, 1);
+  });
+  const gong = { kind: 'gong' as const, outer: 14.9, inner: 13.9, from: -0.84, to: 3.7, width: 0.35, thickness: 0.5 };
+  it('keeps the gong band between its arcs\' edges', () => {
+    const r = gongPoints(gong).map(([x, y]) => Math.hypot(x, y));
+    expect(Math.max(...r)).toBeCloseTo(14.9 + 0.175, 6);
+    expect(Math.min(...r)).toBeGreaterThan(13.9 - 0.175 - 1e-6);
+  });
+  it('builds the gong band and its foot', () => {
+    const layers = buildShape(gong, 'steel');
+    expect(layers.length).toBe(2);
+    expect(maxRadius(layers[0]!.geometry)).toBeCloseTo(14.9 + 0.175, 1);
+  });
+});
+
 describe('blended bridge outline', () => {
   it('traces the smooth union of its lobes as one loop', () => {
     const lobes = [{ x: 0, y: 0, r: 1 }, { x: 3, y: 0, r: 1 }, { x: 1.5, y: 2.5, r: 0.8 }];
