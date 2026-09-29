@@ -165,10 +165,27 @@ test('reduced motion skips the opening and starts paused', async ({ browser }) =
 
 test('webgl fallback', async ({ page }) => {
   await page.addInitScript(() => {
-    HTMLCanvasElement.prototype.getContext = () => null;
+    HTMLCanvasElement.prototype.getContext = function () {
+      this.dispatchEvent(new WebGLContextEvent('webglcontextcreationerror', { statusMessage: 'Web page was blocked from accessing 3D APIs' }));
+      return null;
+    };
   });
   await page.goto('/calibers/eta-2824-2?lang=ja');
   await expect(page.locator('.fallback h1')).toHaveText('3D表示に対応していません');
+  await expect(page.locator('.fallback-reason')).toHaveText('Web page was blocked from accessing 3D APIs');
+});
+
+test('a lost webgl context shows the fallback until the browser restores it', async ({ page }) => {
+  await openTour(page, 'eta-2824-2', 'ja');
+  // A lost context returns no extensions, so keep the handle from before the loss to restore it.
+  await page.evaluate(() => {
+    const ext = document.querySelector('canvas')!.getContext('webgl2')!.getExtension('WEBGL_lose_context')!;
+    (window as unknown as { loseExt: WEBGL_lose_context }).loseExt = ext;
+    ext.loseContext();
+  });
+  await expect(page.locator('.fallback-reason')).toHaveText('WebGL context lost');
+  await page.evaluate(() => (window as unknown as { loseExt: WEBGL_lose_context }).loseExt.restoreContext());
+  await expect(page.locator('.fallback')).toHaveCount(0);
 });
 
 test('theme toggle flips the document theme', async ({ page }) => {

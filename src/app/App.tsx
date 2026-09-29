@@ -1,7 +1,7 @@
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { i18n } from 'i18next';
-import { Suspense, use, useMemo } from 'react';
+import { Suspense, use, useMemo, useState } from 'react';
 import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { CameraRig } from '../scene/CameraRig';
@@ -26,14 +26,15 @@ import { Intro } from '../ui/Intro';
 import { TopBar } from '../ui/TopBar';
 import { TourBar } from '../ui/TourBar';
 
-export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Caliber; i18n: i18n; webgl: boolean; watch?: Watch; exterior: ExteriorBuild | Promise<ExteriorBuild> }) {
+export function App({ caliber, i18n, webglError, watch, exterior }: { caliber: Caliber; i18n: i18n; webglError: string | null; watch?: Watch; exterior: ExteriorBuild | Promise<ExteriorBuild> }) {
   const quality = useApp((s) => s.quality);
   const mode = useApp((s) => s.mode);
   useThemeAttr();
   useI18nLang(i18n);
   useKeyboard();
   useUrlSync(caliber);
-  if (!webgl) return <Fallback />;
+  const [contextLost, setContextLost] = useState(false);
+  if (webglError !== null) return <Fallback reason={webglError} />;
   return (
     <>
       <Canvas
@@ -42,6 +43,12 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
         camera={{ fov: 26, near: 0.5, far: 400, position: [-24, 52, 62] }}
         // The effect composer multisamples its own buffer on high; the canvas's MSAA would only be discarded.
         gl={{ antialias: quality !== 'high' }}
+        // A GPU driver can drop the context at any time; three.js keeps it restorable, so cover the frozen canvas
+        // until the browser gives it back instead of leaving a black or white screen.
+        onCreated={({ gl }) => {
+          gl.domElement.addEventListener('webglcontextlost', () => setContextLost(true));
+          gl.domElement.addEventListener('webglcontextrestored', () => setContextLost(false));
+        }}
       >
         <MaterialsProvider>
           <Studio composer={quality === 'high'} />
@@ -58,6 +65,7 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
       <TourBar caliber={caliber} />
       <Dock caliber={caliber} />
       <Hint />
+      {contextLost && <Fallback reason="WebGL context lost" overlay />}
     </>
   );
 }
