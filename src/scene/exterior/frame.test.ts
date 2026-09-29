@@ -64,4 +64,8 @@ describe('movementFrame', () => {
   it('needs an hour hand to place the dial', () => {
     expect(() => movementFrame({ ...c, parts: c.parts.filter((p) => p.id !== 'hour-hand') })).toThrow(/hour-hand/);
   });
+  it('reaches as far as the movement, or a wider dial-side module', () => {
+    expect(movementFrame(c).outerRadius).toBe(12.8);
+    expect(movementFrame({ ...c, exterior: { ...c.exterior, moduleDiameterMm: 32 } }).outerRadius).toBe(16);
+  });
 });

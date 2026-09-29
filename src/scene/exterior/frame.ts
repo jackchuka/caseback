@@ -39,6 +39,7 @@ export function movementFrame(c: Caliber): MovementFrame {
     plateFrontZ: plate ? plate.pos.z - half(plate) : c.exterior.frontZ,
     // Without a rotor, the back of the movement is its highest back-side part.
     rotorBackZ: rotor ? rotor.pos.z + half(rotor) : Math.max(...c.parts.filter((p) => p.side === 'back').map((p) => p.pos.z + half(p))),
+    outerRadius: (c.exterior.moduleDiameterMm ?? c.specs.diameterMm) / 2,
     // A centre seconds hand is the exterior's hands.seconds, not an extra one.
     extraHands: c.parts
       .filter((p) => p.shape.kind === 'hand' && p.id !== 'hour-hand' && p.id !== 'minute-hand' && !(p.id === 'seconds-hand' && p.pos.x === 0 && p.pos.y === 0))

@@ -40,6 +40,7 @@ describe('exterior contract', () => {
       const FRAME = movementFrame(calibers[caliberId]!);
       const MOVEMENT_BACK = movementBack(caliberId);
       const ctx = { movement: FRAME, quality: 'low' as const };
+      const hourHandZ = calibers[caliberId]!.parts.find((p) => p.id === 'hour-hand')!.pos.z;
       // Built once per builder (not at describe time) so a throwing builder fails only its own tests, under its id.
       let b: ExteriorBuild;
       let p: ExteriorBuild['parts'];
@@ -85,7 +86,9 @@ describe('exterior contract', () => {
           expect(v.x).toBeLessThanOrEqual(caseBox.max.x + 1e-6);
           expect(v.y).toBeGreaterThanOrEqual(caseBox.min.y - 1e-6);
           expect(v.y).toBeLessThanOrEqual(caseBox.max.y + 1e-6);
-          expect(Math.abs(v.z - FRAME.dialZ)).toBeLessThanOrEqual(0.5);
+          // A dial may carry raised parts (a floating chapter ring) toward the hour hand, never behind its seat.
+          expect(v.z).toBeLessThanOrEqual(FRAME.dialZ + 0.5);
+          expect(v.z).toBeGreaterThanOrEqual(Math.min(FRAME.dialZ - 0.5, hourHandZ));
         }
       });
 

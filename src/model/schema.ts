@@ -162,6 +162,8 @@ export const CaliberSchema = z.object({
     dialZ: z.number().optional(),
     dateWindow: z.object({ width: pos, height: pos }).optional(),
     dayWindow: z.object({ width: pos, height: pos }).optional(),
+    // A dial-side module wider than the base movement (a strike module and its gong): its overall diameter.
+    moduleDiameterMm: pos.optional(),
     // Chronograph pushers: the clock hour each sits at on the case flank and the height of its axis.
     pushers: z.array(z.object({ action: PusherActionSchema, hour: z.number(), z: z.number() })).optional(),
   }),

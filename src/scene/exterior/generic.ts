@@ -10,7 +10,7 @@ const metal = () => new THREE.MeshPhysicalMaterial({ color: 0xc8cbd0, metalness:
 export const genericCase: ExteriorBuilder = {
   materials: () => ({ case: metal, 'caseback-metal': metal }),
   geometry: ({ movement: m }) => {
-    const r = m.diameterMm / 2;
+    const r = m.outerRadius;
     const inner = r + 0.35, outer = r + 3.5;
     // Deep enough to close over the rotor with the caseback's clearance.
     const height = m.rotorBackZ + 0.4 - m.frontZ;

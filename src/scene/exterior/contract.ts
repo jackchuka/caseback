@@ -36,6 +36,8 @@ export type MovementFrame = {
   dayWindow: { x: number; width: number; height: number } | null;
   plateFrontZ: number;
   rotorBackZ: number;
+  // The widest the movement reaches, a wider dial-side module included: a case must clear it.
+  outerRadius: number;
   // Hands the movement carries besides the hour and minute hands and a centre seconds (a small seconds, a
   // chronograph's hands): the movement part each belongs to and its pivot.
   extraHands: Array<{ id: string; x: number; y: number; z: number }>;
