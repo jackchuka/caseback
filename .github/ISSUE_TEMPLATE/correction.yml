@@ -1,0 +1,49 @@
+name: 値や解説の訂正 / Correction
+description: 歯数・寸法・解説の誤りや、推定値の確かな出典を知らせる / Report a wrong value or text, or a source for an estimated value
+title: "[fix] <caliber or watch>: <what>"
+labels: [correction]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Caseback は公表されていない値を「推定値」として表示しています。正しい値の出典をご存じなら、ぜひ教えてください。
+        Values that are not published are shown as estimates. If you know a reliable source for the real value, we would love to hear it.
+  - type: input
+    id: url
+    attributes:
+      label: 該当するページの URL / Page URL
+      description: ツアーの位置は URL に入ります（例 `?ch=time&part=balance`） / The tour position is part of the URL
+      placeholder: https://.../calibers/eta-2824-2?lang=ja&ch=time&part=escape
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 種類 / Kind
+      options:
+        - 推定値の出典 / Source for an estimated value
+        - 値の誤り（歯数・寸法など） / Wrong value (teeth, dimensions…)
+        - 動きの誤り / Wrong motion
+        - 解説文・翻訳 / Text or translation
+        - 外装の形 / Case or dial shape
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: 現在の内容 / What it says now
+    validations:
+      required: true
+  - type: textarea
+    id: correct
+    attributes:
+      label: 正しい内容 / What it should be
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: 出典 / Source
+      description: 技術資料、パーツカタログ、実測など。実測の場合は方法も / Technical docs, parts catalogues or your own measurement (describe how)
+    validations:
+      required: true

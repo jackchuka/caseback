@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 貢献の手引き / Contributing guide
+    url: https://github.com/jackchuka/caseback/blob/main/CONTRIBUTING.md
+    about: 何から手伝えるか / Ways to help

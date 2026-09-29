@@ -1,0 +1,44 @@
+name: 時計のリクエスト / Watch request
+description: 見てみたい時計を提案する / Suggest a watch to add
+title: "[watch] <brand> <model>"
+labels: [watch-request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        リクエストは 👍 の数も参考に、次に作る時計を決めます。同じ時計のリクエストがないか先に検索してください。
+        Requests are prioritised partly by 👍. Please search for an existing request first.
+  - type: input
+    id: watch
+    attributes:
+      label: ブランドとモデル / Brand and model
+      placeholder: Tudor Heritage Black Bay
+    validations:
+      required: true
+  - type: input
+    id: reference
+    attributes:
+      label: 型番 / Reference
+      placeholder: 79220B
+    validations:
+      required: true
+  - type: input
+    id: movement
+    attributes:
+      label: ムーブメント / Movement
+      description: 分かれば、ベースのキャリバーも / Include the base caliber if known
+      placeholder: ETA 2824-2 base
+  - type: textarea
+    id: photos
+    attributes:
+      label: 写真と寸法の出典 / Photos and specs
+      description: 正面・斜め・リューズ側の写真、公式ページやレビューの URL。画像そのものではなくリンクを貼ってください / Front, angled and crown-side photos, official page or reviews. Links only, please.
+      placeholder: |
+        - https://...
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: この時計を見たい理由 / Why this watch
+      description: 任意 / Optional

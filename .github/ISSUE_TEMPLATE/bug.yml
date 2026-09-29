@@ -1,0 +1,24 @@
+name: 不具合 / Bug
+description: 表示や操作の不具合 / Something is broken
+labels: [bug]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: URL
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 何が起きたか / What happened
+      description: スクリーンショットがあると助かります / A screenshot helps
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: ブラウザと端末 / Browser and device
+      placeholder: Safari 19, iPhone 16
+    validations:
+      required: true
