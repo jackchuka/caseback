@@ -1,4 +1,9 @@
 {
+  "calibers/cw-fs01": {
+    "w": 960,
+    "h": 600,
+    "v": "a85e82ea"
+  },
   "calibers/eta-2824-2": {
     "w": 960,
     "h": 600,
@@ -13,6 +18,11 @@
     "w": 960,
     "h": 600,
     "v": "a5f074ec"
+  },
+  "watches/christopher-ward/c1-bel-canto": {
+    "w": 960,
+    "h": 960,
+    "v": "f8fa341f"
   },
   "watches/hamilton/khaki-field-auto-h70455553": {
     "w": 960,

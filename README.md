@@ -12,14 +12,14 @@
 ![React Three Fiber](https://img.shields.io/badge/React_Three_Fiber-9-000000?logo=three.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 
-<img src="public/thumbs/calibers/eta-2824-2-480.webp" width="32%" alt="ETA 2824-2"> <img src="public/thumbs/calibers/seiko-nh35a-480.webp" width="32%" alt="Seiko NH35A"> <img src="public/thumbs/calibers/valjoux-7750-480.webp" width="32%" alt="Valjoux 7750">
+<img src="public/thumbs/calibers/eta-2824-2-480.webp" width="32%" alt="ETA 2824-2"> <img src="public/thumbs/calibers/seiko-nh35a-480.webp" width="32%" alt="Seiko NH35A"> <img src="public/thumbs/calibers/valjoux-7750-480.webp" width="32%" alt="Valjoux 7750"> <img src="public/thumbs/calibers/cw-fs01-480.webp" width="32%" alt="Christopher Ward FS01">
 
 </div>
 
 ## 特徴
 
 - **動く仕組み** — 部品の角度は歯数比と脱進機から計算する。香箱から四番車、ガンギ車、アンクル、テンプまで、実際の噛み合いどおりに回る
-- **章立てのツアー** — 「時を刻む」「針を動かす」「日付を送る」「自動で巻く」「リューズ」、7750 ではさらに「クロノグラフ」。一歩ずつカメラが部品に寄り、解説と数値を添える
+- **章立てのツアー** — 「時を刻む」「針を動かす」「日付を送る」「自動で巻く」「リューズ」、7750 ではさらに「クロノグラフ」、FS01 ではさらに「時を打つ」。一歩ずつカメラが部品に寄り、解説と数値を添える
 - **触れるムーブメント** — 分解表示、再生速度、裏返し。リューズを引いて巻き上げ・日付・時刻合わせ、クロノグラフはプッシャーでスタート／ストップ／リセット
 - **実在の時計に載せる** — 各キャリバーを実際の時計のケースに収め、公式写真と重ねて形を合わせている
 - **出典つき** — すべての部品に出典を記録。公表されていない値は推定値と明示する
@@ -34,6 +34,7 @@
 | ETA 2824-2 | 25.6 mm | 28,800 vph | 25 | 38 h | 時・針・日付・自動巻き・リューズ |
 | Seiko NH35A | 27.4 mm | 21,600 vph | 24 | 41 h | 時・針・日付・自動巻き・リューズ |
 | Valjoux 7750 | 30 mm | 28,800 vph | 25 | 48 h | 上記＋曜日・クロノグラフ |
+| Christopher Ward FS01 | 25.6 mm（台座） | 28,800 vph | 29 | 38 h | 時・針・打鐘・自動巻き・リューズ |
 
 ### 時計
 
@@ -47,6 +48,9 @@
 <td align="center"><img src="public/thumbs/watches/hamilton/ventura-xxl-auto-h24655331-480.webp" width="200" alt=""><br><b>Hamilton</b> Ventura XXL Auto<br><sub>H24655331 · H-10</sub></td>
 <td align="center"><img src="public/thumbs/watches/seiko/presage-srpb43-480.webp" width="200" alt=""><br><b>Seiko</b> Presage Cocktail Time<br><sub>SRPB43 · 4R35</sub></td>
 <td align="center"><img src="public/thumbs/watches/sinn/103-st-sa-480.webp" width="200" alt=""><br><b>Sinn</b> 103 St Sa<br><sub>103.061 · Valjoux 7750</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="public/thumbs/watches/christopher-ward/c1-bel-canto-480.webp" width="200" alt=""><br><b>Christopher Ward</b> C1 Bel Canto<br><sub>C01-41APT1-T00B0-VB · FS01</sub></td>
 </tr>
 </table>
 

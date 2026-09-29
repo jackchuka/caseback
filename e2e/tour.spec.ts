@@ -399,7 +399,7 @@ test('dive bezel watch opens into the same tour', async ({ page }) => {
 test('home lists calibers and watches and searches', async ({ page }) => {
   await page.goto('/?lang=en');
   await expect(page.locator('.home')).toBeVisible();
-  await expect(page.locator('.home .watch')).toHaveCount(6);
+  await expect(page.locator('.home .watch')).toHaveCount(7);
   await page.getByRole('searchbox').fill('556');
   await expect(page.locator('.home .watch')).toHaveCount(1);
   await page.locator('.home .watch a').first().click();
@@ -409,12 +409,13 @@ test('home lists calibers and watches and searches', async ({ page }) => {
 
 test('home shows a counted caliber card per movement and every card has a loaded image @quick', async ({ page }) => {
   await page.goto('/?lang=en');
-  await expect(page.locator('.home .caliber')).toHaveCount(3);
+  await expect(page.locator('.home .caliber')).toHaveCount(4);
   await expect(page.locator('.home .caliber', { hasText: 'ETA 2824-2' }).locator('.count')).toHaveText('4 watches →');
   await expect(page.locator('.home .caliber', { hasText: 'Valjoux 7750' }).locator('.count')).toHaveText('1 watch →');
-  await expect(page.locator('#watches .shelf-head .sub')).toHaveText('6 watches');
+  await expect(page.locator('.home .caliber', { hasText: 'Christopher Ward FS01' }).locator('.count')).toHaveText('1 watch →');
+  await expect(page.locator('#watches .shelf-head .sub')).toHaveText('7 watches');
   const images = page.locator('.home .caliber img, .home .watch img, .home .hero img');
-  await expect(images).toHaveCount(3 + 6 + 1);
+  await expect(images).toHaveCount(4 + 7 + 1);
   for (const img of await images.all()) {
     // The hero drifts forever, so Playwright's stable-element scrolling would never settle.
     await img.evaluate((el) => el.scrollIntoView({ block: 'center' }));
@@ -427,7 +428,7 @@ test('the home page loads no WebGL and none of the viewer code @quick', async ({
   const scripts: string[] = [];
   page.on('request', (r) => r.resourceType() === 'script' && scripts.push(r.url()));
   await page.goto('/?lang=ja');
-  await expect(page.locator('.home .watch')).toHaveCount(6);
+  await expect(page.locator('.home .watch')).toHaveCount(7);
   expect(await page.locator('canvas').count()).toBe(0);
   expect(scripts.filter((u) => /viewer|worker/.test(u))).toEqual([]);
 });
@@ -540,6 +541,22 @@ for (const [name, url] of [['Sinn 556', '/watches/sinn/556?lang=ja'], ['Tudor 79
     expect(dialSide).not.toContain('dial');
   });
 }
+
+// The Bel Canto's dial is open-worked over the movement: the minute-wheel probe lands on the module's own
+// centre wheel, not on a solid dial, so this checks the front view and the flip to the tour instead.
+test('Christopher Ward C1 Bel Canto: the open-worked dial shows the module through the crystal and opens to the tour @quick', async ({ page }) => {
+  await page.goto('/watches/christopher-ward/c1-bel-canto?lang=ja');
+  await ready(page);
+  await settled(page);
+  const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
+  const hits = await page.evaluate(([px, py]) => window.__caseback!.hits(px!, py!), [x, y]);
+  expect(hits.filter((n) => !/hand/.test(n)).slice(0, 2)).toEqual(['crystal', 'module-center-wheel']);
+  await page.getByRole('button', { name: '裏蓋を開ける' }).click();
+  await expect.poll(() => page.evaluate(() => window.__caseback!.state().mode), { timeout: 45_000 }).toBe('tour');
+  await page.getByRole('button', { name: '針を動かす' }).click();
+  await settled(page);
+  await expect(page.locator('.tourbar .steps li.on')).toHaveCount(1);
+});
 
 test('the compare page is not in production builds @quick', async ({ page }) => {
   await page.goto('/dev/compare/sinn/556');
