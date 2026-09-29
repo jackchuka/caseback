@@ -41,33 +41,35 @@ const leverRest = Math.atan2(second.y - pin.y, second.x - pin.x);
 
 // Heights. SII's hand-fitting drawing measures from the dial support surface (DIAL): the dial is 0.40 thick; the
 // hour, minute and seconds hands sit 0.60, 1.19 and 1.81 above the dial (type M hands); the stem axis is 1.92 behind
-// the support surface; the movement is 5.32 from that surface to the back of the rotor.
+// the support surface; the movement is 5.32 from that surface to the back of the rotor. The back side is tight part to
+// part (barrel drum under its bridge, rotor over the automatic bridge's screws), so it meets the 5.32 by a plate
+// 0.15 thinner than first drawn, with every back-side height moved down with it; the stem stays in the plate.
 const DIAL = -1.75;
 const DIAL_THICKNESS = 0.4;
-const PLATE = { front: -1.05, back: 0.35 };
+const PLATE = { front: -1.05, back: 0.2 };
 const STEM_Z = DIAL + 1.92;
 const H = {
-  barrel: 0.65,
-  centerPinion: 0.65,
-  centerWheel: 0.95,
-  thirdPinion: 0.95,
-  thirdWheel: 1.3,
-  fourthPinion: 1.35,
-  fourthWheel: 1.55,
-  escapePinion: 1.55,
-  escapeWheel: 1.25,
-  palletFork: 1.25,
-  balance: 1.15,
-  hairspring: 1.55,
+  barrel: 0.5,
+  centerPinion: 0.5,
+  centerWheel: 0.8,
+  thirdPinion: 0.8,
+  thirdWheel: 1.15,
+  fourthPinion: 1.2,
+  fourthWheel: 1.4,
+  escapePinion: 1.4,
+  escapeWheel: 1.1,
+  palletFork: 1.1,
+  balance: 1,
+  hairspring: 1.4,
   // One barrel-and-train-wheel bridge, the pallet bridge and the balance cock, all at one level.
-  bridges: 1.95,
+  bridges: 1.8,
   // The automatic works stand on top of the bridge, under the automatic train bridge.
-  automatic: 2.45,
-  eccentric: 2.65,
-  lever: 2.68,
-  secondPinion: 2.47,
-  autoBridge: 2.95,
-  rotor: 3.55,
+  automatic: 2.3,
+  eccentric: 2.5,
+  lever: 2.53,
+  secondPinion: 2.32,
+  autoBridge: 2.8,
+  rotor: 3.4,
 };
 const BRIDGE = 0.3;
 const pinSpan = pinSpanner(PLATE.back, BRIDGE);
