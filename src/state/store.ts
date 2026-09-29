@@ -20,10 +20,10 @@ export type AppState = InitState & {
   crownPos: 0 | 1 | 2;
   turning: boolean;
   // The chronograph's state and how many times each pusher has been pressed (the case's pushers move on every press,
-  // even one the chronograph ignores; each start/stop press steps the cam).
+  // even one the chronograph ignores; each start/stop press steps the cam, each chime press the strike's column wheel).
   chrono: ChronoMode;
   pushes: Record<PusherAction, number>;
-  pressChrono(action: PusherAction): void;
+  press(action: PusherAction): void;
   setCrownPos(p: 0 | 1 | 2): void;
   setTurning(b: boolean): void;
   setReserve(h: number): void;
@@ -70,7 +70,7 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
       setCrownPos: (crownPos) => set({ crownPos }),
       chrono: 'reset',
       pushes: { 'start-stop': 0, reset: 0, chime: 0 },
-      pressChrono: (action) => {
+      press: (action) => {
         const s = get();
         set({
           chrono: nextMode(s.chrono, action),

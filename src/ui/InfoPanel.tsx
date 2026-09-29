@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { caliberVars } from '../i18n/caliberVars';
 import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
+import { ChimePusher } from './ChimePusher';
 import { ChronoPushers } from './ChronoPushers';
 import { panelModel } from './panel';
 import { useOccluder } from './useOccluder';
@@ -19,6 +20,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
   const reserveH = useApp((s) => Math.round(s.reserveH * 10) / 10);
   const crownPos = useApp((s) => s.crownPos);
   const chrono = useApp((s) => s.chrono);
+  const chimePresses = useApp((s) => s.pushes.chime);
   const setCrownPos = useApp((s) => s.setCrownPos);
   const setTurning = useApp((s) => s.setTurning);
   const ctl = mode === 'tour' ? caliber.tour[stepIndex]!.ctl : undefined;
@@ -84,7 +86,9 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
                     ? t(`ui:crown.pos${crownPos}`)
                     : s.value === 'live:chrono'
                       ? t(`ui:chrono.${chrono === 'reset' ? 'zero' : chrono}`)
-                      : s.value}
+                      : s.value === 'live:chime'
+                        ? t(chimePresses % 2 === 1 ? 'ui:chime.silent' : 'ui:chime.on')
+                        : s.value}
               </b>
             </div>
           ))}
@@ -115,6 +119,7 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
         </div>
       )}
       {ctl === 'chrono' && <ChronoPushers />}
+      {ctl === 'chime' && <ChimePusher />}
       {m.speed && <div className="badge">{t('ui:speedBadge', { speed: m.speed.toLocaleString() })}</div>}
       {m.estimated && <div className="badge">{t('ui:estimated')}</div>}
       {(m.sources.length > 0 || m.notes.length > 0) && (

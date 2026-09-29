@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { CHRONO_REST, trackChrono } from '../kinematics/chronograph';
+import { easePresses } from '../kinematics/strike';
 import { buildSolver, settleQuick } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { arborKey, focusKey } from '../model/validate';
@@ -44,6 +45,7 @@ export function Movement({ caliber, handLayers, discMaterials, timeOverride, chi
   const dateBase = useMemo(() => dayOfMonthIndex(new Date()), []);
   const dayBase = useMemo(() => dayOfWeekIndex(new Date()), []);
   const chrono = useRef(CHRONO_REST);
+  const chime = useRef(0);
   const explode = useRef(0);
   const wound = useRef(0);
   const prevInput = useRef(0);
@@ -81,12 +83,14 @@ export function Movement({ caliber, handLayers, discMaterials, timeOverride, chi
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;
     const rotorState = s.mode === 'tour' ? step.rotor : 'hide';
     const rotor = rotorState === 'hide' ? 0 : wristSwing(swingT.current);
+    chime.current = easePresses(chime.current, s.pushes.chime, Math.min(dt, MAX_FRAME));
     const transforms = solve({
       t: t.current,
       explode: explode.current,
       dateBase,
       dayBase,
       chrono: chrono.current,
+      chime: chime.current,
       rotor,
       wound: wound.current,
       crownPos: s.crownPos,

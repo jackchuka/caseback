@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
+import { ChimePusher } from './ChimePusher';
 import { ChronoPushers } from './ChronoPushers';
 import { useOccluder } from './useOccluder';
 
@@ -49,6 +50,12 @@ export function Dock({ caliber }: { caliber: Caliber }) {
         <>
           <span className="sep" />
           <ChronoPushers />
+        </>
+      )}
+      {caliber.couplings.some((cp) => cp.type === 'strike') && (
+        <>
+          <span className="sep" />
+          <ChimePusher />
         </>
       )}
     </div>

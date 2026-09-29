@@ -5,7 +5,7 @@ import { useApp } from '../state/app';
 export function ChronoPushers() {
   const { t } = useTranslation();
   const chrono = useApp((s) => s.chrono);
-  const press = useApp((s) => s.pressChrono);
+  const press = useApp((s) => s.press);
   return (
     <div className="chrono-ctl" data-state={chrono}>
       <button type="button" className="start-stop" aria-pressed={chrono === 'running'} title={t('ui:chrono.pusherStart')} onClick={() => press('start-stop')}>
