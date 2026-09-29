@@ -3,9 +3,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { flipGroup } from './flip';
 import { useApp } from '../state/app';
-import { LOOKS } from './looks';
+import { LOOKS, THREE_TONE } from './looks';
 import { buildStudioEnvironments } from './studioEnv';
-import { neutralInverse } from './tone';
+import { toneInverse } from './tone';
 
 // `composer`: the frame is tone mapped after the fact (Effects), background included, so the background is set to the
 // colour the curve maps onto the theme's. `faceUp`: turn the studio so its overhead softbox sits behind a camera that
@@ -19,15 +19,17 @@ export function Studio({ composer = false, faceUp = false }: { composer?: boolea
 
   const background = useMemo(() => {
     const c = new THREE.Color(look.background);
-    return composer ? new THREE.Color(...neutralInverse([c.r, c.g, c.b], look.exposure)) : c;
+    return composer ? new THREE.Color(...toneInverse(look.tone, [c.r, c.g, c.b], look.exposure)) : c;
   }, [look, composer]);
   const envs = useMemo(() => buildStudioEnvironments(gl), [gl]);
   useEffect(() => {
     gl.toneMappingExposure = look.exposure;
+    // With a composer the renderer's curve is held off and Effects applies it instead.
+    if (!composer) gl.toneMapping = THREE_TONE[look.tone];
     scene.environment = theme === 'light' ? envs.light : envs.dark;
     scene.environmentIntensity = look.envIntensity;
     scene.environmentRotation.set(faceUp ? -0.66 : 0, 0, 0);
-  }, [gl, scene, look, theme, envs, faceUp]);
+  }, [gl, scene, look, theme, envs, faceUp, composer]);
 
   const floor = useRef<THREE.Mesh>(null);
   useFrame(() => {

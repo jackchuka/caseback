@@ -1,5 +1,21 @@
 import * as THREE from 'three';
+import { LOOKS } from './looks';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+
+// A dome shaded from `top` overhead through `horizon` to `bottom` underneath (linear radiance): a faint fill so the
+// sides of polished steel mirror something dimmer than black.
+function dome(top: number, horizon: number, bottom: number) {
+  const g = new THREE.SphereGeometry(40, 32, 16);
+  const pos = g.getAttribute('position');
+  const colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i) / 40;
+    const v = y >= 0 ? horizon + (top - horizon) * Math.sqrt(y) : horizon + (bottom - horizon) * Math.sqrt(-y);
+    colors.set([v, v, v * 1.03], i * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide }));
+}
 
 // Same studio as the approved prototype (v8): emissive softbox and strip planes aimed at the watch, prefiltered once.
 // drei's Lightformer environment rendered noticeably dimmer and patchier than this for the same layout.
@@ -7,6 +23,7 @@ export function buildStudioEnvironments(gl: THREE.WebGLRenderer) {
   const pmrem = new THREE.PMREMGenerator(gl);
   const studio = new THREE.Scene();
   studio.background = new THREE.Color(0x000000);
+  if (LOOKS.dark.fill) studio.add(dome(...LOOKS.dark.fill));
   const box = (w: number, h: number, x: number, y: number, z: number, color: number, intensity: number, into: THREE.Scene = studio) => {
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(w, h),

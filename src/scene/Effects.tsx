@@ -7,12 +7,15 @@ import type { Caliber } from '../model/schema';
 import { focusKey } from '../model/validate';
 import { appStore, useApp } from '../state/app';
 import type { Theme } from '../state/store';
+import { LOOKS } from './looks';
 import { registry } from './registry';
 
 // Matches the approved prototype: a faint bloom on specular highlights only. Depth of field is left out on purpose:
 // the postprocessing DOF blurs at reduced resolution and made every gear look soft.
-// The composer turns the renderer's tone mapping off, so the curve (looks.ts TONE_MAPPING) is applied here, last,
+// The composer turns the renderer's tone mapping off, so the curve (the theme's, looks.ts) is applied here, last,
 // in the same effect pass as the bloom.
+const COMPOSER_TONE = { neutral: ToneMappingMode.NEUTRAL, aces: ToneMappingMode.ACES_FILMIC } as const;
+
 export function Effects({ caliber }: { caliber: Caliber }) {
   const theme = useApp((s) => s.theme);
   return (
@@ -20,7 +23,7 @@ export function Effects({ caliber }: { caliber: Caliber }) {
     <EffectComposer multisampling={4} autoClear={false}>
       <Bloom intensity={0.1} luminanceThreshold={0.97} luminanceSmoothing={0.35} mipmapBlur />
       <FocusOutline key={theme} caliber={caliber} theme={theme} />
-      <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+      <ToneMapping mode={COMPOSER_TONE[LOOKS[theme].tone]} />
     </EffectComposer>
   );
 }

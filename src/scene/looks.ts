@@ -1,13 +1,18 @@
 import * as THREE from 'three';
 import type { Theme } from '../state/store';
+import type { Tone } from './tone';
 
-// One tone curve for every render path. Khronos PBR Neutral keeps base colours as authored below ~0.76 and only rolls
-// off highlights, so a dial's print and a lume's cream read as painted. With the effect composer on, the renderer's
-// own tone mapping is switched off and Effects applies the same curve; before, the composer path had none at all and
-// the compare page used ACES, so the two never looked alike.
-export const TONE_MAPPING = THREE.NeutralToneMapping;
+// Each theme's tone curve applies on every render path: the renderer's on low quality and the compare page, Effects'
+// on high (the composer switches the renderer's off). Chosen from rendered candidates: the dark studio is filmic
+// (ACES, a faint fill in the reflections) so steel keeps depth without going murky; the light studio stays on
+// Khronos PBR Neutral, which keeps base colours as authored, with no fill and a strong key and rim, because ACES
+// washed it out.
+export const THREE_TONE: Record<Tone, THREE.ToneMapping> = { neutral: THREE.NeutralToneMapping, aces: THREE.ACESFilmicToneMapping };
 
 export type Look = {
+  tone: Tone;
+  // Overhead, horizon and underside radiance of a dim dome behind the studio's softboxes, or none.
+  fill: readonly [number, number, number] | null;
   background: string;
   exposure: number;
   envIntensity: number;
@@ -18,15 +23,13 @@ export type Look = {
   shadowOpacity: number;
 };
 
-// Chosen from five candidates (lighting preset "C"): no fill in the reflections and a stronger key and rim, so steel
-// keeps deep blacks between its highlights instead of reading flat grey.
 export const LOOKS: Record<Theme, Look> = {
   dark: {
-    background: '#0b0b0d', exposure: 1, envIntensity: 1.0,
-    rimColor: '#bfd0ff', key: 1.6, keyColor: '#ffffff', rim: 0.8, shadowOpacity: 0.5,
+    tone: 'aces', fill: [0.12, 0.04, 0], background: '#0b0b0d', exposure: 1, envIntensity: 1.1,
+    rimColor: '#bfd0ff', key: 1.4, keyColor: '#ffffff', rim: 0.9, shadowOpacity: 0.5,
   },
   light: {
-    background: '#ecebe7', exposure: 1, envIntensity: 0.7,
+    tone: 'neutral', fill: null, background: '#ecebe7', exposure: 1, envIntensity: 0.7,
     rimColor: '#ffffff', key: 1.4, keyColor: '#ffffff', rim: 0.5, shadowOpacity: 0.22,
   },
 };

@@ -8,7 +8,6 @@ import { buildExterior } from '../scene/exterior/contract';
 import { useDiscMaterials } from '../scene/exterior/discMaterials';
 import { movementFrame } from '../scene/exterior/frame';
 import { MaterialsProvider } from '../scene/materials';
-import { TONE_MAPPING } from '../scene/looks';
 import { Movement } from '../scene/Movement';
 import { Studio } from '../scene/Studio';
 import { cameraOffset, defaultCamera, parseTime, type Shot, type ShotCamera, type View } from './shots';
@@ -105,7 +104,7 @@ export function Compare({ caliber, watch, shots, shotId, view, mode: initialMode
   const height = photo?.height ?? DEFAULT_SIZE;
   const stage = (
     <div className="compare-canvas" style={{ width, height, position: 'relative' }}>
-      <Canvas orthographic dpr={1} gl={{ antialias: true, preserveDrawingBuffer: true, toneMapping: TONE_MAPPING }} style={{ width, height }}>
+      <Canvas orthographic dpr={1} gl={{ antialias: true, preserveDrawingBuffer: true }} style={{ width, height }}>
         <Rig cam={cam} width={width} height={height} />
         <MaterialsProvider>
           <Studio faceUp />

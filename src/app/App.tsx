@@ -14,7 +14,6 @@ import { caseBounds } from '../scene/exterior/caseBounds';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
-import { TONE_MAPPING } from '../scene/looks';
 import { Movement } from '../scene/Movement';
 import { Studio } from '../scene/Studio';
 import { useApp } from '../state/app';
@@ -42,7 +41,7 @@ export function App({ caliber, i18n, webgl, watch, exterior }: { caliber: Calibe
         dpr={quality === 'high' ? [1, 2] : [1, 1.5]}
         camera={{ fov: 26, near: 0.5, far: 400, position: [-24, 52, 62] }}
         // The effect composer multisamples its own buffer on high; the canvas's MSAA would only be discarded.
-        gl={{ antialias: quality !== 'high', toneMapping: TONE_MAPPING }}
+        gl={{ antialias: quality !== 'high' }}
       >
         <MaterialsProvider>
           <Studio composer={quality === 'high'} />
