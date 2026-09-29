@@ -75,15 +75,18 @@
     "pusherReset": "4時のプッシャー"
   },
   "home": {
-    "title": "機械式ムーブメントを覗く",
+    "headline": "機械式ムーブメントを、\n裏蓋の向こうから。",
+    "lede": "{{watches}}本の時計と{{calibers}}つのキャリバーを、実物の寸法で3Dに再現。歯車の噛み合いまで動かして見られる。",
+    "choose": "時計を選ぶ",
     "search": "ブランド・モデル・キャリバーで検索",
     "calibers": "キャリバー",
     "watches": "時計",
     "watchesWith": "{{name}} を搭載する時計",
     "openTour": "中を見る",
-    "watchCount": "搭載時計 {{count}}",
+    "watchCount": "搭載時計 {{count}}本",
     "home": "ホーム",
-    "caliberSpecs": "直径 {{d}} mm · {{j}} 石 · {{v}} vph"
+    "caliberSpecs": "直径 {{d}} mm · {{j}} 石 · {{v}} vph",
+    "watchTotal": "{{count}}本"
   },
   "notice": {
     "full": "本サイトは非公式の教材です。掲載している時計ブランド・メーカーとは一切関係がなく、承認や協賛も受けていません。商標は各権利者に帰属します。3Dモデルは公開情報や写真をもとにした推定による再現で、実物の形状・寸法・仕様・意匠を正確に再現するものではありません。",
