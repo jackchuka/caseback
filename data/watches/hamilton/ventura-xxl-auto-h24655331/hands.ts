@@ -1,5 +1,5 @@
 import type { HandLayer } from '../../../../src/scene/exterior/contract';
-import { handHub, handPlate, mirror, type P } from '../../../../src/scene/exterior/kit/hands';
+import { handHub, handPlate, mirror } from '../../../../src/scene/exterior/kit/hands';
 import { V } from './params';
 
 // A faceted sword: widest a third of the way out, tapering to a point, with a short tail; the bevel runs to a ridge
@@ -7,7 +7,7 @@ import { V } from './params';
 function sword(len: number, width: number, tail: number) {
   const w = width / 2;
   const outline = mirror([[w * 0.45, tail], [w * 0.7, 0], [w, -len * 0.3], [w * 0.55, -len * 0.85], [0, -len]]);
-  return handPlate(outline as P[], V.handThickness, 0, w * 0.8);
+  return handPlate(outline, V.handThickness, 0, w * 0.8);
 }
 
 // The Ventura's silver sword hands, and a slim seconds hand whose last stretch is red (the ruby material: hands may

@@ -68,7 +68,7 @@ try {
   const path = 'src/ui/thumbs.json';
   const prev = only.length ? JSON.parse(await import('node:fs').then((fs) => fs.readFileSync(path, 'utf8'))) : {};
   const merged = { ...prev, ...manifest };
-  writeFileSync(path, `${JSON.stringify(Object.fromEntries(Object.entries(merged).sort()), null, 2)}\n`);
+  writeFileSync(path, `${JSON.stringify(Object.fromEntries(Object.entries(merged).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))), null, 2)}\n`);
 } finally {
   await browser.close();
   server.kill();

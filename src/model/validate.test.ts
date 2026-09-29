@@ -82,7 +82,7 @@ describe('strike coupling', () => {
     const parts = c.parts.map((p) => {
       if (p.id !== 'snail') return p;
       const { arbor: _arbor, ...rest } = p;
-      return rest as Part;
+      return rest;
     });
     expect(validateCaliber({ ...c, parts })).toContain('strike: snail snail has no arbor');
   });

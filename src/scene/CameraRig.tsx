@@ -56,13 +56,13 @@ export function CameraRig({ caliber, watchFront = false, subject }: { caliber: C
   // Only a new shot (mode, step, side) starts a flight; resizes, scene or hook changes must never re-fly the camera.
   useEffect(() => {
     if (!controls) return;
-    tween.current = new Tween(camera.position.toArray() as V3, controls.target.toArray() as V3, shotFor(caliber, mode, stepIndex, freeSide, watchFront), flipGroup.current?.rotation.x ?? 0);
+    tween.current = new Tween(camera.position.toArray(), controls.target.toArray(), shotFor(caliber, mode, stepIndex, freeSide, watchFront), flipGroup.current?.rotation.x ?? 0);
   }, [caliber, camera, controls, mode, stepIndex, freeSide, watchFront]);
 
   useEffect(() => {
     if (!controls) return;
     window.__caseback = {
-      target: () => controls.target.toArray() as V3,
+      target: () => controls.target.toArray(),
       state: () => appStore().getState(),
       project: (focus) => {
         const side = (flipGroup.current?.rotation.x ?? 0) > Math.PI / 2 ? 'dial' : 'back';
@@ -70,7 +70,7 @@ export function CameraRig({ caliber, watchFront = false, subject }: { caliber: C
         return [((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height];
       },
       flip: () => flipGroup.current?.rotation.x ?? 0,
-      camera: () => camera.position.toArray() as V3,
+      camera: () => camera.position.toArray(),
       subject: () => {
         const ps = rings[sideOf()].map((p) => p.clone().project(camera));
         const xs = ps.map((v) => ((v.x + 1) / 2) * size.width), ys = ps.map((v) => ((1 - v.y) / 2) * size.height);

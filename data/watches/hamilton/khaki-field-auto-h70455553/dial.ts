@@ -102,9 +102,9 @@ export function paintDial() {
     // Hamilton's hour figures draw the 1 as a plain bar (the 11 reads as two bars); other digits come from the font.
     const write = (t: string, px: number, bars: boolean) => {
       const bar = { w: px * 0.16, gap: px * 0.12 };
-      const widths = [...t].map((c) => (bars && c === '1' ? bar.w + bar.gap : g.measureText(c).width));
+      const widths = t.split('').map((c) => (bars && c === '1' ? bar.w + bar.gap : g.measureText(c).width));
       let x = -widths.reduce((a, b) => a + b, 0) / 2;
-      [...t].forEach((c, i) => {
+      t.split('').forEach((c, i) => {
         if (bars && c === '1') g.fillRect(x + bar.gap / 2, -px * 0.36, bar.w, px * 0.72);
         else { g.textAlign = 'left'; g.fillText(c, x, 0); }
         x += widths[i]!;

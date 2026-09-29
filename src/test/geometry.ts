@@ -28,7 +28,7 @@ export const radii = (g: THREE.BufferGeometry) => {
 // The caliber's rotor: its depth span in watch coordinates and its radius.
 export function rotorOf(caliber: Caliber) {
   const rotor = caliber.parts.find((p) => p.id === 'rotor')!;
-  const [front, back] = zRange(buildShape(rotor.shape, rotor.material as never), rotor.pos.z);
+  const [front, back] = zRange(buildShape(rotor.shape, rotor.material), rotor.pos.z);
   return { front, back, radius: rotor.shape.kind === 'rotor' ? rotor.shape.radius : NaN };
 }
 

@@ -29,7 +29,7 @@ describe('Khaki Field display caseback', () => {
     for (let i = 0; i < p.count; i++) {
       if (Math.abs(r[i]! - notchFloor) < 0.25) angles.add((Math.round((Math.atan2(p.getY(i), p.getX(i)) * 6) / (2 * Math.PI)) + 6) % 6);
     }
-    expect([...angles].sort()).toEqual([0, 1, 2, 3, 4, 5]);
+    expect([...angles].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
   });
   it('builds plain, non-interleaved attributes a worker can transfer', () => {
     for (const l of layers) expect(l.geometry.getAttribute('position')).toBeInstanceOf(THREE.BufferAttribute);

@@ -31,7 +31,7 @@ function pusher(): ExteriorLayer[] {
   const r = U.collarDiameter / 2, h = U.collarLength / 2;
   // Rings along the wall, so the flutes have vertices to cut.
   const wall = Array.from({ length: 7 }, (_, i) => [r, -h + 0.3 + ((2 * h - 0.55) * i) / 6]);
-  const collar = new THREE.LatheGeometry([[0, -h], [r - 0.3, -h], [r, -h + 0.25], ...wall, [r, h - 0.2], [r - 0.3, h], [0, h]].map(([x, y]) => new THREE.Vector2(x!, y!)), fluteCount(U.collarDiameter) * 4);
+  const collar = new THREE.LatheGeometry([[0, -h], [r - 0.3, -h], [r, -h + 0.25], ...wall, [r, h - 0.2], [r - 0.3, h], [0, h]].map(([x, y]) => new THREE.Vector2(x, y)), fluteCount(U.collarDiameter) * 4);
   cutFlutes(collar, { axis: 'y', radius: r, count: fluteCount(U.collarDiameter), depth: 0.2, from: -h + 0.3, to: h - 0.25 });
   const b = U.buttonDiameter / 2, out = -h - U.buttonLength;
   const button = new THREE.LatheGeometry(

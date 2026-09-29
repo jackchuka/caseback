@@ -92,7 +92,7 @@ function lance(angle: number, outer: number, z: number) {
   const { length: L, width } = V.lance;
   const w = width / 2;
   // Local frame: along −Y from the inner end (y = 0) to the outer point (y = −L).
-  const s = new THREE.Shape([[0, 0.3], [w, -0.6], [w * 0.8, -(L - 1.4)], [0, -L], [-w * 0.8, -(L - 1.4)], [-w, -0.6]].map(([x, y]) => new THREE.Vector2(x!, y!)));
+  const s = new THREE.Shape([[0, 0.3], [w, -0.6], [w * 0.8, -(L - 1.4)], [0, -L], [-w * 0.8, -(L - 1.4)], [-w, -0.6]].map(([x, y]) => new THREE.Vector2(x, y)));
   const h = 0.45;
   const g = new THREE.ExtrudeGeometry(s, { depth: 0.02, bevelEnabled: true, bevelThickness: h, bevelSize: w * 0.9, bevelOffset: -w * 0.9, bevelSegments: 1 });
   // Centred on the dial's face: the back half sinks into the dial.

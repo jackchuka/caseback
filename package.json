@@ -2,6 +2,11 @@
   "name": "caseback",
   "private": true,
   "version": "0.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackchuka/caseback.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -16,7 +21,8 @@
     "e2e:quick": "playwright test --grep @quick",
     "e2e:fast": "node scripts/e2e-fast.mjs",
     "compare": "node scripts/compare.mjs",
-    "thumbs": "node scripts/thumbs.mjs"
+    "thumbs": "node scripts/thumbs.mjs",
+    "lint": "oxlint --type-aware"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -38,6 +44,8 @@
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "7.0.2003",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
