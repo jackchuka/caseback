@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CaliberSchema } from './schema';
+import { CaliberSchema, type Caliber, type Part } from './schema';
 import { focusKey, toothCount, validateCaliber } from './validate';
 import { miniCaliber } from '../test/fixtures';
 
@@ -53,5 +53,42 @@ describe('validateCaliber', () => {
     const c = miniCaliber();
     c.couplings = c.couplings.filter((x) => x.type !== 'escapement');
     expect(validateCaliber(c)).toContain('exactly one escapement coupling required');
+  });
+});
+
+const strikeCaliber = (): Caliber => {
+  const c = miniCaliber();
+  const est = { confidence: 'estimated' as const, sourceIds: [] };
+  const lever = (id: string): Part => ({ id, mechanism: 'strike', side: 'dial', pos: { x: 3, y: 3, z: -2 }, explode: { dz: -1 }, material: 'steel', shape: { kind: 'lever', outline: [{ x: 0, y: -0.3 }, { x: 2, y: 0 }, { x: 0, y: 0.3 }], thickness: 0.2, hole: 0.1 }, provenance: est });
+  return {
+    ...c,
+    parts: [
+      ...c.parts,
+      { id: 'snail', arbor: 'a', mechanism: 'strike', side: 'dial', pos: { x: 0, y: 0, z: -2 }, explode: { dz: -1 }, material: 'steel', shape: { kind: 'snail', rMin: 1, rMax: 2, thickness: 0.3 }, provenance: est },
+      lever('lever'), lever('hammer'), lever('switch'), lever('indicator'),
+      { id: 'column', mechanism: 'strike', side: 'dial', pos: { x: 5, y: 0, z: -2 }, explode: { dz: -1 }, material: 'steel', shape: { kind: 'cam', teeth: 8, radius: 1.5, thickness: 0.3 }, provenance: est },
+    ],
+    couplings: [...c.couplings, { type: 'strike', snail: 'snail', lever: 'lever', hammer: 'hammer', lift: 0.35, swing: 0.14, silence: { wheel: 'column', switch: 'switch', indicator: 'indicator', turn: 0.6, retreat: 0.3 } }],
+    exterior: { ...c.exterior, pushers: [{ action: 'chime', hour: 4, z: -2 }] },
+  };
+};
+
+describe('strike coupling', () => {
+  it('accepts a strike with its chime pusher', () => {
+    expect(validateCaliber(strikeCaliber())).toEqual([]);
+  });
+  it('needs a snail and a cam of the right kinds', () => {
+    const c = strikeCaliber();
+    const bad = { ...c, parts: c.parts.map((p) => (p.id === 'snail' ? { ...p, shape: { kind: 'heart' as const, radius: 1, thickness: 0.3 } } : p)) };
+    expect(validateCaliber(bad)).toContain('strike: snail is not a snail');
+  });
+  it('refuses a chime pusher or chime controls without a strike', () => {
+    const c = miniCaliber();
+    expect(validateCaliber({ ...c, exterior: { ...c.exterior, pushers: [{ action: 'chime', hour: 4, z: -2 }] } })).toContain('a chime pusher needs a strike coupling');
+    expect(validateCaliber({ ...c, tour: c.tour.map((s) => ({ ...s, ctl: 'chime' as const })) })).toContain('chime controls need a strike coupling');
+  });
+  it('still refuses chronograph pushers without a chronograph', () => {
+    const c = miniCaliber();
+    expect(validateCaliber({ ...c, exterior: { ...c.exterior, pushers: [{ action: 'reset', hour: 4, z: -2 }] } })).toContain('chronograph pushers need a chronograph coupling');
   });
 });

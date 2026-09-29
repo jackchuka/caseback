@@ -4,6 +4,7 @@ import { counterSteps, heartAngle, type ChronoPose } from './chronograph';
 import { escapementState } from './escapement';
 import { pitchRadius, smoothstep } from './gearMath';
 import { accumulateWinding } from './winding';
+import { strikePose, type StrikePose } from './strike';
 
 // Quick-set advances one date per crown turn and settles on whole dates in the second half of each turn.
 export const snapDates = (q: number) => Math.floor(q) + smoothstep((q - Math.floor(q) - 0.5) / 0.5);
@@ -23,6 +24,8 @@ export type KinematicsInput = {
   // Day of the week, Monday = 0, for a day ring.
   dayBase?: number;
   chrono?: ChronoPose;
+  // The strike's silencing pusher: its presses, eased.
+  chime?: number;
   rotor?: number;
   wound?: number;
   crownPos?: 0 | 1 | 2;
@@ -163,6 +166,16 @@ export function buildSolver(c: Caliber): Solver {
       : [],
   );
 
+  // The strike follows the snail's arbor (the minute arbor, so setting the hands moves it too).
+  const strikeCp = couplingOf(c, 'strike');
+  const strike = strikeCp
+    ? {
+        snailKey: key(strikeCp.snail),
+        keys: { lever: key(strikeCp.lever), hammer: key(strikeCp.hammer), wheel: key(strikeCp.silence.wheel), switch: key(strikeCp.silence.switch), indicator: key(strikeCp.silence.indicator) } satisfies Record<keyof StrikePose, string>,
+        geometry: { lift: strikeCp.lift, swing: strikeCp.swing, turn: strikeCp.silence.turn, retreat: strikeCp.silence.retreat, wheelTeeth: teeth(strikeCp.silence.wheel) },
+      }
+    : null;
+
   const chronoCp = couplingOf(c, 'chronograph');
   const chrono = chronoCp ? chronograph(chronoCp) : null;
   function chronograph(cp: Extract<Coupling, { type: 'chronograph' }>) {
@@ -191,7 +204,7 @@ export function buildSolver(c: Caliber): Solver {
   }
   const WINDOW = 0.1; // the driven part moves during the last 10 % of each driver turn
 
-  const solver = (({ t, explode, dateBase = 0, dayBase = 0, chrono: pose, rotor = 0, wound = 0, crownPos = 0, crownRot = 0, windRot = 0, quickRot = 0, setRot = 0 }: KinematicsInput) => {
+  const solver = (({ t, explode, dateBase = 0, dayBase = 0, chrono: pose, chime = 0, rotor = 0, wound = 0, crownPos = 0, crownRot = 0, windRot = 0, quickRot = 0, setRot = 0 }: KinematicsInput) => {
     const s = escapementState(t, c.specs.vph, escapeTeeth);
     const e = smoothstep(explode);
     const byKey = new Map<string, number>();
@@ -204,6 +217,10 @@ export function buildSolver(c: Caliber): Solver {
       const setOffset = keyless ? setRot * (keyless.settingTeeth / slip.bTeeth) : 0;
       const base = (byKey.get(slip.aKey) ?? 0) + setOffset;
       for (const [key, f] of cannonFactor) byKey.set(key, f * base);
+    }
+    if (strike) {
+      const pose = strikePose(byKey.get(strike.snailKey) ?? 0, chime, strike.geometry);
+      for (const k of Object.keys(strike.keys) as Array<keyof StrikePose>) byKey.set(strike.keys[k], pose[k]);
     }
     for (const im of intermittents) {
       const driver = byKey.get(im.driverKey) ?? 0;

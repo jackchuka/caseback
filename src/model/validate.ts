@@ -90,6 +90,15 @@ export function validateCaliber(c: Caliber): string[] {
     } else if (cp.type === 'click') {
       ref('click', cp.input);
       ref('click', cp.output);
+    } else if (cp.type === 'strike') {
+      const kind = (id: string, k: string) => {
+        ref('strike', id);
+        const p = byId.get(id);
+        if (p && p.shape.kind !== k) errors.push(`strike: ${id} is not a ${k}`);
+      };
+      kind(cp.snail, 'snail');
+      for (const id of [cp.lever, cp.hammer, cp.silence.switch, cp.silence.indicator]) kind(id, 'lever');
+      kind(cp.silence.wheel, 'cam');
     } else if (cp.type === 'chronograph') {
       const kind = (id: string, k: string) => {
         ref('chronograph', id);
@@ -128,7 +137,12 @@ export function validateCaliber(c: Caliber): string[] {
   const chronographs = c.couplings.filter((x) => x.type === 'chronograph').length;
   if (chronographs > 1) errors.push('at most one chronograph coupling allowed');
   if (chronographs === 0 && c.tour.some((s) => s.ctl === 'chrono')) errors.push('chrono controls need a chronograph coupling');
-  if (chronographs === 0 && c.exterior.pushers?.length) errors.push('pushers need a chronograph coupling');
+  const pushers = c.exterior.pushers ?? [];
+  if (chronographs === 0 && pushers.some((p) => p.action !== 'chime')) errors.push('chronograph pushers need a chronograph coupling');
+  const strikes = c.couplings.filter((x) => x.type === 'strike').length;
+  if (strikes > 1) errors.push('at most one strike coupling allowed');
+  if (strikes === 0 && c.tour.some((s) => s.ctl === 'chime')) errors.push('chime controls need a strike coupling');
+  if (strikes === 0 && pushers.some((p) => p.action === 'chime')) errors.push('a chime pusher needs a strike coupling');
 
   const chapters = new Set(c.chapters.map((ch) => ch.id));
   for (const s of c.tour) {

@@ -69,7 +69,7 @@ export function createAppStore(caliber: Caliber, init: Partial<InitState> = {}):
       turning: false,
       setCrownPos: (crownPos) => set({ crownPos }),
       chrono: 'reset',
-      pushes: { 'start-stop': 0, reset: 0 },
+      pushes: { 'start-stop': 0, reset: 0, chime: 0 },
       pressChrono: (action) => {
         const s = get();
         set({

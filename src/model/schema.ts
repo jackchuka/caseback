@@ -5,7 +5,7 @@ const int = z.number().int().positive();
 const Point = z.object({ x: z.number(), y: z.number() });
 
 export const Vec3Schema = z.object({ x: z.number(), y: z.number(), z: z.number() });
-export const PusherActionSchema = z.enum(['start-stop', 'reset']);
+export const PusherActionSchema = z.enum(['start-stop', 'reset', 'chime']);
 export const MaterialKeySchema = z.enum(['gilt', 'steel', 'rhodium', 'plate', 'balance', 'ruby', 'blued']);
 
 export const ShapeSchema = z.discriminatedUnion('kind', [
@@ -64,7 +64,7 @@ export const ProvenanceSchema = z.object({
 
 export const PartSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
-  mechanism: z.enum(['frame', 'power', 'going-train', 'escapement', 'regulator', 'motion-works', 'calendar', 'automatic', 'keyless', 'chronograph']),
+  mechanism: z.enum(['frame', 'power', 'going-train', 'escapement', 'regulator', 'motion-works', 'calendar', 'automatic', 'keyless', 'chronograph', 'strike']),
   arbor: z.string().optional(),
   focus: z.string().optional(),
   axis: z.enum(['z', 'x']).optional(),
@@ -105,6 +105,19 @@ export const CouplingSchema = z.discriminatedUnion('type', [
     hammers: z.array(z.string()).min(1),
     stroke: pos,
   }),
+  // A passing strike. The `snail` on the minute arbor lifts the `lever` through each hour; on the hour the lever drops
+  // off the snail's step and releases the `hammer`, which swings `swing` rad onto the gong and back. The `silence`
+  // column wheel, stepped a tooth a push, turns the `indicator` by `turn` and, through the `switch` lever, draws the
+  // hammer `retreat` rad back out of the gong's reach.
+  z.object({
+    type: z.literal('strike'),
+    snail: z.string(),
+    lever: z.string(),
+    hammer: z.string(),
+    lift: pos,
+    swing: pos,
+    silence: z.object({ wheel: z.string(), switch: z.string(), indicator: z.string(), turn: pos, retreat: pos }),
+  }),
   // Seiko's Magic Lever: the eccentric drives the lever to and fro; one claw pulls, the other pushes, so the wheel
   // advances in one direction whichever way the eccentric turns.
   z.object({ type: z.literal('pawl'), eccentric: z.string(), lever: z.string(), wheel: z.string() }),
@@ -122,7 +135,7 @@ export const TourStepSchema = z.object({
   rotor: z.enum(['show', 'xray', 'hide']),
   cameraOffset: z.tuple([z.number(), z.number(), z.number()]),
   stats: z.array(StatSchema).max(2),
-  ctl: z.enum(['crown', 'chrono']).optional(),
+  ctl: z.enum(['crown', 'chrono', 'chime']).optional(),
 });
 
 export const ChapterSchema = z.object({ id: z.string(), flow: z.array(z.string()) });

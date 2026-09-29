@@ -6,7 +6,8 @@ export type ChronoMode = 'reset' | 'running' | 'stopped';
 // cam holds the hammer off the hearts).
 export function nextMode(mode: ChronoMode, action: PusherAction): ChronoMode {
   if (action === 'start-stop') return mode === 'running' ? 'stopped' : 'running';
-  return mode === 'stopped' ? 'reset' : mode;
+  if (action === 'reset') return mode === 'stopped' ? 'reset' : mode;
+  return mode;
 }
 
 // What the solver needs to pose the chronograph, carried from frame to frame. `runner` and `hours` are the runner's
