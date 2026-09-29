@@ -18,9 +18,9 @@ else await start();
 
 async function start() {
   // Vite replaces import.meta.env.DEV with false in production builds, which drops this branch and its chunk.
-  if (import.meta.env.DEV && location.pathname.startsWith(`${base}dev/compare`)) {
-    const { startCompare } = await import('./dev/start');
-    await startCompare(base);
+  if (import.meta.env.DEV && location.pathname.startsWith(`${base}dev/`)) {
+    const { startDev } = await import('./dev/start');
+    await startDev(base);
     return;
   }
   const route = parseRoute(location.pathname, base, calibers, watchMetas);
