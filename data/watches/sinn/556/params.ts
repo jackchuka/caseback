@@ -65,4 +65,7 @@ export const S = {
   // under the watch).
   bracelet: { endWidth: 18, pitch: 10.3, centerRatio: 0.51, bar: 2.4, thickness: 3.0, links: 4, gap: 0.2, wristRadius: 24, centerRaise: 0, chamfer: 0.25, crown: 0.05 },
   lume: '#f2eee2', // matches the movement lume the hands use
+  // spec: "The date at 3 is white text on a black disk" (Worn & Wound, https://wornandwound.com/review/sinn-556i-review/);
+  // photo:front (WatchGecko 556 I) agrees. photo:front: the figures fill about 1.3 times the movement's default print.
+  dateSize: 1.3,
 } as const;
