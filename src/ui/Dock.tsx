@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
 import { ChronoPushers } from './ChronoPushers';
+import { useOccluder } from './useOccluder';
 
 export function Dock({ caliber }: { caliber: Caliber }) {
   const { t } = useTranslation();
@@ -15,8 +16,9 @@ export function Dock({ caliber }: { caliber: Caliber }) {
   const togglePaused = useApp((s) => s.togglePaused);
   const toggleSide = useApp((s) => s.toggleSide);
   const speed = 10 ** speedExp;
+  const ref = useOccluder<HTMLDivElement>(mode === 'free', '--bar-h');
   return (
-    <div className={`dock glass ${mode === 'free' ? '' : 'hidden'}`}>
+    <div className={`dock glass ${mode === 'free' ? '' : 'hidden'}`} ref={ref}>
       <button
         type="button"
         className="mode to-tour"

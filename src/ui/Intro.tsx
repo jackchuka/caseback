@@ -5,11 +5,13 @@ import type { Watch } from '../model/watch';
 import { introFacts } from './introFacts';
 import { Notice } from './Notice';
 import { appStore, useApp } from '../state/app';
+import { useOccluder } from './useOccluder';
 
 export function Intro({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
   const { t } = useTranslation();
   const mode = useApp((s) => s.mode);
   const facts = introFacts(caliber, watch);
+  const copy = useOccluder<HTMLDivElement>(mode === 'intro');
   const open = () => {
     if (appStore().getState().mode === 'intro') appStore().getState().setMode('opening');
   };
@@ -24,15 +26,17 @@ export function Intro({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
 
   return (
     <section className={`intro ${mode === 'intro' ? '' : 'hidden'}`} aria-hidden={mode !== 'intro'}>
-      <div className="eyebrow">{t('ui:intro.eyebrow', { name: watch ? `${watch.brand} ${watch.model} · ${facts.name}` : facts.name })}</div>
-      <h2>{t('ui:intro.title')}</h2>
-      <p>{t('ui:intro.body', { diameter: facts.diameter, beats: facts.beats })}</p>
-      {facts.base && <p className="base">{t('ui:intro.base', { base: facts.base })}</p>}
-      <button type="button" onClick={open}>
-        {t('ui:intro.open')}
-      </button>
-      <div className="scroll">{t('ui:intro.scroll')}</div>
-      <Notice short />
+      <div className="copy" ref={copy}>
+        <div className="eyebrow">{t('ui:intro.eyebrow', { name: watch ? `${watch.brand} ${watch.model} · ${facts.name}` : facts.name })}</div>
+        <h2>{t('ui:intro.title')}</h2>
+        <p>{t('ui:intro.body', { diameter: facts.diameter, beats: facts.beats })}</p>
+        {facts.base && <p className="base">{t('ui:intro.base', { base: facts.base })}</p>}
+        <button type="button" onClick={open}>
+          {t('ui:intro.open')}
+        </button>
+        <div className="scroll">{t('ui:intro.scroll')}</div>
+        <Notice short />
+      </div>
     </section>
   );
 }

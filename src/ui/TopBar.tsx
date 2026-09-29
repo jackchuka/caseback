@@ -3,6 +3,7 @@ import type { Caliber } from '../model/schema';
 import type { Watch } from '../model/watch';
 import { useApp } from '../state/app';
 import { hrefHome } from './catalogLinks';
+import { useOccluder } from './useOccluder';
 
 export function TopBar({ caliber, watch }: { caliber: Caliber; watch?: Watch }) {
   const { t } = useTranslation();
@@ -10,8 +11,9 @@ export function TopBar({ caliber, watch }: { caliber: Caliber; watch?: Watch }) 
   const setLang = useApp((s) => s.setLang);
   const theme = useApp((s) => s.theme);
   const setTheme = useApp((s) => s.setTheme);
+  const ref = useOccluder<HTMLElement>(true);
   return (
-    <header className="topbar">
+    <header className="topbar" ref={ref}>
       <a className="brand" href={hrefHome(lang)}>
         {t('ui:brand')}
         <small>

@@ -222,4 +222,43 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
   .hero-figure { order: -1; margin: 0 -16px; aspect-ratio: 1.2; }
   .caliber-grid, .gallery { grid-template-columns: minmax(0, 1fr); }
   .shelf { padding-top: 32px; }
+
+/* ---- Readable overlay: text panels keep clear of the model (the camera frames it beside them) and read on any background. ---- */
+:root { --overlay: rgba(16, 16, 19, 0.86); --sheet: #151518; }
+:root[data-theme='light'] { --overlay: rgba(250, 249, 246, 0.9); --sheet: #f6f5f1; }
+
+/* The intro spans the viewport only to carry its scrim; the copy block is what the camera keeps clear of. */
+.intro { inset: 0; left: 0; top: 0; max-width: none; transform: none; pointer-events: none; display: flex; align-items: center; padding-left: 7vw; background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 92%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) min(420px, 30vw), transparent min(760px, 58vw)); }
+.intro .copy { max-width: 460px; pointer-events: auto; }
+.topbar { z-index: 1; }
+.intro.hidden .copy { pointer-events: none; }
+
+.info { background: var(--overlay); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+.info .grab { display: none; }
+.tourbar .chapters, .tourbar .steps { position: relative; }
+
+@media (max-width: 768px) {
+  .intro { left: 0; right: 0; bottom: 0; padding: 0 16px 40px; align-items: flex-end; background: linear-gradient(0deg, color-mix(in srgb, var(--bg) 94%, transparent) 0%, color-mix(in srgb, var(--bg) 75%, transparent) 38%, transparent 62%); }
+}
+
+/* Phone: the tour bar (or dock) docks to the bottom edge and the info panel is a sheet on top of it. Opaque, no blur. */
+@media (max-width: 640px) {
+  .tourbar, .dock { left: 0; right: 0; bottom: 0; max-width: none; border-radius: 0; border-width: 1px 0 0; background: var(--sheet); backdrop-filter: none; -webkit-backdrop-filter: none; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .intro { padding-bottom: 24px; }
+  .intro h2 { margin: 12px 0; }
+  .intro button { margin-top: 20px; }
+  .intro .scroll { display: none; }
+  .intro .notice { margin-top: 16px; }
+  .tourbar .chapters { justify-content: flex-start; }
+  .tourbar .row { justify-content: flex-start; min-width: 0; }
+  .tourbar .steps { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .tourbar .row > button { flex: none; }
+  .info { left: 0; right: 0; bottom: var(--bar-h, 96px); max-height: none; overflow: visible; padding: 0 18px 12px; border-radius: 18px 18px 0 0; border-width: 1px 0 0; background: var(--sheet); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .info .grab { display: grid; place-items: center; width: calc(100% + 36px); height: 26px; margin: 0 -18px 2px; touch-action: none; }
+  .info .grab i { width: 36px; height: 4px; border-radius: 4px; background: var(--muted); opacity: 0.5; }
+  .info h1 { font-size: 19px; margin-top: 4px; }
+  .info:not(.open) .sub, .info:not(.open) .stats, .info:not(.open) .badge, .info:not(.open) .sources { display: none; }
+  .info:not(.open) p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden; }
+  .info.open { max-height: calc(100dvh - var(--bar-h, 96px) - 96px); overflow-y: auto; overscroll-behavior: contain; }
+  .info .crown-ctl, .info .chrono-ctl { margin-top: 10px; }
 }
