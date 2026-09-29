@@ -10,6 +10,7 @@ import { Exterior } from '../scene/Exterior';
 import type { ExteriorBuild } from '../scene/exterior/contract';
 import { useDiscMaterials } from '../scene/exterior/discMaterials';
 import { movementFrame } from '../scene/exterior/frame';
+import { caseBounds } from '../scene/exterior/caseBounds';
 import { FlowPaths } from '../scene/FlowPaths';
 import { flipGroup } from '../scene/flip';
 import { MaterialsProvider } from '../scene/materials';
@@ -74,6 +75,7 @@ function Scene({ caliber, watch, exterior }: { caliber: Caliber; watch?: Watch; 
     [build],
   );
   const discs = useDiscMaterials(build.materials);
+  const subject = useMemo(() => caseBounds(build, frame.diameterMm / 2), [build, frame]);
   return (
     <>
       <group ref={(g) => { flipGroup.current = g; }}>
@@ -82,7 +84,7 @@ function Scene({ caliber, watch, exterior }: { caliber: Caliber; watch?: Watch; 
           <Exterior caliber={caliber} watch={watch} build={build} frame={frame} watchFront={watchFront} />
         </Movement>
       </group>
-      <CameraRig caliber={caliber} watchFront={watchFront} />
+      <CameraRig caliber={caliber} watchFront={watchFront} subject={subject} />
     </>
   );
 }
