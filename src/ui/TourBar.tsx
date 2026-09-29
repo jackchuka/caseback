@@ -1,7 +1,16 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
 import { chapterSteps } from '../tour/engine';
+import { useOccluder } from './useOccluder';
+
+// Scrolls a strip (positioned, so it is the offsetParent) sideways to centre its current item; never scrolls the page.
+function centre(strip: Element | null | undefined, item: Element | null | undefined) {
+  if (!(strip instanceof HTMLElement) || !(item instanceof HTMLElement) || strip.scrollWidth <= strip.clientWidth) return;
+  const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  strip.scrollTo({ left: item.offsetLeft - (strip.clientWidth - item.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' });
+}
 
 export function TourBar({ caliber }: { caliber: Caliber }) {
   const { t } = useTranslation();
@@ -15,8 +24,14 @@ export function TourBar({ caliber }: { caliber: Caliber }) {
   const togglePaused = useApp((s) => s.togglePaused);
   const current = caliber.tour[stepIndex]!;
   const ns = caliber.id;
+  const ref = useOccluder<HTMLElement>(mode === 'tour', '--bar-h');
+  useEffect(() => {
+    const bar = ref.current;
+    centre(bar?.querySelector('.chapters'), bar?.querySelector('.chapters [aria-current="true"]'));
+    centre(bar?.querySelector('.steps'), bar?.querySelector('.steps li.on'));
+  }, [ref, current.chapter, stepIndex]);
   return (
-    <nav className={`tourbar glass ${mode === 'tour' ? '' : 'hidden'}`} aria-label={t('ui:tour.label')}>
+    <nav className={`tourbar glass ${mode === 'tour' ? '' : 'hidden'}`} aria-label={t('ui:tour.label')} ref={ref}>
       <div className="chapters">
         {caliber.chapters.map((ch) => (
           <button key={ch.id} type="button" aria-current={ch.id === current.chapter} onClick={() => goStep(chapterSteps(caliber.tour, ch.id)[0]!)}>

@@ -57,6 +57,10 @@
     "title": "3D表示に対応していません",
     "body": "このブラウザではWebGLが使えないため、時計の3Dモデルを表示できません。最新のChrome、Safari、Firefoxでお試しください。"
   },
+  "sheet": {
+    "expand": "続きを読む",
+    "collapse": "閉じる"
+  },
   "sources": "出典と推定の根拠",
   "reserveUnit": "{{h}} 時間",
   "crown": {

@@ -57,6 +57,10 @@
     "title": "3D is not available",
     "body": "This browser cannot use WebGL, so the watch model cannot be shown. Please try a recent Chrome, Safari or Firefox."
   },
+  "sheet": {
+    "expand": "Show more",
+    "collapse": "Show less"
+  },
   "sources": "Sources and estimates",
   "reserveUnit": "{{h}} h",
   "crown": {

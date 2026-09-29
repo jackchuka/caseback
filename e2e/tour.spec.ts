@@ -112,6 +112,48 @@ test('mobile layout has no horizontal scroll and shows panel and bar', async ({ 
   expect(panel!.y + panel!.height).toBeLessThanOrEqual(bar!.y + 1);
 });
 
+for (const [name, url] of [['caliber', '/calibers/eta-2824-2?lang=ja'], ['watch', '/watches/tudor/heritage-black-bay-79220b?lang=ja']]) {
+  test(`the ${name} intro keeps its text clear of the case at 1100×700 @quick`, async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 700 });
+    await page.goto(url!);
+    await ready(page);
+    const text = (await page.locator('.intro .copy').boundingBox())!;
+    // The camera eases the case beside the text; poll until it has arrived.
+    await expect
+      .poll(async () => {
+        const [left, top, right, bottom] = await page.evaluate(() => window.__caseback!.subject());
+        const apart = left >= text.x + text.width || right <= text.x || top >= text.y + text.height || bottom <= text.y;
+        return apart && right - left > 200;
+      }, { timeout: 10_000 })
+      .toBe(true);
+  });
+}
+
+test('on a phone the info panel is a sheet that opens and closes, beneath the model @quick', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openTour(page, 'eta-2824-2', 'ja');
+  await page.locator('button.next').click();
+  await settled(page);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  const sheet = page.locator('.info');
+  const closed = (await sheet.boundingBox())!;
+  await expect(sheet.locator('.stats')).toBeHidden();
+  // The focused part is framed above the sheet, not under it.
+  const [, y] = await page.evaluate(() => window.__caseback!.project('barrel'));
+  expect(y).toBeLessThan(closed.y);
+  await sheet.locator('.grab').click();
+  await expect(sheet).toHaveClass(/open/);
+  await expect(sheet.locator('.stats')).toBeVisible();
+  expect((await sheet.boundingBox())!.height).toBeGreaterThan(closed.height + 40);
+  await sheet.locator('.grab').click();
+  await expect(sheet).not.toHaveClass(/open/);
+  // The current chapter is scrolled into view in the tour bar.
+  const chapter = (await page.locator('.tourbar .chapters [aria-current="true"]').boundingBox())!;
+  expect(chapter.x).toBeGreaterThanOrEqual(0);
+  expect(chapter.x + chapter.width).toBeLessThanOrEqual(390);
+});
+
 test('reduced motion skips the opening and starts paused', async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await ctx.newPage();

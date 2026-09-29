@@ -1,10 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { caliberVars } from '../i18n/caliberVars';
 import type { Caliber } from '../model/schema';
 import { useApp } from '../state/app';
 import { ChronoPushers } from './ChronoPushers';
 import { panelModel } from './panel';
+import { useOccluder } from './useOccluder';
+
+// How far a drag on the sheet's handle must travel to open or close it rather than count as a tap.
+const DRAG = 24;
 
 export function InfoPanel({ caliber }: { caliber: Caliber }) {
   const { t } = useTranslation();
@@ -34,10 +38,36 @@ export function InfoPanel({ caliber }: { caliber: Caliber }) {
   }, [turning, setTurning]);
   useEffect(() => () => setTurning(false), [setTurning]);
   const m = panelModel(caliber, mode, stepIndex, selected);
-  if (!m) return <aside className="info glass hidden" aria-hidden />;
+  const ref = useOccluder<HTMLElement>(!!m);
+  // On a phone the panel is a bottom sheet: collapsed to its heading and one line until the handle opens it.
+  const [open, setOpen] = useState(false);
+  const drag = useRef<{ y: number; moved: boolean } | null>(null);
+  if (!m) return <aside className="info glass hidden" aria-hidden ref={ref} />;
   const vars = caliberVars(caliber);
   return (
-    <aside className="info glass" aria-live="polite">
+    <aside className={`info glass ${open ? 'open' : ''}`} aria-live="polite" ref={ref}>
+      <button
+        type="button"
+        className="grab"
+        aria-expanded={open}
+        aria-label={t(open ? 'ui:sheet.collapse' : 'ui:sheet.expand')}
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          drag.current = { y: e.clientY, moved: false };
+        }}
+        onPointerUp={(e) => {
+          const dy = e.clientY - (drag.current?.y ?? e.clientY);
+          if (Math.abs(dy) < DRAG) return;
+          drag.current = { y: e.clientY, moved: true };
+          setOpen(dy < 0);
+        }}
+        onClick={() => {
+          if (!drag.current?.moved) setOpen((o) => !o);
+          drag.current = null;
+        }}
+      >
+        <i />
+      </button>
       {m.kickerKey && <div className="kicker">{t(m.kickerKey)}</div>}
       <h1>{t(m.titleKey)}</h1>
       {m.subtitleKey && lang === 'ja' && <div className="sub">{t(m.subtitleKey)}</div>}
