@@ -44,7 +44,7 @@ reference/<brand>/<model>/         参考写真（gitignore。リポジトリに
 - 守ること:
   - ケースの中心はムーブメントの中心に合わせる。文字盤は −Z 側。
   - リューズは巻き真の軸上に置く。リューズのローカル座標は +Y がケース側。
-  - **針はムーブメントの素材だけを使う**（`steel`、`lume`、`blued`、`ruby` など）。文字盤の夜光は別キー `dial-lume` にして、色はムーブメントの `lume` と同じにする。
+  - **針はムーブメントの素材だけを使う**（`steel`、`lume`、`blued`、`ruby` など）。文字盤の夜光は別キー `dial-lume` にして、`lumeMaterial()`（`src/scene/lume.ts`）で作る。針の `lume` と同じ素材になる。
   - 風防とガラスの裏蓋には `glass(thickness)`（`src/scene/exterior/kit/glass.ts`）を使う。transmission の素材は使わない。
   - 日付と曜日の円盤の色を時計ごとに変える場合は、自前の `date` と `day` の素材（MeshPhysicalMaterial）を用意する。
   - ケースのメッシュが閉じていることを、自分のテストで確かめる（`kit/meshCheck`）。
@@ -77,7 +77,7 @@ reference/<brand>/<model>/         参考写真（gitignore。リポジトリに
 6. **比較画面で合わせる**:
    ```
    npm run dev
-   # http://localhost:5173/dev/compare/<brand>/<model>?shot=front （mode=overlay|model|side|diff）
+   # http://localhost:5173/dev/compare/<brand>/<model>?shot=front （mode=overlay|model|side|diff、theme=dark|light）
    npm run compare -- <brand>/<model> [shot-id]
    # → test-results/compare/<slug>-shot-<id>-{model,overlay}.png
    ```
