@@ -1,4 +1,5 @@
 import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
+import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { hamiltonBezel } from './bezel';
 import { caseBack, hamiltonCase } from './case';
 import { hamiltonCaseback } from './caseback';
@@ -15,7 +16,7 @@ import { hamiltonStrap } from './strap';
 const khakiField: ExteriorBuilder = {
   geometry: ({ movement: m, quality }) => ({
     parts: {
-      case: hamiltonCase(m, quality === 'high' ? 0.2 : 0.3),
+      case: hamiltonCase(m, caseStep(quality)),
       bezel: hamiltonBezel(m),
       dial: hamiltonDial(m),
       crystal: hamiltonCrystal(m),

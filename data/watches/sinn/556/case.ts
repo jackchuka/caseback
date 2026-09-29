@@ -1,11 +1,9 @@
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { hollowCaseback } from '../../../../src/scene/exterior/kit/caseback';
 import { softFinish } from '../../../../src/scene/exterior/kit/polish';
-import { extrudeProfile, roundedConvex, smax, smin } from '../../../../src/scene/exterior/kit/sdf';
+import { caseColumn, clamp01, extrudeProfile, lugRun, roundedConvex, smax, smin } from '../../../../src/scene/exterior/kit/sdf';
 import { polishedMesh } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { S } from './params';
-
-const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 
 // Everything hangs off the bezel top, so the published 11 mm runs from it to the caseback.
 export const bezelTop = (m: MovementFrame) => m.frontZ - S.bezelTopOffset;
@@ -42,39 +40,32 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
     return d;
   };
   // 0 at the bezel's edge, 1 at the lug tip, measured along the lug; zero on the guards.
-  const run = (x: number, y: number) => {
-    const edge = Math.max(Math.sqrt(Math.max(R * R - x * x, 0)), 8);
-    return clamp01((Math.abs(y) - edge) / (tip - edge));
-  };
+  const run = lugRun(R, tip, 8);
   const front = (x: number, y: number) => F + S.lugDrop * run(x, y) ** S.lugCurve;
   const underside = (y: number) => back - S.lugHeel * clamp01((Math.abs(y) - tip + S.lugHeelRun) / S.lugHeelRun) ** 2;
   const holeY = tip - S.holeInset;
   const hole = { y: holeY, z: (front(lw + 1, holeY) + underside(holeY)) / 2 };
   const opts = { chamfer: S.bevel, backChamfer: S.backChamfer, edge: S.edge };
 
-  let cx = NaN, cy = NaN, cPlan = 0, cFront = 0, cBack = 0, cBore = 0;
-  const column = (x: number, y: number) => {
-    if (x === cx && y === cy) return;
-    cx = x; cy = y; cPlan = plan(x, y); cFront = front(x, y); cBack = underside(y); cBore = S.bore - Math.hypot(x, y);
-  };
+  const column = caseColumn(plan, front, (_x, y) => underside(y), S.bore);
   // Through the lug: the photos show the holes on the outer flanks.
   const drill = (y: number, z: number) => S.holeRadius - Math.hypot(Math.abs(y) - hole.y, z - hole.z);
   const sdf = (x: number, y: number, z: number) => {
-    column(x, y);
+    const c = column(x, y);
     // Columns well outside the outline or inside the bore need no detail; most of the grid is one of these.
-    if (cPlan > 1) return cPlan;
-    if (cBore > 1) return cBore;
-    if (cFront - z > 1) return cFront - z;
-    if (z - cBack > 1) return z - cBack;
+    if (c.plan > 1) return c.plan;
+    if (c.bore > 1) return c.bore;
+    if (c.front - z > 1) return c.front - z;
+    if (z - c.back > 1) return z - c.back;
     if (counter) counter.full++;
-    const solid = smax(extrudeProfile(cPlan, cFront - z, z - cBack, opts), cBore, S.edge);
+    const solid = smax(extrudeProfile(c.plan, c.front - z, z - c.back, opts), c.bore, S.edge);
     return Math.abs(Math.abs(y) - hole.y) > S.holeRadius + 1 ? solid : Math.max(solid, drill(y, z));
   };
   // 0 satin … 1 polished: only the top bevel catches the light as a bright line.
   const polish = (x: number, y: number, z: number) => {
-    column(x, y);
-    const vf = cFront - z, vb = z - cBack;
-    return softFinish([[0, vf], [0, cBore], [0, cPlan], [0, vb], [1, (cPlan + vf + S.bevel) / Math.SQRT2], [0, (cPlan + vb + S.backChamfer) / Math.SQRT2], [0, drill(y, z)]]);
+    const c = column(x, y);
+    const vf = c.front - z, vb = z - c.back;
+    return softFinish([[0, vf], [0, c.bore], [0, c.plan], [0, vb], [1, (c.plan + vf + S.bevel) / Math.SQRT2], [0, (c.plan + vb + S.backChamfer) / Math.SQRT2], [0, drill(y, z)]]);
   };
   return { sdf, polish, front, back, hole, bounds: { x: G.outer + 0.5, y: tip + 0.5, z: [F - 0.5, back + 0.5] as [number, number] } };
 }

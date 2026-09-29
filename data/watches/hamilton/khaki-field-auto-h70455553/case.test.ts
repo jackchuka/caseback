@@ -1,12 +1,11 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../calibers';
-import { buildShape } from '../../../../src/geometry/parts';
 import type { ExteriorLayer } from '../../../../src/scene/exterior/contract';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { closedAndOutward } from '../../../../src/scene/exterior/kit/meshCheck';
 import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
-import { openingDuration, openingPose } from '../../../../src/scene/opening';
+import { expectRotorClears, rotorOf, zRange } from '../../../../src/test/geometry';
 import { caseBack, caseFront, caseShape, hamiltonCase } from './case';
 import { hamiltonCaseback } from './caseback';
 import { hamiltonCrystal } from './crystal';
@@ -15,11 +14,6 @@ import { H } from './params';
 
 const caliber = calibers['eta-2824-2']!;
 const m = movementFrame(caliber);
-const zRange = (ls: { geometry: THREE.BufferGeometry }[], dz = 0) => {
-  const b = new THREE.Box3();
-  for (const l of ls) { l.geometry.computeBoundingBox(); b.union(l.geometry.boundingBox!); }
-  return [b.min.z + dz, b.max.z + dz] as const;
-};
 
 describe('Khaki Field case', () => {
   const s = caseShape(m);
@@ -137,10 +131,7 @@ describe('Khaki Field case build cost', () => {
 
 describe('Khaki Field thickness and caseback', () => {
   const back = hamiltonCaseback(m);
-  const rotor = caliber.parts.find((p) => p.id === 'rotor')!;
-  const [rotorFront, rotorBack] = zRange(buildShape(rotor.shape, rotor.material as never), rotor.pos.z);
-  const rotorRadius = rotor.shape.kind === 'rotor' ? rotor.shape.radius : NaN;
-  const margin = 0.05;
+  const rotor = rotorOf(caliber);
 
   it('is 11 mm from the crystal apex to the caseback', () => {
     const front = zRange(hamiltonCrystal(m))[0];
@@ -151,16 +142,7 @@ describe('Khaki Field thickness and caseback', () => {
     expect(zRange(back)[0]).toBeCloseTo(caseBack(m), 5);
   });
   it('keeps the rotor clear of the window and the ring, closed or lifting off', () => {
-    const [inner, outer] = zRange(back);
     const glass = back.find((l) => l.name === 'caseback-glass')!;
-    const floor = zRange([glass])[0];
-    expect(floor - rotorBack).toBeGreaterThanOrEqual(margin);
-    expect(H.casebackWindow - rotorRadius).toBeGreaterThanOrEqual(margin);
-    for (let t = 0; t <= openingDuration(); t += 0.01) {
-      const p = openingPose(t);
-      if (rotorBack + p.rotorLift <= inner + p.casebackLift || rotorFront + p.rotorLift >= outer + p.casebackLift) continue;
-      expect(floor + p.casebackLift - (rotorBack + p.rotorLift)).toBeGreaterThanOrEqual(margin);
-      expect(H.casebackWindow - (p.rotorSlide + rotorRadius)).toBeGreaterThanOrEqual(margin);
-    }
+    expectRotorClears(rotor, { floor: zRange([glass])[0], pocket: H.casebackWindow, span: zRange(back) });
   });
 });

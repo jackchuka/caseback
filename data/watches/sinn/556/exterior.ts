@@ -1,4 +1,5 @@
 import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
+import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { sinnBezel, sinnCrystal } from './bezel';
 import { sinnBracelet } from './bracelet';
 import { caseBack, sinnCase, sinnCaseback } from './case';
@@ -12,7 +13,7 @@ import { S } from './params';
 const sinn556: ExteriorBuilder = {
   geometry: ({ movement: m, quality }) => ({
     parts: {
-      case: sinnCase(m, quality === 'high' ? 0.2 : 0.3),
+      case: sinnCase(m, caseStep(quality)),
       bezel: sinnBezel(m),
       dial: sinnDial(m),
       crystal: sinnCrystal(m),

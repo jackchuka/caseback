@@ -5,6 +5,7 @@ const int = z.number().int().positive();
 const Point = z.object({ x: z.number(), y: z.number() });
 
 export const Vec3Schema = z.object({ x: z.number(), y: z.number(), z: z.number() });
+export const PusherActionSchema = z.enum(['start-stop', 'reset']);
 export const MaterialKeySchema = z.enum(['gilt', 'steel', 'rhodium', 'plate', 'balance', 'ruby', 'blued']);
 
 export const ShapeSchema = z.discriminatedUnion('kind', [
@@ -74,7 +75,7 @@ export const CouplingSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('mesh'), a: z.string(), b: z.string() }),
   z.object({ type: z.literal('escapement'), balance: z.string(), fork: z.string(), escapeWheel: z.string() }),
   z.object({ type: z.literal('slip'), a: z.string(), b: z.string() }),
-  z.object({ type: z.literal('keyless'), stem: z.string(), slidingPinion: z.string(), windingPinion: z.string(), settingWheel: z.string(), pull: pos }),
+  z.object({ type: z.literal('keyless'), stem: z.string(), slidingPinion: z.string(), windingPinion: z.string(), settingWheel: z.string(), pull: pos, slidingThrow: pos }),
   z.object({ type: z.literal('one-way'), input: z.string(), output: z.string() }),
   // A finger on `driver` steps `driven` one tooth per turn: the date (from the day of the month) or the day of the week.
   z.object({ type: z.literal('intermittent'), driver: z.string(), driven: z.string(), calendar: z.enum(['date', 'day']).optional() }),
@@ -141,7 +142,7 @@ export const CaliberSchema = z.object({
     dateWindow: z.object({ width: pos, height: pos }).optional(),
     dayWindow: z.object({ width: pos, height: pos }).optional(),
     // Chronograph pushers: the clock hour each sits at on the case flank and the height of its axis.
-    pushers: z.array(z.object({ action: z.enum(['start-stop', 'reset']), hour: z.number(), z: z.number() })).optional(),
+    pushers: z.array(z.object({ action: PusherActionSchema, hour: z.number(), z: z.number() })).optional(),
   }),
   parts: z.array(PartSchema).min(1),
   couplings: z.array(CouplingSchema),
@@ -152,6 +153,7 @@ export const CaliberSchema = z.object({
 
 export type Vec3 = z.infer<typeof Vec3Schema>;
 export type MaterialKey = z.infer<typeof MaterialKeySchema>;
+export type PusherAction = z.infer<typeof PusherActionSchema>;
 export type Shape = z.infer<typeof ShapeSchema>;
 export type Part = z.infer<typeof PartSchema>;
 export type Coupling = z.infer<typeof CouplingSchema>;

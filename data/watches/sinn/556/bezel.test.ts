@@ -1,23 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
+import { layersBox } from '../../../../src/test/geometry';
 import { crystalFront, sinnBezel, sinnCrystal } from './bezel';
 import { bezelTop, caseFront } from './case';
 import { S } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
-const box = (ls: { geometry: THREE.BufferGeometry }[]) => {
-  const b = new THREE.Box3();
-  for (const l of ls) { l.geometry.computeBoundingBox(); b.union(l.geometry.boundingBox!); }
-  return b;
-};
 
 describe('Sinn 556 bezel and crystal', () => {
   const layers = sinnBezel(m);
   const body = layers.find((l) => l.material === 'bezel')!;
   it('is as wide as the drum and sits on the case front', () => {
-    const b = box([body]);
+    const b = layersBox([body]);
     expect(b.max.x).toBeCloseTo(S.caseRadius, 2);
     expect(b.max.z).toBeLessThanOrEqual(caseFront(m) + 0.01);
     expect(b.min.z).toBeCloseTo(bezelTop(m), 5);
@@ -30,7 +25,7 @@ describe('Sinn 556 bezel and crystal', () => {
     }
   });
   it('sets the flat crystal down the chamfer, in front of the dial', () => {
-    const c = box(sinnCrystal(m));
+    const c = layersBox(sinnCrystal(m));
     expect(c.min.z).toBeCloseTo(crystalFront(m), 5);
     expect(c.min.z - bezelTop(m)).toBeCloseTo(S.crystalDrop, 5);
     expect(c.max.x).toBeLessThanOrEqual(S.crystalRadius);
@@ -38,7 +33,7 @@ describe('Sinn 556 bezel and crystal', () => {
   });
   it('closes the gap between the dial edge and the case front with a flange facing the centre', () => {
     const g = layers.find((l) => l.name === 'flange')!.geometry;
-    const b = box([{ geometry: g }]);
+    const b = layersBox([{ geometry: g }]);
     expect(b.max.z).toBeCloseTo(m.dialZ, 1);
     expect(b.min.z).toBeCloseTo(caseFront(m), 1);
     g.computeVertexNormals();

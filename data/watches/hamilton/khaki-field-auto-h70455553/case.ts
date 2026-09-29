@@ -1,10 +1,8 @@
-import * as THREE from 'three';
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
-import { extrudeProfile, polygonSdf, smax, smin, type P2 } from '../../../../src/scene/exterior/kit/sdf';
-import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
+import { softFinish } from '../../../../src/scene/exterior/kit/polish';
+import { caseColumn, clamp01, extrudeProfile, lugRun, polygonSdf, smax, smin, type P2 } from '../../../../src/scene/exterior/kit/sdf';
+import { polishedMesh } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { H } from './params';
-
-const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 
 // The case middle's front face (the bezel seat); bezel, crystal, flange and caseback all hang off this plane.
 export const caseFront = (m: MovementFrame) => m.frontZ - H.caseFrontOffset;
@@ -58,48 +56,32 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
     const l = lug(ax, ay);
     return ax < lw + 2 * H.lugFillet ? smin(disc, l, H.lugFillet) : Math.min(disc, l);
   };
-  // 0 at the drum's edge, 1 at the lug tip, measured along the lug.
-  const run = (x: number, y: number) => {
-    const edge = Math.sqrt(Math.max(R * R - x * x, 0));
-    return clamp01((Math.abs(y) - edge) / (tip - edge));
-  };
+  const run = lugRun(R, tip);
   const front = (x: number, y: number) => F + H.lugDrop * run(x, y) ** H.lugCurve;
   const underside = (y: number) => back - H.lugHeel * clamp01((Math.abs(y) - tip + H.lugHeelRun) / H.lugHeelRun) ** 2;
   const hole = { y: tip - H.holeInset, z: (front(lw + 1, tip - H.holeInset) + underside(tip - H.holeInset)) / 2 };
   const opts = { chamfer: H.bevel, backChamfer: H.backChamfer, edge: H.edge };
 
-  let cx = NaN, cy = NaN, cPlan = 0, cFront = 0, cBack = 0, cBore = 0;
-  const column = (x: number, y: number) => {
-    if (x === cx && y === cy) return;
-    cx = x; cy = y; cPlan = plan(x, y); cFront = front(x, y); cBack = underside(y); cBore = H.bore - Math.hypot(x, y);
-  };
+  const column = caseColumn(plan, front, (_x, y) => underside(y), H.bore);
   const drill = (x: number, y: number, z: number) =>
     Math.min(H.holeRadius - Math.hypot(Math.abs(y) - hole.y, z - hole.z), lw + H.holeDepth - Math.abs(x));
   const sdf = (x: number, y: number, z: number) => {
-    column(x, y);
-    if (cPlan > 1) return cPlan;
-    if (cBore > 1) return cBore;
-    if (cFront - z > 1) return cFront - z;
-    if (z - cBack > 1) return z - cBack;
+    const c = column(x, y);
+    if (c.plan > 1) return c.plan;
+    if (c.bore > 1) return c.bore;
+    if (c.front - z > 1) return c.front - z;
+    if (z - c.back > 1) return z - c.back;
     if (counter) counter.full++;
-    const solid = smax(extrudeProfile(cPlan, cFront - z, z - cBack, opts), cBore, H.edge);
+    const solid = smax(extrudeProfile(c.plan, c.front - z, z - c.back, opts), c.bore, H.edge);
     return Math.abs(Math.abs(y) - hole.y) > H.holeRadius + 1 ? solid : Math.max(solid, drill(x, y, z));
   };
   // 0 brushed … 1 polished: only the front bevel is polished; top, flank, back and bore are brushed.
   const polish = (x: number, y: number, z: number) => {
-    column(x, y);
-    const vf = cFront - z, vb = z - cBack;
-    const k: Array<[number, number]> = [
-      [0, vf], [0, cBore], [0, cPlan], [0, vb], [1, (cPlan + vf + H.bevel) / Math.SQRT2], [0, (cPlan + vb + H.backChamfer) / Math.SQRT2], [0, drill(x, y, z)],
-    ];
-    const top = Math.max(...k.map(([, t]) => t));
-    let sum = 0, weight = 0;
-    for (const [f, t] of k) {
-      const w = Math.exp((t - top) / 0.04);
-      sum += f * w;
-      weight += w;
-    }
-    return sum / weight;
+    const c = column(x, y);
+    const vf = c.front - z, vb = z - c.back;
+    return softFinish([
+      [0, vf], [0, c.bore], [0, c.plan], [0, vb], [1, (c.plan + vf + H.bevel) / Math.SQRT2], [0, (c.plan + vb + H.backChamfer) / Math.SQRT2], [0, drill(x, y, z)],
+    ]);
   };
   return { sdf, plan, polish, front, back, hole, bounds: { x: R + 0.5, y: tip + 0.5, z: [F - 0.5, back + 0.5] as [number, number] } };
 }
@@ -107,10 +89,5 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
 export function hamiltonCase(m: MovementFrame, step: number): ExteriorLayer[] {
   const s = caseShape(m);
   const b = s.bounds;
-  const g = surfaceNets(s.sdf, [-b.x, -b.y, b.z[0]], [b.x, b.y, b.z[1]], step);
-  const pos = g.getAttribute('position');
-  const polish = new Float32Array(pos.count);
-  for (let i = 0; i < pos.count; i++) polish[i] = s.polish(pos.getX(i), pos.getY(i), pos.getZ(i));
-  g.setAttribute('polish', new THREE.BufferAttribute(polish, 1));
-  return [{ geometry: g, material: 'case' }];
+  return [{ geometry: polishedMesh(s.sdf, s.polish, [-b.x, -b.y, b.z[0]], [b.x, b.y, b.z[1]], step), material: 'case' }];
 }

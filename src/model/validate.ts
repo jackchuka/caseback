@@ -1,3 +1,4 @@
+import { pitchRadius } from '../kinematics/gearMath';
 import type { Caliber, Part, Shape } from './schema';
 
 export function arborKey(part: Part): string {
@@ -84,7 +85,7 @@ export function validateCaliber(c: Caliber): string[] {
         if (Math.hypot(l.pos.x - pin.x, l.pos.y - pin.y) > off) errors.push(`pawl: ${cp.lever} does not sit on ${cp.eccentric}'s pin at rest`);
         const tip = { x: l.pos.x + l.shape.length * Math.cos(l.rest ?? 0), y: l.pos.y + l.shape.length * Math.sin(l.rest ?? 0) };
         if (Math.hypot(tip.x - w.pos.x, tip.y - w.pos.y) > off) errors.push(`pawl: ${cp.lever} does not reach ${cp.wheel}'s centre`);
-        if (Math.abs(l.shape.reach - (w.shape.teeth * w.shape.module) / 2) > off) errors.push(`pawl: ${cp.lever}'s claws are not on ${cp.wheel}'s pitch circle`);
+        if (Math.abs(l.shape.reach - pitchRadius(w.shape.teeth, w.shape.module)) > off) errors.push(`pawl: ${cp.lever}'s claws are not on ${cp.wheel}'s pitch circle`);
       }
     } else if (cp.type === 'click') {
       ref('click', cp.input);

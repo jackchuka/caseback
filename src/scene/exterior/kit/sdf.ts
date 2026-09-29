@@ -1,5 +1,7 @@
 export type P2 = [number, number];
 
+export const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+
 export const smin = (a: number, b: number, k: number) => {
   const h = Math.max(k - Math.abs(a - b), 0) / k;
   return Math.min(a, b) - (h * h * k) / 4;
@@ -64,6 +66,26 @@ export function extrudeProfile(p: number, vf: number, vb: number, o: ExtrudeOpti
   return smax(smax(smax(smax(p, vf, e), vb, e), (p + vf + o.chamfer) / Math.SQRT2, e), (p + vb + o.backChamfer) / Math.SQRT2, e);
 }
 
-export function extrudePlan(plan: (x: number, y: number) => number, o: ExtrudeOptions & { front: number; back: number }) {
-  return (x: number, y: number, z: number) => extrudeProfile(plan(x, y), o.front - z, z - o.back, o);
+// How far along a lug a point is: 0 at the drum's edge (a circle of radius r, or `from` if that is further out), 1 at
+// the lug tip.
+export function lugRun(r: number, tip: number, from = 0) {
+  return (x: number, y: number) => {
+    const edge = Math.max(Math.sqrt(Math.max(r * r - x * x, 0)), from);
+    return clamp01((Math.abs(y) - edge) / (tip - edge));
+  };
+}
+
+export type CaseColumn = { plan: number; front: number; back: number; bore: number };
+
+// A case's per-(x, y) values, recomputed only when the column changes: surface nets samples z fastest, so each
+// column's plan distance, face heights and bore distance (positive inside the bore) serve a whole run of samples.
+export function caseColumn(plan: (x: number, y: number) => number, front: (x: number, y: number) => number, back: (x: number, y: number) => number, bore: number) {
+  let cx = NaN, cy = NaN;
+  const c: CaseColumn = { plan: 0, front: 0, back: 0, bore: 0 };
+  return (x: number, y: number) => {
+    if (x !== cx || y !== cy) {
+      cx = x; cy = y; c.plan = plan(x, y); c.front = front(x, y); c.back = back(x, y); c.bore = bore - Math.hypot(x, y);
+    }
+    return c;
+  };
 }

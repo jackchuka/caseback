@@ -1,4 +1,5 @@
 import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
+import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { caseBack, venturaCase } from './case';
 import { venturaCaseback } from './caseback';
 import { crownX, venturaCrown } from './crown';
@@ -14,7 +15,7 @@ import { venturaStrap } from './strap';
 const ventura: ExteriorBuilder = {
   geometry: ({ movement: m, quality }) => ({
     parts: {
-      case: venturaCase(m, quality === 'high' ? 0.2 : 0.3),
+      case: venturaCase(m, caseStep(quality)),
       bezel: [],
       dial: venturaDial(m),
       crystal: venturaCrystal(),

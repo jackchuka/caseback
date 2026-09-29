@@ -1,10 +1,8 @@
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { hollowCaseback } from '../../../../src/scene/exterior/kit/caseback';
-import { extrudeProfile, roundedConvex, smax, smin, type P2 } from '../../../../src/scene/exterior/kit/sdf';
+import { caseColumn, extrudeProfile, lugRun, roundedConvex, smax, smin, type P2 } from '../../../../src/scene/exterior/kit/sdf';
 import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { P } from './params';
-
-const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 
 // Every height hangs off the stem axis the crown sits on, as measured on the side photo.
 export const crystalTop = (m: MovementFrame) => m.stemZ - P.crystalTopToStem;
@@ -40,10 +38,7 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
     return d;
   };
   // 0 at the drum's edge, 1 at the lug tip, measured along the lug; zero on the guards.
-  const run = (x: number, y: number) => {
-    const edge = Math.sqrt(Math.max(R * R - x * x, 0));
-    return clamp01((Math.abs(y) - edge) / (tip - edge));
-  };
+  const run = lugRun(R, tip);
   const lugTopAtRoot = m.stemZ - P.lugTopAtRoot;
   const lugDrop = m.stemZ + P.lugTopAtTip - lugTopAtRoot;
   // The lug tops start a little behind the case front and fall in a straight line to the tip face.
@@ -56,20 +51,16 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
   const hole = { y: holeY, z: (front(lw + 1.5, holeY) + underside(lw + 1.5, holeY)) / 2 };
   const opts = { chamfer: P.lugBevel, backChamfer: P.backChamfer, edge: P.edge };
 
-  let cx = NaN, cy = NaN, cPlan = 0, cFront = 0, cBack = 0, cBore = 0;
-  const column = (x: number, y: number) => {
-    if (x === cx && y === cy) return;
-    cx = x; cy = y; cPlan = plan(x, y); cFront = front(x, y); cBack = underside(x, y); cBore = P.bore - Math.hypot(x, y);
-  };
+  const column = caseColumn(plan, front, underside, P.bore);
   const sdf = (x: number, y: number, z: number) => {
-    column(x, y);
-    if (cPlan > 1) return cPlan;
-    if (cBore > 1) return cBore;
+    const c = column(x, y);
+    if (c.plan > 1) return c.plan;
+    if (c.bore > 1) return c.bore;
     // The lug tops are steep, so the vertical distances overstate the true one: keep a wider band.
-    if (cFront - z > 2) return (cFront - z) / 2;
-    if (z - cBack > 2) return (z - cBack) / 2;
+    if (c.front - z > 2) return (c.front - z) / 2;
+    if (z - c.back > 2) return (z - c.back) / 2;
     if (counter) counter.full++;
-    return smax(extrudeProfile(cPlan, cFront - z, z - cBack, opts), cBore, P.edge);
+    return smax(extrudeProfile(c.plan, c.front - z, z - c.back, opts), c.bore, P.edge);
   };
   return { sdf, plan, front, underside, back, hole, bounds: { x: G.outer + 0.5, y: tip + 0.5, z: [F - 0.5, m.stemZ + P.lugUnder + 0.5] as [number, number] } };
 }

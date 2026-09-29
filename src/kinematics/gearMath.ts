@@ -9,6 +9,10 @@ export const place = (from: P2, distance: number, deg: number): P2 => ({
   y: from.y + distance * Math.sin((deg * Math.PI) / 180),
 });
 
+export const offset = (p: P2, dx: number, dy: number): P2 => ({ x: p.x + dx, y: p.y + dy });
+
+export const at = (p: P2, z: number) => ({ x: p.x, y: p.y, z });
+
 export const smoothstep = (x: number) => {
   const c = Math.min(1, Math.max(0, x));
   return c * c * (3 - 2 * c);

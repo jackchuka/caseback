@@ -1,14 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { calibers, DEFAULT_CALIBER, getCaliber } from '../index';
-import { buildSolver } from '../../../src/kinematics/solver';
+import { calibers, DEFAULT_CALIBER } from '../index';
+import { caliberKit, TAU } from '../testkit';
 import { centerDistance } from '../../../src/kinematics/gearMath';
 import { toothCount } from '../../../src/model/validate';
 
-const TAU = Math.PI * 2;
-const c = getCaliber('eta-2824-2')!;
-const solve = buildSolver(c);
-const turns = (id: string, seconds: number) =>
-  Math.abs(solve({ t: seconds, explode: 0 }).get(id)!.angle - solve({ t: 0, explode: 0 }).get(id)!.angle) / TAU;
+const { c, solve, part, turns } = caliberKit('eta-2824-2');
 
 describe('registry', () => {
   it('loads and validates the default caliber', () => {
@@ -144,7 +140,6 @@ describe('ETA 2824-2 automatic', () => {
 });
 
 describe('ETA 2824-2 depth', () => {
-  const part = (id: string) => c.parts.find((p) => p.id === id)!;
   const thick = (id: string) => {
     const s = part(id).shape as { thickness?: number; length?: number };
     return s.thickness ?? s.length ?? 0;

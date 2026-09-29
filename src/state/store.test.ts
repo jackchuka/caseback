@@ -21,9 +21,9 @@ describe('app store', () => {
     store.getState().prev();
     expect(store.getState().stepIndex).toBe(0);
   });
-  it('finishOpening enters the tour and keeps a deep-linked step', () => {
+  it('entering the tour after opening keeps a deep-linked step', () => {
     const store = createAppStore(miniCaliber(), { mode: 'opening', stepIndex: 2 });
-    store.getState().finishOpening();
+    store.getState().setMode('tour');
     expect(store.getState().mode).toBe('tour');
     expect(store.getState().stepIndex).toBe(2);
   });
@@ -119,13 +119,13 @@ describe('app store', () => {
     const s = () => store.getState();
     expect(s().chrono).toBe('reset');
     s().pressChrono('reset');
-    expect(s()).toMatchObject({ chrono: 'reset', chronoPresses: 0, pushes: { 'start-stop': 0, reset: 1 } });
+    expect(s()).toMatchObject({ chrono: 'reset', pushes: { 'start-stop': 0, reset: 1 } });
     s().pressChrono('start-stop');
-    expect(s()).toMatchObject({ chrono: 'running', chronoPresses: 1 });
+    expect(s()).toMatchObject({ chrono: 'running', pushes: { 'start-stop': 1, reset: 1 } });
     s().pressChrono('reset');
     expect(s().chrono).toBe('running');
     s().pressChrono('start-stop');
     s().pressChrono('reset');
-    expect(s()).toMatchObject({ chrono: 'reset', chronoPresses: 2, pushes: { 'start-stop': 2, reset: 3 } });
+    expect(s()).toMatchObject({ chrono: 'reset', pushes: { 'start-stop': 2, reset: 3 } });
   });
 });

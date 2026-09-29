@@ -6,20 +6,18 @@ import { CHRONO_REST, trackChrono } from '../kinematics/chronograph';
 import { buildSolver, settleQuick } from '../kinematics/solver';
 import type { Caliber } from '../model/schema';
 import { arborKey, focusKey } from '../model/validate';
-import { CROWN_WIND_RATIO, stepReserve, throttle, wristSwing } from '../kinematics/winding';
+import { CROWN_WIND_RATIO, hoursPerBarrelTurn, initialReserveH, stepReserve, throttle, wristSwing } from '../kinematics/winding';
 import { crownState } from './crown';
 import { appStore, useApp } from '../state/app';
 import { effectiveSpeed } from '../tour/engine';
-import { MOVEMENT_ROTATION_VALUE } from './focus';
+import { MOVEMENT_ROTATION } from './focus';
 import { PartMesh } from './PartMesh';
 import { registry, type RegistryEntry } from './registry';
-import { advance, dayOfMonthIndex, dayOfWeekIndex, localSeconds } from './simClock';
+import { advance, dayOfMonthIndex, dayOfWeekIndex, localSeconds, MAX_FRAME } from './simClock';
 
-export const MOVEMENT_ROTATION = MOVEMENT_ROTATION_VALUE;
 const XRAY_OPACITY = 0.12;
 const ignoreRaycast = () => {};
 const ROTOR_XRAY_OPACITY = 0.08;
-const INITIAL_RESERVE = 0.45;
 
 // Fades a part's own materials and stops it catching clicks once it is mostly see-through.
 function fadeTo(entry: RegistryEntry, target: number) {
@@ -50,7 +48,8 @@ export function Movement({ caliber, handLayers, discMaterials, timeOverride, chi
   const wound = useRef(0);
   const prevInput = useRef(0);
   const swingT = useRef(0);
-  const reserve = useRef(INITIAL_RESERVE * caliber.specs.powerReserveH);
+  const reserve = useRef(initialReserveH(caliber));
+  const hoursPerTurn = useMemo(() => hoursPerBarrelTurn(caliber), [caliber]);
   const prevRatchetTurns = useRef(0);
   const publish = useMemo(() => throttle(250), []);
   const winderInput = useMemo(() => {
@@ -69,16 +68,16 @@ export function Movement({ caliber, handLayers, discMaterials, timeOverride, chi
     const step = caliber.tour[s.stepIndex]!;
     const speed = effectiveSpeed(s.mode, step, s.freeSpeedExp, s.paused, s.crownPos);
     if (s.turning) {
-      const d = Math.min(dt, 0.05) * 7;
+      const d = Math.min(dt, MAX_FRAME) * 7;
       crownState.rot += d;
       if (s.crownPos === 0) {
         crownState.wind += d;
         crownState.woundTurns += (d / (Math.PI * 2)) * CROWN_WIND_RATIO;
       } else if (s.crownPos === 1) crownState.quick += d;
       else crownState.set += d;
-    } else crownState.quick = settleQuick(crownState.quick, Math.min(dt, 0.05));
+    } else crownState.quick = settleQuick(crownState.quick, Math.min(dt, MAX_FRAME));
     t.current = timeOverride ?? advance(t.current, dt, speed);
-    if (!s.paused) swingT.current += Math.min(dt, 0.05);
+    if (!s.paused) swingT.current += Math.min(dt, MAX_FRAME);
     explode.current += ((s.mode === 'free' ? s.explode : 0) - explode.current) * 0.08;
     const rotorState = s.mode === 'tour' ? step.rotor : 'hide';
     const rotor = rotorState === 'hide' ? 0 : wristSwing(swingT.current);
@@ -100,10 +99,10 @@ export function Movement({ caliber, handLayers, discMaterials, timeOverride, chi
       const angleOf = (id: string | null) => (id ? transforms.get(id)!.angle : 0);
       chrono.current = trackChrono(
         chrono.current,
-        { mode: s.chrono, presses: s.chronoPresses },
+        { mode: s.chrono, presses: s.pushes['start-stop'] },
         solve.info.chrono.ratios,
         { pinion: angleOf(chronoInputs.pinion), driver: angleOf(chronoInputs.driver) },
-        Math.min(dt, 0.05),
+        Math.min(dt, MAX_FRAME),
       );
     }
     if (winderInput && solve.info.winder) {
@@ -113,7 +112,7 @@ export function Movement({ caliber, handLayers, discMaterials, timeOverride, chi
     }
     // Fast-forward demos drain at no more than real time so the reserve stays readable across chapters.
     const ratchetTurns = Math.abs(wound.current * solve.info.ratchetFactor) / (Math.PI * 2) + crownState.woundTurns;
-    reserve.current = stepReserve(caliber, reserve.current, ratchetTurns - prevRatchetTurns.current, Math.min(dt, 0.05) * Math.min(speed, 1));
+    reserve.current = stepReserve(caliber, hoursPerTurn, reserve.current, ratchetTurns - prevRatchetTurns.current, Math.min(dt, MAX_FRAME) * Math.min(speed, 1));
     prevRatchetTurns.current = ratchetTurns;
     if (publish(performance.now())) s.setReserve(reserve.current);
     const highlight = s.mode === 'tour' ? step.focus : s.mode === 'free' ? s.selected : null;

@@ -8,7 +8,11 @@ export function TourBar({ caliber }: { caliber: Caliber }) {
   const mode = useApp((s) => s.mode);
   const stepIndex = useApp((s) => s.stepIndex);
   const paused = useApp((s) => s.paused);
-  const { goStep, next, prev, setMode, togglePaused } = useApp((s) => s);
+  const goStep = useApp((s) => s.goStep);
+  const next = useApp((s) => s.next);
+  const prev = useApp((s) => s.prev);
+  const setMode = useApp((s) => s.setMode);
+  const togglePaused = useApp((s) => s.togglePaused);
   const current = caliber.tour[stepIndex]!;
   const ns = caliber.id;
   return (

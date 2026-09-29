@@ -1,24 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { calibers, getCaliber } from '../index';
-import { buildSolver } from '../../../src/kinematics/solver';
+import { calibers } from '../index';
+import { caliberKit, TAU } from '../testkit';
 import { CHRONO_REST, trackChrono, type ChronoMode, type ChronoTrack } from '../../../src/kinematics/chronograph';
-import { centerDistance } from '../../../src/kinematics/gearMath';
+import { centerDistance, pitchRadius } from '../../../src/kinematics/gearMath';
 import { hoursPerBarrelTurn, reserveHours } from '../../../src/kinematics/winding';
 import { arborKey, toothCount } from '../../../src/model/validate';
 import { buildShape, heartPoints } from '../../../src/geometry/parts';
 import { polygonSdf } from '../../../src/scene/exterior/kit/sdf';
 import { movementFrame } from '../../../src/scene/exterior/frame';
 
-const TAU = Math.PI * 2;
-const c = getCaliber('valjoux-7750')!;
-const solve = buildSolver(c);
-const part = (id: string) => c.parts.find((p) => p.id === id)!;
-const angle = (id: string, t: number, extra = {}) => solve({ t, explode: 0, ...extra }).get(id)!.angle;
-const turns = (id: string, seconds: number) => Math.abs(angle(id, seconds) - angle(id, 0)) / TAU;
-const pitchR = (id: string) => {
-  const s = part(id).shape as { module: number };
-  return (toothCount(part(id).shape)! * s.module) / 2;
-};
+const { c, solve, part, angle, turns } = caliberKit('valjoux-7750');
+const pitchR = (id: string) => pitchRadius(toothCount(part(id).shape)!, (part(id).shape as { module: number }).module);
 const dist = (a: string, b: string) => Math.hypot(part(a).pos.x - part(b).pos.x, part(a).pos.y - part(b).pos.y);
 
 // Runs the chronograph the way Movement does, frame by frame, from movement time `from` for `seconds`.

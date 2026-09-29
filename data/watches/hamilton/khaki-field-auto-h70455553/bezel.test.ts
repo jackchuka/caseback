@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
+import { bbox } from '../../../../src/test/geometry';
 import { bezelProfile, bezelTop, hamiltonBezel } from './bezel';
 import { caseFront } from './case';
 import { H } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
-const bbox = (g: THREE.BufferGeometry) => { g.computeBoundingBox(); return g.boundingBox!; };
 
 describe('Khaki Field bezel', () => {
   const layers = hamiltonBezel(m);

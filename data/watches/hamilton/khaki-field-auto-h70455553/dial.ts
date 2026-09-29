@@ -1,14 +1,8 @@
 import * as THREE from 'three';
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { canvasTexture } from '../../../../src/scene/exterior/kit/canvas';
+import { dateWindowOf } from '../../../../src/scene/exterior/kit/dial';
 import { H } from './params';
-
-// The date window as cut in the dial: centred on the movement's date ring band at 3 o'clock.
-export function dateWindow(m: MovementFrame) {
-  if (!m.dateWindow) throw new Error('the Khaki Field Auto needs a movement with a date ring');
-  const { x, width, height } = m.dateWindow;
-  return { x, w: width, h: height };
-}
 
 const rect = (p: THREE.Path, cx: number, w: number, h: number, ccw: boolean) => {
   const pts: Array<[number, number]> = [[cx - w / 2, -h / 2], [cx + w / 2, -h / 2], [cx + w / 2, h / 2], [cx - w / 2, h / 2]];
@@ -23,10 +17,10 @@ const rect = (p: THREE.Path, cx: number, w: number, h: number, ccw: boolean) => 
 // window at 3 o'clock and twelve lume dots on the minute track.
 export function hamiltonDial(m: MovementFrame): ExteriorLayer[] {
   const rad = H.dialRadius;
-  const win = dateWindow(m);
+  const win = dateWindowOf(m);
   const s = new THREE.Shape();
   s.absarc(0, 0, rad, 0, Math.PI * 2, false);
-  s.holes.push(rect(new THREE.Path(), win.x, win.w, win.h, false));
+  s.holes.push(rect(new THREE.Path(), win.x, win.width, win.height, false));
   const disc = new THREE.ShapeGeometry(s, 96);
   const pos = disc.getAttribute('position');
   const uv = disc.getAttribute('uv');
@@ -35,8 +29,8 @@ export function hamiltonDial(m: MovementFrame): ExteriorLayer[] {
   const layers: ExteriorLayer[] = [{ geometry: disc, material: 'dial', name: 'dial' }];
 
   const b = H.dateFrame;
-  const frame = rect(new THREE.Shape(), win.x, win.w + 2 * b, win.h + 2 * b, true) as THREE.Shape;
-  frame.holes.push(rect(new THREE.Path(), win.x, win.w, win.h, false));
+  const frame = rect(new THREE.Shape(), win.x, win.width + 2 * b, win.height + 2 * b, true) as THREE.Shape;
+  frame.holes.push(rect(new THREE.Path(), win.x, win.width, win.height, false));
   const bt = H.dateFrameHeight / 3;
   // Built with its top toward +Z, so after the turn to face the front its bevelled face stands off the dial.
   const frameGeo = new THREE.ExtrudeGeometry(frame, { depth: bt, bevelEnabled: true, bevelThickness: bt, bevelSize: bt, bevelOffset: -bt, bevelSegments: 2 })

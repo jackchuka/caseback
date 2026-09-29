@@ -7,8 +7,8 @@ import { createI18n } from '../i18n';
 import { initAppStore } from '../state/app';
 import '../ui/styles.css';
 import './compare.css';
-import { Compare, CompareIndex, type Mode } from './Compare';
-import type { Shot, View } from './shots';
+import { Compare, CompareIndex } from './Compare';
+import type { Shot } from './shots';
 
 const shotModules = import.meta.glob<Shot[]>('../../data/watches/*/*/shots.ts', { eager: true, import: 'default' });
 const shotsFor = (id: string) => shotModules[`../../data/watches/${id}/shots.ts`] ?? [];
@@ -29,7 +29,7 @@ export async function startCompare(base: string) {
     <StrictMode>
       <I18nextProvider i18n={i18n}>
         {watch ? (
-          <Compare caliber={caliber} watch={watch} shots={shotsFor(watch.id)} shotId={q.get('shot')} view={view as View} mode={mode as Mode} />
+          <Compare caliber={caliber} watch={watch} shots={shotsFor(watch.id)} shotId={q.get('shot')} view={view} mode={mode} />
         ) : (
           <CompareIndex ids={Object.keys(watches).sort()} />
         )}

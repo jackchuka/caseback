@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
+import { bbox, radii } from '../../../../src/test/geometry';
 import { tudorDial } from './dial';
 import { T } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
-const bbox = (g: THREE.BufferGeometry) => { g.computeBoundingBox(); return g.boundingBox!; };
 
 describe('Tudor 79220B dial', () => {
   const layers = tudorDial(m);
@@ -29,9 +29,7 @@ describe('Tudor 79220B dial', () => {
   it('ends every index on the same outer circle', () => {
     const ro = T.indexRing * T.dialRadius;
     for (const l of lume) {
-      const p = l.geometry.getAttribute('position');
-      let r = 0;
-      for (let i = 0; i < p.count; i++) r = Math.max(r, Math.hypot(p.getX(i), p.getY(i)));
+      const r = Math.max(...radii(l.geometry));
       expect(r).toBeGreaterThan(ro - 0.05);
       expect(r).toBeLessThan(ro + 0.2);
     }

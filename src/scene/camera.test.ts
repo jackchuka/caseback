@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { focusCenterLocal, MOVEMENT_ROTATION_VALUE, toWorld } from './focus';
+import { focusCenterLocal, MOVEMENT_ROTATION, toWorld } from './focus';
 import { INTRO_POSITION, OVERVIEW_OFFSET, shotFor } from './shots';
 import { easeInOutCubic, Tween } from './tween';
 import { miniCaliber } from '../test/fixtures';
@@ -15,7 +15,7 @@ describe('focus', () => {
     expect(z).toBeCloseTo(1.3);
   });
   it('matches the movement rotation', () => {
-    const v = new THREE.Vector3(1, 2, 3).applyAxisAngle(new THREE.Vector3(1, 0, 0), MOVEMENT_ROTATION_VALUE);
+    const v = new THREE.Vector3(1, 2, 3).applyAxisAngle(new THREE.Vector3(1, 0, 0), MOVEMENT_ROTATION);
     const w = toWorld([1, 2, 3], 'back');
     expect(v.x).toBeCloseTo(w[0]);
     expect(v.y).toBeCloseTo(w[1]);

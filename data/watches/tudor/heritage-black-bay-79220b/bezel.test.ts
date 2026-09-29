@@ -2,16 +2,12 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
+import { layersBox, radii } from '../../../../src/test/geometry';
 import { bezelMarks, bezelTop, tudorBezel } from './bezel';
 import { caseFront } from './case';
 import { T } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
-const box = (ls: { geometry: THREE.BufferGeometry }[]) => {
-  const b = new THREE.Box3();
-  for (const l of ls) { l.geometry.computeBoundingBox(); b.union(l.geometry.boundingBox!); }
-  return b;
-};
 
 describe('Tudor 79220B bezel', () => {
   it('scales the first quarter hour by minutes, the rest by fives and tens', () => {
@@ -25,23 +21,18 @@ describe('Tudor 79220B bezel', () => {
   });
   const layers = tudorBezel(m);
   it('is as wide as the case and sits on its front', () => {
-    const b = box(layers.filter((l) => l.material === 'polished' && l.name !== 'flange'));
+    const b = layersBox(layers.filter((l) => l.material === 'polished' && l.name !== 'flange'));
     expect(b.max.x).toBeCloseTo(T.bezelOuter, 1);
     expect(b.max.z).toBeLessThanOrEqual(caseFront(m) + 0.01);
     expect(bezelTop(m)).toBeCloseTo(caseFront(m) - T.bezelHeight, 5);
   });
   it('cuts a coin edge', () => {
-    const body = layers[0]!.geometry.getAttribute('position');
-    let min = Infinity;
-    for (let i = 0; i < body.count; i++) {
-      const r = Math.hypot(body.getX(i), body.getY(i));
-      if (r > T.bezelOuter - 0.5) min = Math.min(min, r);
-    }
+    const min = Math.min(...radii(layers[0]!.geometry).filter((r) => r > T.bezelOuter - 0.5));
     expect(min).toBeLessThan(T.bezelOuter - T.knurlDepth * 0.8);
   });
   it('puts a lume pip at 12 o\'clock in front of the insert', () => {
-    const pip = box(layers.filter((l) => l.material === 'lume'));
-    const insert = box(layers.filter((l) => l.material === 'insert'));
+    const pip = layersBox(layers.filter((l) => l.material === 'lume'));
+    const insert = layersBox(layers.filter((l) => l.material === 'insert'));
     expect(pip.getCenter(new THREE.Vector3()).y).toBeLessThan(-T.insertInner);
     expect(Math.abs(pip.getCenter(new THREE.Vector3()).x)).toBeLessThan(0.01);
     // The insert is a cone, so compare against its height at the pip's radius.
@@ -49,7 +40,7 @@ describe('Tudor 79220B bezel', () => {
   });
   it('closes the gap between the dial edge and the case front with a flange facing the centre', () => {
     const g = layers.find((l) => l.name === 'flange')!.geometry;
-    const b = box([{ geometry: g }]);
+    const b = layersBox([{ geometry: g }]);
     expect(b.max.z).toBeCloseTo(m.dialZ, 1);
     expect(b.min.z).toBeCloseTo(caseFront(m), 1);
     g.computeVertexNormals();
@@ -66,7 +57,7 @@ describe('Tudor 79220B bezel', () => {
       if (Math.abs(r - T.insertOuter) < 1e-3) zo = p.getZ(i);
     }
     expect(zo - zi).toBeCloseTo(T.insertDrop, 3);
-    const pip = box(layers.filter((l) => l.material === 'lume'));
+    const pip = layersBox(layers.filter((l) => l.material === 'lume'));
     const zAtPip = zi + (T.pipAt - T.insertInner) * (T.insertDrop / (T.insertOuter - T.insertInner));
     expect(pip.max.z).toBeLessThan(zAtPip);
     expect(pip.max.z).toBeGreaterThan(zAtPip - 0.6);

@@ -2,7 +2,7 @@ import type { Caliber } from '../model/schema';
 import { focusKey } from '../model/validate';
 
 export type V3 = [number, number, number];
-export const MOVEMENT_ROTATION_VALUE = -Math.PI / 2;
+export const MOVEMENT_ROTATION = -Math.PI / 2;
 
 export type Side = 'back' | 'dial';
 

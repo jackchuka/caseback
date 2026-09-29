@@ -1,8 +1,6 @@
 import type { Caliber, Part } from '../../../src/model/schema';
-import { centerDistance, place, type P2 } from '../../../src/kinematics/gearMath';
-
-const sourced = (...sourceIds: string[]) => ({ confidence: 'sourced' as const, sourceIds });
-const estimated = (note: string, ...sourceIds: string[]) => ({ confidence: 'estimated' as const, sourceIds, note });
+import { at, centerDistance, offset, place, type P2 } from '../../../src/kinematics/gearMath';
+import { BLEND, chain, escapementRests, estimated, pinSpanner, sourced } from '../kit';
 const LAYOUT = 'Placed after the layout drawing in SII\'s NH35A specification (barrel toward 12, balance toward 9, first reduction wheel toward 6 from the dial); sizes and tooth counts are not measured from real parts.';
 
 // Direct centre seconds: the fourth wheel sits on the centre, above the centre wheel, as in the parts catalogue.
@@ -72,27 +70,18 @@ const H = {
   rotor: 3.55,
 };
 const BRIDGE = 0.3;
-const pinSpan = (z: number, bridgeZ: number, t = BRIDGE) => ({ below: z - PLATE.back, above: bridgeZ + t / 2 - z });
+const pinSpan = pinSpanner(PLATE.back, BRIDGE);
 const stemIn = 5.4;
 const stemOut = 16.2;
 const KEYLESS = 'The stem runs in a pocket in the plate at SII\'s published depth; its pinions and setting wheel are illustrative.';
 
-const forkRest = Math.atan2(escape.y - fork.y, escape.x - fork.x) - Math.PI / 2;
-const balanceRest = Math.atan2(fork.y - balance.y, fork.x - balance.x);
+const { forkRest, balanceRest } = escapementRests(escape, fork, balance);
 const cockBase = place(balance, 4.2, 50);
-const offset = (p: P2, dx: number, dy: number) => ({ x: p.x + dx, y: p.y + dy });
-const at = (p: P2, z: number) => ({ x: p.x, y: p.y, z });
 
 // Screws sit clear of the automatic wheels that turn just above the bridges.
 const bridgeScrews = [place(barrel, 5.2, 160), { x: 3.9, y: 2.9 }, { x: -4.4, y: -1.2 }];
 const autoScrews = [offset(first, -3.6, 1.2), offset(second, 1.4, 2.2)];
 const autoKnee = { x: 3.4, y: 1.4 };
-// Discs of radius r every ~1.2 mm from a to b: the webs that join a bridge's lobes into one plate.
-const chain = (a: P2, b: P2, r: number) => {
-  const n = Math.max(1, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / 1.2));
-  return Array.from({ length: n - 1 }, (_, i) => ({ x: a.x + ((b.x - a.x) * (i + 1)) / n, y: a.y + ((b.y - a.y) * (i + 1)) / n, r }));
-};
-const BLEND = 1.5;
 
 const parts: Part[] = [
   {
@@ -247,7 +236,7 @@ const caliber: Caliber = {
     { type: 'pawl', eccentric: 'eccentric', lever: 'pawl-lever', wheel: 'second-reduction-wheel' },
     { type: 'mesh', a: 'second-reduction-pinion', b: 'ratchet' },
     // SII: first pull-out stroke 0.399 mm, second 0.400 mm.
-    { type: 'keyless', stem: 'stem', slidingPinion: 'sliding-pinion', windingPinion: 'winding-pinion', settingWheel: 'setting-wheel', pull: 0.4 },
+    { type: 'keyless', stem: 'stem', slidingPinion: 'sliding-pinion', windingPinion: 'winding-pinion', settingWheel: 'setting-wheel', pull: 0.4, slidingThrow: 1.05 },
   ],
   chapters: [
     { id: 'time', flow: ['barrel', 'center', 'third', 'fourth', 'escape', 'fork', 'balance'] },

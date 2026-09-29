@@ -1,14 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
+import { angle, openTour, ready, state } from './helpers';
 
 const target = (page: Page) => page.evaluate(() => window.__caseback!.target());
-const state = (page: Page) => page.evaluate(() => {
-  const s = window.__caseback!.state();
-  return { mode: s.mode, stepIndex: s.stepIndex, lang: s.lang };
-});
-
-async function ready(page: Page) {
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
-}
 
 // True once the camera/flip tween created for the current mode/step/side has finished (CameraRig re-enables
 // OrbitControls when its tween completes), i.e. any in-flight camera flight or dial flip has settled. The
@@ -42,15 +35,8 @@ async function tick(page: Page, frames = 2) {
   }, frames);
 }
 
-async function openTour(page: Page) {
-  await page.goto('/calibers/eta-2824-2?lang=ja');
-  await ready(page);
-  await page.getByRole('button', { name: '裏蓋を開ける' }).click();
-  await expect.poll(async () => (await state(page)).mode, { timeout: 45_000 }).toBe('tour');
-}
-
 test('walks through every step of the chapter', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   const titles = ['動力が時を刻むまで', '香箱', '二番車', '三番車', '四番車', 'ガンギ車', 'アンクル', 'テンプ'];
   for (const [i, title] of titles.entries()) {
     await expect(page.locator('.info h1')).toHaveText(title);
@@ -61,7 +47,7 @@ test('walks through every step of the chapter', async ({ page }) => {
 });
 
 test('rapid next clicks land on the last step', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   const next = page.locator('button.next');
   await next.click();
   await next.click();
@@ -76,7 +62,7 @@ test('rapid next clicks land on the last step', async ({ page }) => {
 });
 
 test('explore freely recenters the camera and returns to the same step', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.locator('button.next').click();
   await page.locator('button.next').click();
   await settled(page);
@@ -90,7 +76,7 @@ test('explore freely recenters the camera and returns to the same step', async (
 });
 
 test('language switch keeps the step', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.locator('button.next').click();
   await expect(page.locator('.info h1')).toHaveText('香箱');
   await page.locator('.topbar .lang button[data-lang="en"]').click();
@@ -107,7 +93,7 @@ test('deep links open the requested step and ignore bad input', async ({ page })
 });
 
 test('keyboard arrows move through the tour', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ArrowLeft');
@@ -116,7 +102,7 @@ test('keyboard arrows move through the tour', async ({ page }) => {
 
 test('mobile layout has no horizontal scroll and shows panel and bar', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.locator('button.next').click();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
@@ -145,7 +131,7 @@ test('webgl fallback', async ({ page }) => {
 
 test('theme toggle flips the document theme', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.locator('.topbar .theme').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
@@ -155,7 +141,7 @@ test('toggling tour and free mode many times keeps the webgl context', async ({ 
   page.on('console', (m) => {
     if (/Context Lost|Too many active WebGL/.test(m.text())) lost.push(m.text());
   });
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   for (let i = 0; i < 30; i++) {
     await page.locator('button.to-free').click();
     await page.locator('.dock button.to-tour').click();
@@ -166,7 +152,7 @@ test('toggling tour and free mode many times keeps the webgl context', async ({ 
 });
 
 test('clicking the focused gear during an x-ray step stays in the tour', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   for (let i = 0; i < 3; i++) await page.locator('button.next').click();
   await settled(page);
   const [x, y] = await page.evaluate(() => window.__caseback!.project('third'));
@@ -188,14 +174,14 @@ test('tablet layout keeps the tour controls on screen', async ({ page }) => {
 
 test('the hint never overlaps the tour bar', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   const hint = await page.locator('.hint').boundingBox();
   const bar = await page.locator('.tourbar').boundingBox();
   if (hint) expect(hint.x + hint.width <= bar!.x || hint.y + hint.height <= bar!.y).toBe(true);
 });
 
 test('the info panel shows sources and estimate notes', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   for (let i = 0; i < 4; i++) await page.locator('button.next').click();
   await expect(page.locator('.info h1')).toHaveText('四番車');
   await page.locator('.info details.sources summary').click();
@@ -204,7 +190,7 @@ test('the info panel shows sources and estimate notes', async ({ page }) => {
 });
 
 test('dial chapters flip the movement and fast-forward', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.getByRole('button', { name: '針を動かす' }).click();
   await expect(page.locator('.info h1')).toHaveText('文字盤の下へ');
   await expect.poll(() => page.evaluate(() => window.__caseback!.flip()), { timeout: 10_000 }).toBeCloseTo(Math.PI, 2);
@@ -214,7 +200,7 @@ test('dial chapters flip the movement and fast-forward', async ({ page }) => {
 });
 
 test('flips back to the bridge side', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.getByRole('button', { name: '針を動かす' }).click();
   // Interrupt the flip mid-flight (before it reaches the dial) to check reversing an in-progress flip works.
   await expect.poll(() => page.evaluate(() => window.__caseback!.flip())).toBeGreaterThan(0.1);
@@ -223,7 +209,7 @@ test('flips back to the bridge side', async ({ page }) => {
 });
 
 test('free mode flip shows dial parts', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.locator('button.to-free').click();
   await page.locator('.dock button.flip').click();
   await expect.poll(() => page.evaluate(() => window.__caseback!.flip()), { timeout: 10_000 }).toBeCloseTo(Math.PI, 2);
@@ -234,7 +220,7 @@ test('free mode flip shows dial parts', async ({ page }) => {
 });
 
 test('self-winding raises the power reserve', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.getByRole('button', { name: '自動で巻く' }).click();
   await expect(page.locator('.info h1')).toHaveText('ローター');
   const r0 = await page.evaluate(() => window.__caseback!.state().reserveH);
@@ -246,7 +232,7 @@ test('self-winding raises the power reserve', async ({ page }) => {
 });
 
 test('clicking reversers through the rotor stays in the tour', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.getByRole('button', { name: '自動で巻く' }).click();
   await page.locator('button.next').click();
   await settled(page);
@@ -257,7 +243,7 @@ test('clicking reversers through the rotor stays in the tour', async ({ page }) 
 });
 
 test('hidden rotor does not catch clicks in the first chapter', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await settled(page);
   // The centre wheel lies under the hidden rotor's full disc but, unlike the barrel, has no visible ratchet on top whose
   // own click would legitimately jump to the self-winding chapter.
@@ -274,7 +260,7 @@ test('hidden rotor does not catch clicks in the first chapter', async ({ page })
 });
 
 test('the rotor stays still while paused', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.getByRole('button', { name: '自動で巻く' }).click();
   await settled(page);
   await page.locator('.tourbar').getByRole('button', { name: '一時停止' }).click();
@@ -287,7 +273,7 @@ test('the rotor stays still while paused', async ({ page }) => {
 });
 
 async function toCrown(page: Page) {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await page.getByRole('button', { name: 'リューズ' }).click();
   await expect(page.locator('.info h1')).toHaveText('巻真');
 }
@@ -303,22 +289,22 @@ async function hold(page: Page, ms: number) {
 test('position 2 sets the hands and stops the train', async ({ page }) => {
   await toCrown(page);
   await page.getByRole('radio', { name: '2 · 時刻' }).click();
-  const esc0 = await page.evaluate(() => window.__caseback!.angle('escape-wheel'));
-  const min0 = await page.evaluate(() => window.__caseback!.angle('minute-hand'));
+  const esc0 = await angle(page, 'escape-wheel');
+  const min0 = await angle(page, 'minute-hand');
   await hold(page, 1000);
   // stopTurning applies on the next r3f frame, not instantly.
   await tick(page);
-  expect(await page.evaluate(() => window.__caseback!.angle('escape-wheel'))).toBeCloseTo(esc0, 6);
-  expect(Math.abs((await page.evaluate(() => window.__caseback!.angle('minute-hand'))) - min0)).toBeGreaterThan(0.5);
+  expect(await angle(page, 'escape-wheel')).toBeCloseTo(esc0, 6);
+  expect(Math.abs((await angle(page, 'minute-hand')) - min0)).toBeGreaterThan(0.5);
 });
 
 test('position 1 advances the date', async ({ page }) => {
   await toCrown(page);
   await page.getByRole('radio', { name: '1 · 日付' }).click();
-  const r0 = await page.evaluate(() => window.__caseback!.angle('date-ring'));
+  const r0 = await angle(page, 'date-ring');
   await hold(page, 1500);
   await tick(page);
-  expect(Math.abs((await page.evaluate(() => window.__caseback!.angle('date-ring'))) - r0)).toBeGreaterThan(0.15);
+  expect(Math.abs((await angle(page, 'date-ring')) - r0)).toBeGreaterThan(0.15);
 });
 
 test('position 0 winds the mainspring up to the limit', async ({ page }) => {
@@ -430,7 +416,7 @@ test('resizing the window does not move the camera', async ({ page }) => {
 });
 
 test('the camera keeps looking at its target during chapter flights', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'eta-2824-2', 'ja');
   await settled(page);
   const worst = await page.evaluate(async () => {
     const h = window.__caseback!;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { canvasTexture } from '../../../../src/scene/exterior/kit/canvas';
-import { atHour, dialDisc } from '../../../../src/scene/exterior/kit/dial';
+import { atHour, dateWindowOf, dialDisc, windowFrame } from '../../../../src/scene/exterior/kit/dial';
 import { P } from './params';
 
 // A faceted dagger lying along −Y from its outer end (origin) toward the centre, its two facets meeting in a ridge
@@ -26,28 +26,21 @@ export function dagger(length: number, width: number, height: number): THREE.Buf
   return g;
 }
 
-// A rectangular frame (outer w×h, band b) of height `height`, facing −Z.
-function frameRing(w: number, h: number, band: number, height: number) {
-  const s = new THREE.Shape([new THREE.Vector2(-w / 2, -h / 2), new THREE.Vector2(w / 2, -h / 2), new THREE.Vector2(w / 2, h / 2), new THREE.Vector2(-w / 2, h / 2)]);
-  const iw = w / 2 - band, ih = h / 2 - band;
-  s.holes.push(new THREE.Path([new THREE.Vector2(-iw, -ih), new THREE.Vector2(-iw, ih), new THREE.Vector2(iw, ih), new THREE.Vector2(iw, -ih)]));
-  return new THREE.ExtrudeGeometry(s, { depth: height, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2 }).translate(0, 0, -height);
-}
-
 // The pressed sunray dial with its date window at 3, twelve applied faceted daggers (the 3 o'clock one cut short
 // outside the window) and a polished frame round the window. The printed name and text are left off.
 export function presageDial(m: MovementFrame): ExteriorLayer[] {
   const rad = P.dialRadius;
-  const win = m.dateWindow!;
+  const win = dateWindowOf(m);
   const face = m.dialZ - 0.2;
-  const layers: ExteriorLayer[] = [{ geometry: dialDisc(rad, face, { x: win.x, y: 0, width: win.width, height: win.height }), material: 'dial' }];
+  const layers: ExteriorLayer[] = [{ geometry: dialDisc(rad, face, win), material: 'dial' }];
   const I = P.index;
   for (let h = 0; h < 12; h++) {
     const length = (h === 3 ? P.index3 : I.length) * rad;
     layers.push({ geometry: atHour(dagger(length, I.width, I.height), h, I.outer * rad, face), material: 'index', name: 'index' });
   }
-  const fw = win.width + 2 * P.windowFrame, fh = win.height + 2 * P.windowFrame;
-  layers.push({ geometry: frameRing(fw, fh, P.windowFrame, 0.18).translate(win.x, 0, face), material: 'index', name: 'date-frame' });
+  // Built on the axis, so its UVs don't depend on where the window sits.
+  const frame = new THREE.ExtrudeGeometry(windowFrame({ ...win, x: 0 }, P.windowFrame), { depth: 0.18, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2 });
+  layers.push({ geometry: frame.translate(win.x, 0, face - 0.18), material: 'index', name: 'date-frame' });
   return layers;
 }
 

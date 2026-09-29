@@ -1,34 +1,6 @@
-import * as THREE from 'three';
 import type { HandLayer } from '../../../../src/scene/exterior/contract';
+import { handFrame, handHub, handPlate, mirror, type P } from '../../../../src/scene/exterior/kit/hands';
 import { H } from './params';
-
-type P = [number, number];
-
-// A hand's outline is a list of points on its right half (x ≥ 0), from the tail to the tip; mirroring closes it.
-const mirror = (half: P[]): P[] => [...half, ...half.slice(0, -1).reverse().filter(([x]) => x > 0).map(([x, y]): P => [-x, y])];
-
-const shape = (pts: P[]) => {
-  const s = new THREE.Shape();
-  pts.forEach(([x, y], k) => (k === 0 ? s.moveTo(x, y) : s.lineTo(x, y)));
-  s.closePath();
-  return s;
-};
-
-// A flat plate whose front (−Z) face is at z − thickness.
-function plate(pts: P[] | THREE.Shape, thickness: number, z: number) {
-  const g = new THREE.ExtrudeGeometry(Array.isArray(pts) ? shape(pts) : pts, { depth: thickness, bevelEnabled: false, curveSegments: 1 });
-  return g.translate(0, 0, z - thickness);
-}
-
-// The polished frame around a lume window, rounded to a ridge so some part of it catches a light from any angle.
-function frame(outline: P[], window: P[], z: number, height: number) {
-  const s = shape(outline);
-  s.holes.push(shape(window));
-  const g = new THREE.ExtrudeGeometry(s, { depth: 0.001, bevelEnabled: true, bevelThickness: height / 2, bevelSize: height / 2, bevelOffset: -height / 2, bevelSegments: 4, curveSegments: 1 });
-  return g.translate(0, 0, z - 0.001 - height / 2);
-}
-// A cap about as thick as the hands' frames, centred just in front of the hand.
-const hub = (r: number, z: number) => new THREE.CylinderGeometry(r, r, 0.18, 40).rotateX(Math.PI / 2).translate(0, 0, z);
 
 // A lance: a slim shaft from the pivot, widening to `width` where the lume ends, a short point, then a steel needle
 // on to the tip. Returns the outer outline and the lume window inset by the frame.
@@ -48,15 +20,15 @@ export function hamiltonHands() {
   const T = H.handThickness;
   const hr = lance(H.hour, H.hourLume, H.hourWidth, H.hourShaft);
   const hour: HandLayer[] = [
-    { geometry: frame(hr.outline, hr.window, 0, T), material: 'steel' },
-    { geometry: plate(hr.window, T - 0.03, -0.01), material: 'lume' },
-    { geometry: hub(H.hubs.hour, -0.09), material: 'steel' },
+    { geometry: handFrame(hr.outline, hr.window, 0, T, 4), material: 'steel' },
+    { geometry: handPlate(hr.window, T - 0.03, -0.01), material: 'lume' },
+    { geometry: handHub(H.hubs.hour, -0.09, 0.18), material: 'steel' },
   ];
   const mn = lance(H.minute, H.minuteLume, H.minuteWidth, H.minuteShaft);
   const minute: HandLayer[] = [
-    { geometry: frame(mn.outline, mn.window, 0, T), material: 'steel' },
-    { geometry: plate(mn.window, T - 0.03, -0.01), material: 'lume' },
-    { geometry: hub(H.hubs.minute, -0.09), material: 'steel' },
+    { geometry: handFrame(mn.outline, mn.window, 0, T, 4), material: 'steel' },
+    { geometry: handPlate(mn.window, T - 0.03, -0.01), material: 'lume' },
+    { geometry: handHub(H.hubs.minute, -0.09, 0.18), material: 'steel' },
   ];
   const sw = H.secondsShaft / 2, [al, aw] = H.arrow, sL = H.seconds;
   const arrow: P[] = [[0, -sL], [aw / 2, -(sL - al)], [-aw / 2, -(sL - al)]];
@@ -64,10 +36,10 @@ export function hamiltonHands() {
   const inset = 0.12;
   const arrowLume: P[] = [[0, -(sL - inset * 2.5)], [aw / 2 - inset, -(sL - al + inset * 0.7)], [-(aw / 2 - inset), -(sL - al + inset * 0.7)]];
   const seconds: HandLayer[] = [
-    { geometry: plate(mirror([[sw * 1.4, H.secondsTail], [sw, 0], [sw, -(sL - al + 0.05)], [0, -(sL - al + 0.05)]]), 0.08, 0), material: 'steel' },
-    { geometry: plate(arrow, 0.08, 0), material: 'steel' },
-    { geometry: plate(arrowLume, 0.06, -0.06), material: 'lume' },
-    { geometry: hub(H.hubs.seconds, -0.1), material: 'steel' },
+    { geometry: handPlate(mirror([[sw * 1.4, H.secondsTail], [sw, 0], [sw, -(sL - al + 0.05)], [0, -(sL - al + 0.05)]]), 0.08, 0), material: 'steel' },
+    { geometry: handPlate(arrow, 0.08, 0), material: 'steel' },
+    { geometry: handPlate(arrowLume, 0.06, -0.06), material: 'lume' },
+    { geometry: handHub(H.hubs.seconds, -0.1, 0.18), material: 'steel' },
   ];
   return { hour, minute, seconds };
 }

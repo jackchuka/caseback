@@ -9,11 +9,12 @@ import { focusCenterLocal, toWorld, type V3 } from './focus';
 import { flipGroup } from './flip';
 import { registry } from './registry';
 import { shotFor } from './shots';
+import { MAX_FRAME } from './simClock';
 import { Tween } from './tween';
 
 declare global {
   interface Window {
-    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3; probe(id: string): [number, number]; quat(): number[]; enabled(): boolean; three(): { scene: THREE.Scene; gl: THREE.WebGLRenderer }; pose(position: V3, target: V3): void };
+    __caseback?: { target(): V3; state(): AppState; project(focus: string): [number, number]; flip(): number; angle(id: string): number; hits(x: number, y: number): string[]; camera(): V3; quat(): number[]; enabled(): boolean; three(): { scene: THREE.Scene; gl: THREE.WebGLRenderer } };
   }
 }
 
@@ -50,20 +51,6 @@ export function CameraRig({ caliber, watchFront = false }: { caliber: Caliber; w
       quat: () => camera.quaternion.toArray().map((v) => +v.toFixed(4)),
       enabled: () => controls.enabled,
       three: () => ({ scene, gl }),
-      pose: (position, target) => {
-        tween.current = null;
-        controls.autoRotate = false;
-        camera.position.set(...position);
-        controls.target.set(...target);
-        camera.lookAt(controls.target);
-        controls.update();
-      },
-      probe: (id) => {
-        const e = registry.get(id);
-        if (!e) return [NaN, NaN];
-        const v = e.group.getWorldPosition(new THREE.Vector3()).project(camera);
-        return [((v.x + 1) / 2) * size.width, ((1 - v.y) / 2) * size.height];
-      },
       hits: (x, y) => {
         const ray = new THREE.Raycaster();
         ray.setFromCamera(new THREE.Vector2((x / size.width) * 2 - 1, -(y / size.height) * 2 + 1), camera);
@@ -78,11 +65,11 @@ export function CameraRig({ caliber, watchFront = false }: { caliber: Caliber; w
         return e ? (e.part.axis === 'x' ? e.group.rotation.x : e.group.rotation.z) : NaN;
       },
     };
-  }, [caliber, camera, controls, mode, stepIndex, freeSide, size, scene, gl]);
+  }, [caliber, camera, controls, size, scene, gl]);
 
   useFrame((_, dt) => {
     if (controls && tween.current) {
-      const { position, target, flip, done } = tween.current.step(Math.min(dt, 0.05));
+      const { position, target, flip, done } = tween.current.step(Math.min(dt, MAX_FRAME));
       if (flipGroup.current) flipGroup.current.rotation.x = flip;
       camera.position.set(...position);
       controls.target.set(...target);

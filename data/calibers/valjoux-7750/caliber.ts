@@ -1,8 +1,6 @@
 import type { Caliber, Part } from '../../../src/model/schema';
-import { centerDistance, circleIntersection, place, type P2 } from '../../../src/kinematics/gearMath';
-
-const sourced = (...sourceIds: string[]) => ({ confidence: 'sourced' as const, sourceIds });
-const estimated = (note: string, ...sourceIds: string[]) => ({ confidence: 'estimated' as const, sourceIds, note });
+import { at, centerDistance, circleIntersection, offset, place, type P2 } from '../../../src/kinematics/gearMath';
+import { BLEND, chain, escapementRests, estimated, pinSpanner, sourced } from '../kit';
 const LAYOUT = 'Placed after photos of the 7750 and 7761 with their bridges on (balance toward 11 o\'clock, minute counter wheel at 12, barrel toward 6); sizes and tooth counts are not measured from real parts.';
 const TRAIN = 'Tooth counts chosen for 1 rph at the great wheel, 1 rpm at the fourth wheel and 28,800 vph with a 20-tooth escape wheel; the real 7750 counts are not published.';
 const CHRONO = 'The part and its role are from ETA\'s parts list; its size, position and tooth count are estimates.';
@@ -122,22 +120,13 @@ const H = {
 const HAND = { sub: FRONT - 0.3, hour: FRONT - 0.75, minute: FRONT - 1.25, chrono: FRONT - 1.75 };
 const HANDS = 'Hand heights are estimates: sub-dial hands lowest, then hour, minute and the chronograph seconds on top.';
 const BRIDGE = 0.3;
-const pinSpan = (z: number, bridgeZ: number, t = BRIDGE) => ({ below: z - PLATE.back, above: bridgeZ + t / 2 - z });
+const pinSpan = pinSpanner(PLATE.back, BRIDGE);
 const stemIn = 5.6;
 const stemOut = 18.2;
 const KEYLESS = 'The stem runs in a pocket in the plate; its pinions and setting wheel are illustrative.';
 
-const forkRest = Math.atan2(escape.y - fork.y, escape.x - fork.x) - Math.PI / 2;
-const balanceRest = Math.atan2(fork.y - balance.y, fork.x - balance.x);
+const { forkRest, balanceRest } = escapementRests(escape, fork, balance);
 const cockBase = place(balance, 4.4, 160);
-const offset = (p: P2, dx: number, dy: number) => ({ x: p.x + dx, y: p.y + dy });
-const at = (p: P2, z: number) => ({ x: p.x, y: p.y, z });
-// Discs of radius r every ~1.2 mm from a to b: the webs that join a bridge's lobes into one plate.
-const chain = (a: P2, b: P2, r: number) => {
-  const n = Math.max(1, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / 1.2));
-  return Array.from({ length: n - 1 }, (_, i) => ({ x: a.x + ((b.x - a.x) * (i + 1)) / n, y: a.y + ((b.y - a.y) * (i + 1)) / n, r }));
-};
-const BLEND = 1.5;
 
 const barrelScrews = [place(barrel, 4.9, 60), place(barrel, 4.9, 200)];
 const trainScrews = [offset(great, 1.2, -2.2), offset(third, -2.4, 1.6), offset(fourth, 1.0, 2.6)];
@@ -417,7 +406,7 @@ const caliber: Caliber = {
     { type: 'mesh', a: 'reversing-pinion', b: 'reduction-wheel' },
     { type: 'mesh', a: 'reduction-pinion', b: 'ratchet-driving-wheel' },
     { type: 'mesh', a: 'ratchet-driving-pinion', b: 'ratchet' },
-    { type: 'keyless', stem: 'stem', slidingPinion: 'sliding-pinion', windingPinion: 'winding-pinion', settingWheel: 'setting-wheel', pull: 0.7 },
+    { type: 'keyless', stem: 'stem', slidingPinion: 'sliding-pinion', windingPinion: 'winding-pinion', settingWheel: 'setting-wheel', pull: 0.7, slidingThrow: 1.05 },
   ],
   chapters: [
     { id: 'time', flow: ['barrel', 'great', 'third', 'fourth', 'escape', 'fork', 'balance'] },

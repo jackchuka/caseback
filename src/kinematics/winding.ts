@@ -14,6 +14,8 @@ export function hoursPerBarrelTurn(c: Caliber): number {
   return toothCount(barrel.shape)! / toothCount(other.shape)!;
 }
 
+export const initialReserveH = (c: Caliber) => 0.45 * c.specs.powerReserveH;
+
 export function reserveHours(c: Caliber, ratchetTurns: number, elapsedS: number, initialH: number): number {
   const h = initialH + ratchetTurns * hoursPerBarrelTurn(c) - elapsedS / 3600;
   return Math.min(c.specs.powerReserveH, Math.max(0, h));
@@ -33,8 +35,8 @@ export function throttle(intervalMs: number): (now: number) => boolean {
 }
 
 // Integrates the reserve so it never carries hidden debt below 0 h or surplus above the maximum.
-export function stepReserve(c: Caliber, reserveH: number, ratchetTurnsDelta: number, drainS: number): number {
-  const h = reserveH + ratchetTurnsDelta * hoursPerBarrelTurn(c) - drainS / 3600;
+export function stepReserve(c: Caliber, hoursPerTurn: number, reserveH: number, ratchetTurnsDelta: number, drainS: number): number {
+  const h = reserveH + ratchetTurnsDelta * hoursPerTurn - drainS / 3600;
   return Math.min(c.specs.powerReserveH, Math.max(0, h));
 }
 

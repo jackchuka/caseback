@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
+import { bbox, radii } from '../../../../src/test/geometry';
 import { sinnDial } from './dial';
 import { S } from './params';
 
 const m = movementFrame(calibers['eta-2824-2']!);
-const bbox = (g: THREE.BufferGeometry) => { g.computeBoundingBox(); return g.boundingBox!; };
 
 describe('Sinn 556 dial', () => {
   const layers = sinnDial(m);
@@ -34,9 +34,7 @@ describe('Sinn 556 dial', () => {
   it('stands twelve lume bars on the dial, all ending on the same circle', () => {
     expect(bars).toHaveLength(12);
     for (const l of bars) {
-      const p = l.geometry.getAttribute('position');
-      let r = 0;
-      for (let i = 0; i < p.count; i++) r = Math.max(r, Math.hypot(p.getX(i), p.getY(i)));
+      const r = Math.max(...radii(l.geometry));
       expect(r).toBeGreaterThan(S.indexOuter - 0.01);
       expect(r).toBeLessThan(S.indexOuter + 0.1);
       expect(bbox(l.geometry).max.z).toBeLessThanOrEqual(m.dialZ);

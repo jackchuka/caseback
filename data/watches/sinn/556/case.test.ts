@@ -1,22 +1,16 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../calibers';
-import { buildShape } from '../../../../src/geometry/parts';
 import type { ExteriorLayer } from '../../../../src/scene/exterior/contract';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { closedAndOutward } from '../../../../src/scene/exterior/kit/meshCheck';
 import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
-import { openingDuration, openingPose } from '../../../../src/scene/opening';
+import { expectRotorClears, radii, rotorOf, zRange } from '../../../../src/test/geometry';
 import { bezelTop, caseBack, caseFront, caseShape, sinnCase, sinnCaseback } from './case';
 import { S } from './params';
 
 const caliber = calibers['eta-2824-2']!;
 const m = movementFrame(caliber);
-const zRange = (ls: { geometry: THREE.BufferGeometry }[], dz = 0) => {
-  const b = new THREE.Box3();
-  for (const l of ls) { l.geometry.computeBoundingBox(); b.union(l.geometry.boundingBox!); }
-  return [b.min.z + dz, b.max.z + dz] as const;
-};
 
 describe('Sinn 556 case', () => {
   const s = caseShape(m);
@@ -125,29 +119,15 @@ const BUDGET = { full: 4_550_000, calls: 6_300_000, vertices: 121_000 };
 
 describe('Sinn 556 display caseback', () => {
   const back = sinnCaseback(m);
-  const rotor = caliber.parts.find((p) => p.id === 'rotor')!;
-  const [rotorFront, rotorBack] = zRange(buildShape(rotor.shape, rotor.material as never), rotor.pos.z);
-  const rotorRadius = rotor.shape.kind === 'rotor' ? rotor.shape.radius : NaN;
-  const margin = 0.05;
+  const rotor = rotorOf(caliber);
   it('shows the movement through a sapphire', () => {
     expect(back.map((l) => l.name)).toContain('caseback-glass');
   });
   it('keeps the rotor clear of the glass and the ring, closed or lifting off', () => {
     const [inner, outer] = zRange(back);
     const glass = back.find((l) => l.name === 'caseback-glass')!;
-    const floor = zRange([glass])[0];
     const ring = back.find((l) => l !== glass)!;
-    const pr = ring.geometry.getAttribute('position');
-    let pocket = Infinity;
-    for (let i = 0; i < pr.count; i++) pocket = Math.min(pocket, Math.hypot(pr.getX(i), pr.getY(i)));
-    expect(floor - rotorBack).toBeGreaterThanOrEqual(margin);
-    expect(pocket - rotorRadius).toBeGreaterThanOrEqual(margin);
     expect(outer - inner).toBeCloseTo(S.casebackThickness, 5);
-    for (let t = 0; t <= openingDuration(); t += 0.01) {
-      const p = openingPose(t);
-      if (rotorBack + p.rotorLift <= inner + p.casebackLift || rotorFront + p.rotorLift >= outer + p.casebackLift) continue;
-      expect(floor + p.casebackLift - (rotorBack + p.rotorLift)).toBeGreaterThanOrEqual(margin);
-      expect(pocket - (p.rotorSlide + rotorRadius)).toBeGreaterThanOrEqual(margin);
-    }
+    expectRotorClears(rotor, { floor: zRange([glass])[0], pocket: Math.min(...radii(ring.geometry)), span: [inner, outer] });
   });
 });

@@ -1,6 +1,10 @@
 import * as THREE from 'three';
+import type { ExteriorContext } from '../contract';
 
 export type Sdf = (x: number, y: number, z: number) => number;
+
+// The grid step a case's surface nets run at, in mm, for the build's quality.
+export const caseStep = (quality: ExteriorContext['quality']) => (quality === 'high' ? 0.2 : 0.3);
 type V3 = [number, number, number];
 
 const CORNERS: V3[] = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]];

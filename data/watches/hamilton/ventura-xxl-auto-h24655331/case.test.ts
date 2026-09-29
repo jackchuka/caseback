@@ -1,12 +1,11 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../calibers';
-import { buildShape } from '../../../../src/geometry/parts';
 import type { ExteriorLayer } from '../../../../src/scene/exterior/contract';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
 import { closedAndOutward } from '../../../../src/scene/exterior/kit/meshCheck';
 import { surfaceNets } from '../../../../src/scene/exterior/kit/surfaceNets';
-import { openingDuration, openingPose } from '../../../../src/scene/opening';
+import { expectRotorClears, rotorOf, zRange } from '../../../../src/test/geometry';
 import { caseBack, caseFront, caseShape, crystalFront, venturaCase } from './case';
 import { casebackOuter, venturaCaseback } from './caseback';
 import { crownX } from './crown';
@@ -17,11 +16,6 @@ import { outlines, planFields } from './plan';
 
 const caliber = calibers['eta-2824-2']!;
 const m = movementFrame(caliber);
-const zRange = (ls: { geometry: THREE.BufferGeometry }[]) => {
-  const b = new THREE.Box3();
-  for (const l of ls) { l.geometry.computeBoundingBox(); b.union(l.geometry.boundingBox!); }
-  return [b.min.z, b.max.z] as const;
-};
 const toMm = ([x, y]: [number, number]): [number, number] => [(x - PHOTO.pivot[0]) * PHOTO.mmPerPx, (y - PHOTO.pivot[1]) * PHOTO.mmPerPx];
 
 describe('Ventura plan', () => {
@@ -164,10 +158,7 @@ describe('Ventura case build cost', () => {
 
 describe('Ventura thickness and caseback', () => {
   const back = venturaCaseback();
-  const rotor = caliber.parts.find((p) => p.id === 'rotor')!;
-  const rotorLayers = buildShape(rotor.shape, rotor.material as never);
-  const rotorBack = zRange(rotorLayers)[1] + rotor.pos.z;
-  const margin = 0.05;
+  const rotor = rotorOf(caliber);
   it('is 11.25 mm from the crystal to the back\'s outer face', () => {
     expect(casebackOuter() - zRange(venturaCrystal())[0]).toBeCloseTo(V.totalThickness, 2);
   });
@@ -176,11 +167,6 @@ describe('Ventura thickness and caseback', () => {
   });
   it('keeps the rotor clear of the glass, closed or lifting off', () => {
     const glass = back.find((l) => l.name === 'caseback-glass')!;
-    const floor = zRange([glass])[0];
-    expect(floor - rotorBack).toBeGreaterThanOrEqual(margin);
-    for (let t = 0; t <= openingDuration(); t += 0.01) {
-      const p = openingPose(t);
-      expect(floor + p.casebackLift - (rotorBack + p.rotorLift)).toBeGreaterThanOrEqual(margin);
-    }
+    expectRotorClears(rotor, { floor: zRange([glass])[0] });
   });
 });

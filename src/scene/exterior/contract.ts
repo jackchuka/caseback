@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { MovementMaterial } from '../../geometry/parts';
+import type { PusherAction } from '../../model/schema';
 
 // Every builder behind this contract must hold to:
 // - the case is centred on the movement;
@@ -41,7 +42,7 @@ export type MovementFrame = {
   pushers: Array<{ action: PusherAction; angle: number; z: number }>;
 };
 
-export type PusherAction = 'start-stop' | 'reset';
+export type { PusherAction };
 
 export type ExteriorContext = { movement: MovementFrame; quality: 'high' | 'low' };
 

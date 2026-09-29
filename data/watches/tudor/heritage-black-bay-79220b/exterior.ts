@@ -1,4 +1,5 @@
 import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
+import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { tudorBezel } from './bezel';
 import { tudorBracelet } from './bracelet';
 import { caseShape, tudorCase, tudorCaseback } from './case';
@@ -13,7 +14,7 @@ import { T } from './params';
 const tudor79220b: ExteriorBuilder = {
   geometry: ({ movement: m, quality }) => ({
     parts: {
-      case: tudorCase(m, quality === 'high' ? 0.2 : 0.3),
+      case: tudorCase(m, caseStep(quality)),
       bezel: tudorBezel(m),
       dial: tudorDial(m),
       crystal: tudorCrystal(m),

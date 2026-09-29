@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extrudePlan, polygonSdf, type P2 } from './sdf';
+import { extrudeProfile, polygonSdf, type P2 } from './sdf';
 
 // An L: the notch at (1..4, 1..4) is outside.
 const L: P2[] = [[0, 0], [4, 0], [4, 1], [1, 1], [1, 4], [0, 4]];
@@ -20,9 +20,9 @@ describe('polygonSdf', () => {
   });
 });
 
-describe('extrudePlan', () => {
-  const circle = (x: number, y: number) => Math.hypot(x, y) - 5;
-  const s = extrudePlan(circle, { front: 0, back: 3, chamfer: 0.5, backChamfer: 0.3, edge: 0.1 });
+describe('extrudeProfile', () => {
+  const o = { chamfer: 0.5, backChamfer: 0.3, edge: 0.1 };
+  const s = (x: number, y: number, z: number) => extrudeProfile(Math.hypot(x, y) - 5, -z, z - 3, o);
   it('fills the outline between the front and back faces', () => {
     expect(s(0, 0, 1.5)).toBeLessThan(0);
     expect(s(4.9, 0, 1.5)).toBeLessThan(0);

@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { calibers } from '../../../calibers';
 import { movementFrame } from '../../../../src/scene/exterior/frame';
+import { bbox } from '../../../../src/test/geometry';
 import { dagger, presageDial } from './dial';
 import { P } from './params';
 
 const m = movementFrame(calibers['seiko-nh35a']!);
-const bbox = (g: THREE.BufferGeometry) => { g.computeBoundingBox(); return g.boundingBox!; };
 
 describe('Presage SRPB43 dial', () => {
   const layers = presageDial(m);

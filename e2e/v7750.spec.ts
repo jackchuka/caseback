@@ -1,20 +1,11 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { angle, collectErrors, openTour, ready, state } from './helpers';
 
-const state = (page: Page) => page.evaluate(() => window.__caseback!.state());
-const angle = (page: Page, id: string) => page.evaluate((i) => window.__caseback!.angle(i), id);
 const TAU = Math.PI * 2;
 
-async function openTour(page: Page, lang: 'en' | 'ja' = 'en') {
-  await page.goto(`/calibers/valjoux-7750?lang=${lang}`);
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
-  await page.getByRole('button', { name: lang === 'en' ? 'Open the caseback' : '裏蓋を開ける' }).click();
-  await expect.poll(async () => (await state(page)).mode, { timeout: 45_000 }).toBe('tour');
-}
-
 test('the 7750 caliber page walks the going train without errors @quick', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  await openTour(page);
+  const errors = collectErrors(page);
+  await openTour(page, 'valjoux-7750');
   const titles = ['From power to time', 'Barrel', 'Great wheel', 'Third wheel', 'Fourth wheel', 'Escape wheel', 'Pallet fork', 'Balance wheel'];
   for (const [i, title] of titles.entries()) {
     await expect(page.locator('.info h1')).toHaveText(title);
@@ -27,7 +18,7 @@ test('the 7750 caliber page walks the going train without errors @quick', async 
 
 test('the 7750 chronograph starts, stops and resets from its pushers @quick', async ({ page }) => {
   await page.goto('/calibers/valjoux-7750?lang=en&ch=chrono&part=runner');
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await ready(page);
   await expect(page.locator('.info h1')).toHaveText('Chronograph wheel');
   const start = page.locator('.info .chrono-ctl .start-stop');
   const reset = page.locator('.info .chrono-ctl .reset');
@@ -60,7 +51,7 @@ test('the 7750 chronograph starts, stops and resets from its pushers @quick', as
 
 test('the 7750 minute counter steps once a runner turn and the hour counter creeps', async ({ page }) => {
   await page.goto('/calibers/valjoux-7750?lang=en&ch=chrono&part=minute-counter');
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await ready(page);
   await expect(page.locator('.info .badge').first()).toContainText('20');
   await page.locator('.info .chrono-ctl .start-stop').click();
   // At 20× a runner turn takes 3 s.
@@ -72,7 +63,7 @@ test('the 7750 minute counter steps once a runner turn and the hour counter cree
 });
 
 test('the 7750 pushers work in free mode too, and the rotor winds one way', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'valjoux-7750');
   await page.getByRole('button', { name: 'Self-winding' }).click();
   await expect(page.locator('.info h1')).toHaveText('Oscillating weight');
   const r0 = (await state(page)).reserveH;
@@ -90,7 +81,7 @@ test('the 7750 shows the day and the date', async ({ page }) => {
 });
 
 test('screenshots every 7750 tour chapter', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'valjoux-7750');
   for (const chapter of ['Keeping time', 'Moving the hands', 'Day and date', 'Chronograph', 'Self-winding', 'Crown']) {
     await page.getByRole('button', { name: chapter, exact: true }).click();
     if (chapter === 'Chronograph') await page.locator('.info .chrono-ctl .start-stop').click();
@@ -111,11 +102,10 @@ test('the 7750 lists the Sinn 103 among its watches', async ({ page }) => {
 });
 
 test('the Sinn 103 opens on its dial and its pushers run the chronograph @quick', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (e) => errors.push(e.message));
+  const errors = collectErrors(page);
   await page.goto('/watches/sinn/103-st-sa?lang=en');
   await expect(page.locator('.intro .eyebrow')).toContainText('Valjoux 7750');
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await ready(page);
   await page.waitForTimeout(1500);
   await page.screenshot({ path: 'test-results/v7750/watch-sinn103-intro.png' });
   const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
@@ -139,7 +129,7 @@ test('the Sinn 103 opens on its dial and its pushers run the chronograph @quick'
 
 test('the Sinn 103\'s display back shows the movement', async ({ page }) => {
   await page.goto('/watches/sinn/103-st-sa?lang=en');
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await ready(page);
   await page.locator('.intro button').click();
   await page.evaluate(async () => {
     const h = window.__caseback!;
@@ -157,7 +147,7 @@ test('the Sinn 103\'s display back shows the movement', async ({ page }) => {
 
 test('the 7750 reset close-up: the hammers come down on the hearts\' clefts', async ({ page }) => {
   await page.goto('/calibers/valjoux-7750?lang=en&ch=chrono&part=hammer');
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await ready(page);
   await expect(page.locator('.info h1')).toHaveText('Hammers');
   const start = page.locator('.info .chrono-ctl .start-stop');
   await start.click();

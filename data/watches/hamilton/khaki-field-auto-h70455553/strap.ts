@@ -1,6 +1,5 @@
-import * as THREE from 'three';
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
-import { bend, flipWinding } from '../../../../src/scene/exterior/kit/bend';
+import { boxStrap } from '../../../../src/scene/exterior/kit/bend';
 import { canvasTexture } from '../../../../src/scene/exterior/kit/canvas';
 import { caseShape } from './case';
 import { H } from './params';
@@ -15,28 +14,10 @@ export function strapStart(m: MovementFrame) {
   return { y: s.hole.y - S.tuck, z: s.hole.z };
 }
 
-// Narrows from the lugs to the buckle end and thins from the padded lug end, both over the strap's length.
-function taper(g: THREE.BufferGeometry, start: number, z: number) {
-  const p = g.getAttribute('position');
-  for (let i = 0; i < p.count; i++) {
-    const t = Math.min(1, Math.max(0, (p.getY(i) - start) / S.length));
-    p.setX(i, p.getX(i) * (1 - (1 - S.endWidth / S.width) * t));
-    p.setZ(i, z + (p.getZ(i) - z) * (1 - (1 - S.endThickness / S.thickness) * t));
-  }
-  p.needsUpdate = true;
-  return g;
-}
-
 // The two halves of the brown leather strap: tapered 20 → 18 mm, padded at the lugs, cream-lined, with cream
 // stitching (drawn on the top face's texture) running round the edges and across near the lug end.
 export function hamiltonStrap(m: MovementFrame): ExteriorLayer[] {
-  const { y, z } = strapStart(m);
-  return ([1, -1] as const).map((dir) => {
-    const box = new THREE.BoxGeometry(S.width, S.length, S.thickness, 4, 60, 1).translate(0, y + S.length / 2, z);
-    const g = taper(box, y, z);
-    const placed = dir < 0 ? flipWinding(g.scale(1, -1, 1)) : g;
-    return { geometry: bend(placed, S.wristRadius, y + S.straight, dir), material: FACES, name: 'strap' };
-  });
+  return boxStrap(S, strapStart(m), [4, 60]).map((geometry) => ({ geometry, material: FACES, name: 'strap' }));
 }
 
 // A small seeded PRNG (mulberry32).

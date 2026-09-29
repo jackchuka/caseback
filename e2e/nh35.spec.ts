@@ -1,14 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-
-const state = (page: Page) => page.evaluate(() => window.__caseback!.state());
-const angle = (page: Page, id: string) => page.evaluate((i) => window.__caseback!.angle(i), id);
-
-async function openTour(page: Page, lang: 'en' | 'ja' = 'en') {
-  await page.goto(`/calibers/seiko-nh35a?lang=${lang}`);
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
-  await page.getByRole('button', { name: lang === 'en' ? 'Open the caseback' : '裏蓋を開ける' }).click();
-  await expect.poll(async () => (await state(page)).mode, { timeout: 45_000 }).toBe('tour');
-}
+import { angle, collectErrors, openTour, ready, state } from './helpers';
 
 // Samples an angle every animation frame for `ms` of wall-clock time: the rotor swings in real time.
 const sample = (page: Page, id: string, ms: number) =>
@@ -26,9 +17,8 @@ const sample = (page: Page, id: string, ms: number) =>
   );
 
 test('the NH35A caliber page walks the going train @quick', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  await openTour(page);
+  const errors = collectErrors(page);
+  await openTour(page, 'seiko-nh35a');
   const titles = ['From power to time', 'Barrel', 'Center wheel', 'Third wheel', 'Fourth wheel', 'Escape wheel', 'Pallet fork', 'Balance wheel'];
   for (const [i, title] of titles.entries()) {
     await expect(page.locator('.info h1')).toHaveText(title);
@@ -48,7 +38,7 @@ test('the NH35A beats 6 times a second and the fourth wheel carries the seconds 
 });
 
 test('the Magic Lever winds one way whichever way the rotor swings', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'seiko-nh35a');
   await page.getByRole('button', { name: 'Self-winding' }).click();
   await expect(page.locator('.info h1')).toHaveText('Oscillating weight');
   await page.locator('button.next').click();
@@ -70,7 +60,7 @@ test('the Magic Lever winds one way whichever way the rotor swings', async ({ pa
 });
 
 test('the NH35A crown hacks the balance at position 2 and pulls out 0.4 mm a click', async ({ page }) => {
-  await openTour(page, 'ja');
+  await openTour(page, 'seiko-nh35a', 'ja');
   await page.getByRole('button', { name: 'リューズ' }).click();
   await expect(page.locator('.info h1')).toHaveText('巻真');
   await page.getByRole('radio', { name: '2 · 時刻' }).click();
@@ -83,7 +73,7 @@ test('the NH35A crown hacks the balance at position 2 and pulls out 0.4 mm a cli
 });
 
 test('the NH35A date chapter turns the date disc', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'seiko-nh35a');
   await page.getByRole('button', { name: 'Turning the date' }).click();
   await expect(page.locator('.info h1')).toHaveText('Date driving wheel');
   await expect(page.locator('.info .badge').first()).toContainText('6,000');
@@ -98,11 +88,10 @@ test('the NH35A lists the Presage among its watches', async ({ page }) => {
 });
 
 test('the Presage opens on its dial, shows the date through the window and the movement through the back @quick', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (e) => errors.push(e.message));
+  const errors = collectErrors(page);
   await page.goto('/watches/seiko/presage-srpb43?lang=en');
   await expect(page.locator('.intro .eyebrow')).toContainText('Seiko 4R35');
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await ready(page);
   await page.waitForTimeout(1500);
   await page.screenshot({ path: 'test-results/watch-presage-intro.png' });
   const [x, y] = await page.evaluate(() => window.__caseback!.project('minute-wheel'));
@@ -115,7 +104,7 @@ test('the Presage opens on its dial, shows the date through the window and the m
 
 test('the Presage\'s display back shows the movement @quick', async ({ page }) => {
   await page.goto('/watches/seiko/presage-srpb43?lang=en');
-  await page.waitForFunction(() => window.__caseback !== undefined, null, { timeout: 30_000 });
+  await ready(page);
   // The watch turns over to its back before the caseback unscrews; probe once the turn has settled.
   await page.locator('.intro button').click();
   await page.evaluate(async () => {
@@ -131,7 +120,7 @@ test('the Presage\'s display back shows the movement @quick', async ({ page }) =
 });
 
 test('screenshots every NH35A tour chapter', async ({ page }) => {
-  await openTour(page);
+  await openTour(page, 'seiko-nh35a');
   for (const chapter of ['Keeping time', 'Moving the hands', 'Turning the date', 'Self-winding', 'Crown']) {
     await page.getByRole('button', { name: chapter, exact: true }).click();
     const steps = await page.locator('.tourbar .steps li').count();

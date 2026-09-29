@@ -1,11 +1,9 @@
 import type { ExteriorLayer, MovementFrame } from '../../../../src/scene/exterior/contract';
 import { hollowCaseback } from '../../../../src/scene/exterior/kit/caseback';
 import { softFinish } from '../../../../src/scene/exterior/kit/polish';
-import { extrudeProfile, roundedConvex, smax, smin } from '../../../../src/scene/exterior/kit/sdf';
+import { caseColumn, clamp01, extrudeProfile, lugRun, roundedConvex, smax, smin } from '../../../../src/scene/exterior/kit/sdf';
 import { polishedMesh } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { T } from './params';
-
-const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 
 // The case middle's front face (the bezel seat). It stands proud of the movement's own front so the crown, which must
 // stay on the stem axis, sits lower on the flank; bezel, crystal, flange and caseback all hang off this one plane.
@@ -40,44 +38,36 @@ export function caseShape(m: MovementFrame, counter?: { full: number }) {
     // outline; only the inner corner under the end link gets the fillet.
     return ax < lw + 2 * T.lugFillet ? smin(disc, lug(ax, ay), T.lugFillet) : Math.min(disc, lug(ax, ay));
   };
-  // 0 at the bezel's edge, 1 at the lug tip, measured along the lug.
-  const run = (x: number, y: number) => {
-    const edge = Math.sqrt(Math.max(R * R - x * x, 0));
-    return clamp01((Math.abs(y) - edge) / (tip - edge));
-  };
+  const run = lugRun(R, tip);
   const front = (x: number, y: number) => F + T.lugDrop * run(x, y) ** T.lugCurve;
   // The underside lifts only at the very tip, rounding the lug's heel.
   const underside = (y: number) => back - T.lugHeel * clamp01((Math.abs(y) - tip + T.lugHeelRun) / T.lugHeelRun) ** 2;
   const hole = { y: tip - T.holeInset, z: (front(lw + T.lugWidth / 2, tip - T.holeInset) + underside(tip - T.holeInset)) / 2 };
   const opts = { chamfer: T.bevel, backChamfer: T.backChamfer, edge: T.edge };
 
-  let cx = NaN, cy = NaN, cPlan = 0, cFront = 0, cBack = 0, cBore = 0;
-  const column = (x: number, y: number) => {
-    if (x === cx && y === cy) return;
-    cx = x; cy = y; cPlan = plan(x, y); cFront = front(x, y); cBack = underside(y); cBore = T.bore - Math.hypot(x, y);
-  };
+  const column = caseColumn(plan, front, (_x, y) => underside(y), T.bore);
   // Blind: the photos show plain outer lug flanks.
   const drill = (x: number, y: number, z: number) =>
     Math.min(T.holeRadius - Math.hypot(Math.abs(y) - hole.y, z - hole.z), lw + T.holeDepth - Math.abs(x));
   const sdf = (x: number, y: number, z: number) => {
-    column(x, y);
+    const c = column(x, y);
     // Columns well outside the outline or inside the bore need no detail; most of the grid is one of these.
-    if (cPlan > 1) return cPlan;
-    if (cBore > 1) return cBore;
+    if (c.plan > 1) return c.plan;
+    if (c.bore > 1) return c.bore;
     // Likewise voxels well in front of or behind the column's faces.
-    if (cFront - z > 1) return cFront - z;
-    if (z - cBack > 1) return z - cBack;
+    if (c.front - z > 1) return c.front - z;
+    if (z - c.back > 1) return z - c.back;
     if (counter) counter.full++;
-    const solid = smax(extrudeProfile(cPlan, cFront - z, z - cBack, opts), cBore, T.edge);
+    const solid = smax(extrudeProfile(c.plan, c.front - z, z - c.back, opts), c.bore, T.edge);
     // Only the lug-tip rows can meet the hole.
     return Math.abs(Math.abs(y) - hole.y) > T.holeRadius + 1 ? solid : Math.max(solid, drill(x, y, z));
   };
   // 0 brushed … 1 polished.
   const polish = (x: number, y: number, z: number) => {
-    column(x, y);
-    const vf = cFront - z, vb = z - cBack;
+    const c = column(x, y);
+    const vf = c.front - z, vb = z - c.back;
     return softFinish([
-      [0, vf], [0, cBore], [1, cPlan], [1, vb], [1, (cPlan + vf + T.bevel) / Math.SQRT2], [1, (cPlan + vb + T.backChamfer) / Math.SQRT2], [1, drill(x, y, z)],
+      [0, vf], [0, c.bore], [1, c.plan], [1, vb], [1, (c.plan + vf + T.bevel) / Math.SQRT2], [1, (c.plan + vb + T.backChamfer) / Math.SQRT2], [1, drill(x, y, z)],
     ]);
   };
   return { sdf, polish, front, back, hole, bounds: { x: R + 0.5, y: tip + 0.5, z: [F - 0.5, back + 0.5] as [number, number] } };

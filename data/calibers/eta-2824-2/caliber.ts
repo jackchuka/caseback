@@ -1,8 +1,6 @@
 import type { Caliber, Part } from '../../../src/model/schema';
-import { centerDistance, circleIntersection, place, type P2 } from '../../../src/kinematics/gearMath';
-
-const sourced = (...sourceIds: string[]) => ({ confidence: 'sourced' as const, sourceIds });
-const estimated = (note: string) => ({ confidence: 'estimated' as const, sourceIds: [], note });
+import { at, centerDistance, circleIntersection, offset, place, type P2 } from '../../../src/kinematics/gearMath';
+import { escapementRests, estimated, pinSpanner, sourced } from '../kit';
 const LAYOUT = 'Position and module chosen to fit the 25.6 mm movement; not measured from a real part.';
 
 const Z = { barrel: 84, centerPinion: 12, center: 80, thirdPinion: 10, third: 75, fourthPinion: 10, fourth: 84, escapePinion: 7, escape: 20 };
@@ -64,19 +62,13 @@ const H = {
   // sits a fixed step above the automatic works: half of each, the rotor's bevelled edge, and a hair of clearance.
   rotor: back(4.1) + 0.435,
 };
-const BRIDGE_HALF = 0.275;
-// Arbor pins run from the plate to the top of the bridge that holds them, not a fixed length.
-const pinSpan = (z: number, bridgeZ: number) => ({ below: z - PLATE_BACK, above: bridgeZ + BRIDGE_HALF - z });
+const pinSpan = pinSpanner(PLATE_BACK, 0.55);
 const stemIn = 4.4;
 const stemOut = 12.8 + 3.3;
 const KEYLESS = 'Keyless layout is illustrative; the real 2824-2 stem, pinions and setting wheel are not modelled to scale.';
 
-const forkRest = Math.atan2(escape.y - fork.y, escape.x - fork.x) - Math.PI / 2; // pallets (+Y) face the escape wheel
-const balanceRest = Math.atan2(fork.y - balance.y, fork.x - balance.x); // roller jewel (+X) faces the fork
+const { forkRest, balanceRest } = escapementRests(escape, fork, balance);
 const cockBase = { x: balance.x + 2.8, y: balance.y + 3.4 };
-const offset = (p: P2, dx: number, dy: number) => ({ x: p.x + dx, y: p.y + dy });
-
-const at = (p: P2, z: number) => ({ x: p.x, y: p.y, z });
 
 const parts: Part[] = [
   {
@@ -215,7 +207,7 @@ const caliber: Caliber = {
     { type: 'one-way', input: 'reverser-a', output: 'reverser-b' },
     { type: 'mesh', a: 'reverser-b', b: 'reduction-wheel' },
     { type: 'mesh', a: 'reduction-pinion', b: 'ratchet' },
-    { type: 'keyless', stem: 'stem', slidingPinion: 'sliding-pinion', windingPinion: 'winding-pinion', settingWheel: 'setting-wheel', pull: 0.7 },
+    { type: 'keyless', stem: 'stem', slidingPinion: 'sliding-pinion', windingPinion: 'winding-pinion', settingWheel: 'setting-wheel', pull: 0.7, slidingThrow: 1.05 },
   ],
   chapters: [
     { id: 'time', flow: ['barrel', 'center', 'third', 'fourth', 'escape', 'fork', 'balance'] },

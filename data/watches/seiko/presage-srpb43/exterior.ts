@@ -1,4 +1,5 @@
 import type { ExteriorBuilder } from '../../../../src/scene/exterior/contract';
+import { caseStep } from '../../../../src/scene/exterior/kit/surfaceNets';
 import { presageBezel } from './bezel';
 import { caseBack, presageCase, presageCaseback } from './case';
 import { crownX, presageCrown } from './crown';
@@ -13,7 +14,7 @@ import { presageStrap } from './strap';
 const srpb43: ExteriorBuilder = {
   geometry: ({ movement: m, quality }) => ({
     parts: {
-      case: presageCase(m, quality === 'high' ? 0.2 : 0.3),
+      case: presageCase(m, caseStep(quality)),
       bezel: presageBezel(m),
       dial: presageDial(m),
       crystal: presageCrystal(m),

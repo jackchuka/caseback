@@ -15,12 +15,20 @@ import { exteriorVisibility } from './exterior/visibility';
 import { useMaterials } from './materials';
 import { openingPose } from './opening';
 import { registry } from './registry';
+import { MAX_FRAME } from './simClock';
 import { engraving } from './textures';
 
 type PickMaterial = (l: ExteriorLayer) => THREE.Material | THREE.Material[];
 
 function Layers({ layers, pick, name, shadows = false }: { layers: ExteriorLayer[]; pick: PickMaterial; name?: string; shadows?: boolean }) {
   return layers.map((l, i) => <mesh key={i} name={l.name ?? name} geometry={l.geometry} material={pick(l)} castShadow={shadows} receiveShadow={shadows} />);
+}
+
+// Lifts the dial or crystal off toward the viewer as it fades, like taking it off the movement.
+function liftOff(g: THREE.Group | null, f: number) {
+  if (!g) return;
+  g.visible = f > 0.02;
+  g.position.z = -3 * (1 - f);
 }
 
 // Half of the cover rotor's 0.45 mm extrusion: it sits flush with the movement's rotor.
@@ -87,7 +95,7 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
 
   useFrame((state, dt) => {
     const s = appStore().getState();
-    if (s.mode === 'opening') openT.current += Math.min(dt, 0.05);
+    if (s.mode === 'opening') openT.current += Math.min(dt, MAX_FRAME);
     const pose = openingPose(s.mode === 'intro' ? 0 : s.mode === 'opening' ? openT.current : 99, flipFirst);
     if (back.current) {
       back.current.visible = pose.casebackOpacity > 0.01;
@@ -103,7 +111,7 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
     }
     if (crown.current) {
       crown.current.position.x = crownX + s.crownPos * pull;
-      crown.current.rotation.copy(crownEuler(crownState.rot));
+      crownEuler(crownState.rot, crown.current.rotation);
     }
     if (stemTube.current) {
       stemTube.current.position.x = s.crownPos * pull;
@@ -113,12 +121,8 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
     const vis = exteriorVisibility(s.mode, s.mode === 'free' ? s.freeSide : (step?.side ?? null), s.explode);
     dialFade.current += ((vis.dial ? 1 : 0) - dialFade.current) * 0.12;
     const f = dialFade.current;
-    for (const g of [dialGroup.current, crystalGroup.current]) {
-      if (!g) continue;
-      g.visible = f > 0.02;
-      // Lift the dial and crystal off toward the viewer as they fade, like taking them off the movement.
-      g.position.z = -3 * (1 - f);
-    }
+    liftOff(dialGroup.current, f);
+    liftOff(crystalGroup.current, f);
     for (const m of crystalMats) m.opacity = f;
     if (strapGroup.current) strapGroup.current.visible = vis.strap;
     const fourth = registry.get('fourth-wheel');
@@ -129,20 +133,21 @@ export function Exterior({ caliber, watch, build, frame, watchFront }: { caliber
       const progress = (minute.group.position.z - minute.part.pos.z) / minute.part.explode.dz;
       secondsGroup.current.position.z = frame.secondsZ + SECONDS_EXPLODE_DZ * progress;
     }
-    pushers.forEach((p, i) => {
+    for (let i = 0; i < pushers.length; i++) {
+      const p = pushers[i]!;
       const g = pusherGroups.current[i];
       const st = (pusherState.current[i] ??= { seen: s.pushes[p.action], depth: 0 });
       if (s.pushes[p.action] !== st.seen) {
         st.seen = s.pushes[p.action];
         st.depth = 1;
-      } else st.depth = Math.max(0, st.depth - Math.min(dt, 0.05) * 6);
-      if (!g) return;
+      } else st.depth = Math.max(0, st.depth - Math.min(dt, MAX_FRAME) * 6);
+      if (!g) continue;
       const r = p.radius - p.travel * st.depth;
       g.position.set(Math.cos(p.angle) * r, Math.sin(p.angle) * r, p.z);
-    });
+    }
     if (s.mode === 'opening' && pose.done) {
       openT.current = 0;
-      s.finishOpening();
+      s.setMode('tour');
     }
   });
 

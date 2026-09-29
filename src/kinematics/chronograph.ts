@@ -1,9 +1,10 @@
+import type { PusherAction } from '../model/schema';
+
 export type ChronoMode = 'reset' | 'running' | 'stopped';
-export type ChronoAction = 'start-stop' | 'reset';
 
 // The start/stop pusher runs or stops the chronograph; reset only acts once it is stopped (a running chronograph's
 // cam holds the hammer off the hearts).
-export function nextMode(mode: ChronoMode, action: ChronoAction): ChronoMode {
+export function nextMode(mode: ChronoMode, action: PusherAction): ChronoMode {
   if (action === 'start-stop') return mode === 'running' ? 'stopped' : 'running';
   return mode === 'stopped' ? 'reset' : mode;
 }

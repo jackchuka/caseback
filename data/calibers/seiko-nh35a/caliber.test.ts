@@ -1,18 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { calibers, getCaliber } from '../index';
-import { buildSolver, pawlAdvance } from '../../../src/kinematics/solver';
+import { calibers } from '../index';
+import { caliberKit, TAU } from '../testkit';
+import { pawlAdvance } from '../../../src/kinematics/solver';
 import { centerDistance } from '../../../src/kinematics/gearMath';
 import { hoursPerBarrelTurn, reserveHours } from '../../../src/kinematics/winding';
 import { toothCount } from '../../../src/model/validate';
 import { buildShape } from '../../../src/geometry/parts';
 import { movementFrame } from '../../../src/scene/exterior/frame';
 
-const TAU = Math.PI * 2;
-const c = getCaliber('seiko-nh35a')!;
-const solve = buildSolver(c);
-const part = (id: string) => c.parts.find((p) => p.id === id)!;
-const angle = (id: string, t: number, extra = {}) => solve({ t, explode: 0, ...extra }).get(id)!.angle;
-const turns = (id: string, seconds: number) => Math.abs(angle(id, seconds) - angle(id, 0)) / TAU;
+const { c, solve, part, angle, turns } = caliberKit('seiko-nh35a');
 
 describe('Seiko NH35A registry and specs', () => {
   it('loads next to the 2824-2 with SII\'s published figures', () => {

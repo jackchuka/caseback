@@ -9,7 +9,11 @@ export function Dock({ caliber }: { caliber: Caliber }) {
   const explode = useApp((s) => s.explode);
   const speedExp = useApp((s) => s.freeSpeedExp);
   const paused = useApp((s) => s.paused);
-  const { setMode, setExplode, setFreeSpeedExp, togglePaused, toggleSide } = useApp((s) => s);
+  const setMode = useApp((s) => s.setMode);
+  const setExplode = useApp((s) => s.setExplode);
+  const setFreeSpeedExp = useApp((s) => s.setFreeSpeedExp);
+  const togglePaused = useApp((s) => s.togglePaused);
+  const toggleSide = useApp((s) => s.toggleSide);
   const speed = 10 ** speedExp;
   return (
     <div className={`dock glass ${mode === 'free' ? '' : 'hidden'}`}>

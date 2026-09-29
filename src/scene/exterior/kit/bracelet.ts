@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type { ExteriorLayer } from '../contract';
 import { bend, flipWinding } from './bend';
+import { extrudeProfile, smax } from './sdf';
+import { surfaceNets, type Sdf } from './surfaceNets';
 
 export type BraceletSpec = {
   startWidth: number; endWidth: number; pitch: number; centerRatio: number; thickness: number;
@@ -107,4 +109,25 @@ export function hLinkBracelet(s: HLinkSpec, start: { y: number; z: number }, mat
     }
   }
   return layers;
+}
+
+// Solid end links that fill the gap between the lugs (half-width `halfWidth`) from `from` out to `reach`, centred on
+// the spring bar's height. They are tested against the case's own sdf, so they hug the drum and lug flanks with an
+// exact clearance; `blend` softens that crease (0 leaves it sharp), or surface nets may saw it into teeth.
+export function endLinks(caseSdf: Sdf, o: { z: number; halfWidth: number; thickness: number; chamfer: number; from: number; reach: number; blend: number; material: string }): ExteriorLayer[] {
+  const CLEAR = 0.1;
+  const lw = o.halfWidth, th = o.thickness;
+  // Same edge treatment as the links they feed into, so the end link doesn't read as a sharper, flatter piece.
+  const opts = { chamfer: o.chamfer, backChamfer: 0, edge: 0.15 };
+  return ([1, -1] as const).map((dir) => {
+    const sdf = (x: number, y: number, z: number) => {
+      // z smaller than o.z is the outward (visible) face, matching the links' own convention.
+      const plate = extrudeProfile(Math.abs(x) - lw, o.z - th / 2 - z, z - (o.z + th / 2), opts);
+      const clear = CLEAR - caseSdf(x, y, z);
+      return Math.max(o.blend > 0 ? smax(plate, clear, o.blend) : Math.max(plate, clear), y * dir - o.reach);
+    };
+    const far = o.reach + 0.5;
+    const g = surfaceNets(sdf, [-lw - 0.5, dir > 0 ? o.from : -far, o.z - th], [lw + 0.5, dir > 0 ? far : -o.from, o.z + th], 0.15);
+    return { geometry: g, material: o.material, name: 'end-link' };
+  });
 }

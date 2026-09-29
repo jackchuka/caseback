@@ -1,8 +1,8 @@
-import type { Caliber } from '../model/schema';
+import type { Caliber, Coupling } from '../model/schema';
 import { arborKey, toothCount } from '../model/validate';
 import { counterSteps, heartAngle, type ChronoPose } from './chronograph';
 import { escapementState } from './escapement';
-import { smoothstep } from './gearMath';
+import { pitchRadius, smoothstep } from './gearMath';
 import { accumulateWinding } from './winding';
 
 // Quick-set advances one date per crown turn and settles on whole dates in the second half of each turn.
@@ -52,10 +52,15 @@ export const pawlStroke = (p: PawlInfo, inputAngle: number) => p.throw * Math.co
 // of stroke either way advances the wheel by the same arc.
 export const pawlAdvance = (p: PawlInfo, prev: number, next: number) => Math.abs(pawlStroke(p, next) - pawlStroke(p, prev)) / p.radius;
 
+export const couplingOf = <T extends Coupling['type']>(c: Caliber, type: T) =>
+  c.couplings.find((cp): cp is Extract<Coupling, { type: T }> => cp.type === type);
+
 export function buildSolver(c: Caliber): Solver {
   const byId = new Map(c.parts.map((p) => [p.id, p]));
-  const esc = c.couplings.find((x) => x.type === 'escapement');
-  if (!esc || esc.type !== 'escapement') throw new Error(`${c.id}: no escapement coupling`);
+  const key = (id: string) => arborKey(byId.get(id)!);
+  const teeth = (id: string) => toothCount(byId.get(id)!.shape)!;
+  const esc = couplingOf(c, 'escapement');
+  if (!esc) throw new Error(`${c.id}: no escapement coupling`);
   const escapePart = byId.get(esc.escapeWheel)!;
   const escapeTeeth = toothCount(escapePart.shape);
   if (escapeTeeth === null) throw new Error(`${c.id}: escape wheel has no teeth`);
@@ -95,19 +100,14 @@ export function buildSolver(c: Caliber): Solver {
   const escapeFactor = bfs(arborKey(escapePart));
   const rotorPart = c.parts.find((p) => p.shape.kind === 'rotor');
   const rotorFactor = rotorPart ? bfs(arborKey(rotorPart)) : new Map<string, number>();
-  const oneWayCp = c.couplings.find((cp) => cp.type === 'one-way');
-  const oneWay: OneWayInfo | null =
-    oneWayCp && oneWayCp.type === 'one-way'
-      ? {
-          inputKey: arborKey(byId.get(oneWayCp.input)!),
-          outputKey: arborKey(byId.get(oneWayCp.output)!),
-          ratio: toothCount(byId.get(oneWayCp.input)!.shape)! / toothCount(byId.get(oneWayCp.output)!.shape)!,
-        }
-      : null;
-  const pawlCp = c.couplings.find((cp) => cp.type === 'pawl');
+  const oneWayCp = couplingOf(c, 'one-way');
+  const oneWay: OneWayInfo | null = oneWayCp
+    ? { inputKey: key(oneWayCp.input), outputKey: key(oneWayCp.output), ratio: teeth(oneWayCp.input) / teeth(oneWayCp.output) }
+    : null;
+  const pawlCp = couplingOf(c, 'pawl');
   let pawl: PawlInfo | null = null;
   let lever: { key: string; pin0: { x: number; y: number }; wheel: { x: number; y: number }; center: { x: number; y: number } } | null = null;
-  if (pawlCp && pawlCp.type === 'pawl') {
+  if (pawlCp) {
     const ecc = byId.get(pawlCp.eccentric)!;
     const lv = byId.get(pawlCp.lever)!;
     const wheel = byId.get(pawlCp.wheel)!;
@@ -120,64 +120,56 @@ export function buildSolver(c: Caliber): Solver {
       throw: ecc.shape.throw,
       rest,
       axis: Math.atan2(wheel.pos.y - pin0.y, wheel.pos.x - pin0.x),
-      radius: (wheel.shape.teeth * wheel.shape.module) / 2,
+      radius: pitchRadius(wheel.shape.teeth, wheel.shape.module),
     };
     lever = { key: arborKey(lv), pin0, wheel: wheel.pos, center: ecc.pos };
   }
-  const clickCp = c.couplings.find((cp) => cp.type === 'click');
-  const winder: Winder | null = oneWay
-    ? { inputKey: oneWay.inputKey, outputKey: oneWay.outputKey, advance: (a, b) => accumulateWinding(0, a, b, oneWay.ratio) }
-    : pawl
-      ? { inputKey: pawl.inputKey, outputKey: pawl.outputKey, advance: (a, b) => pawlAdvance(pawl, a, b) }
-      : clickCp && clickCp.type === 'click'
-        ? {
-            inputKey: arborKey(byId.get(clickCp.input)!),
-            outputKey: arborKey(byId.get(clickCp.output)!),
-            advance: (a, b) => Math.max(0, clickCp.direction * (b - a)),
-          }
-        : null;
+  const clickCp = couplingOf(c, 'click');
+  const winderOf = (): Winder | null => {
+    if (oneWay) return { inputKey: oneWay.inputKey, outputKey: oneWay.outputKey, advance: (a, b) => accumulateWinding(0, a, b, oneWay.ratio) };
+    if (pawl) return { inputKey: pawl.inputKey, outputKey: pawl.outputKey, advance: (a, b) => pawlAdvance(pawl, a, b) };
+    if (clickCp) return { inputKey: key(clickCp.input), outputKey: key(clickCp.output), advance: (a, b) => Math.max(0, clickCp.direction * (b - a)) };
+    return null;
+  };
+  const winder = winderOf();
   const woundFactor = winder ? bfs(winder.outputKey) : new Map<string, number>();
   // The cannon side follows the center wheel through friction, so it is its own root: setting the hands moves it alone.
-  const slipCp = c.couplings.find((cp) => cp.type === 'slip');
-  const slip =
-    slipCp && slipCp.type === 'slip'
-      ? { aKey: arborKey(byId.get(slipCp.a)!), bKey: arborKey(byId.get(slipCp.b)!), bTeeth: toothCount(byId.get(slipCp.b)!.shape) ?? 1 }
-      : null;
+  const slipCp = couplingOf(c, 'slip');
+  const slip = slipCp ? { aKey: key(slipCp.a), bKey: key(slipCp.b), bTeeth: toothCount(byId.get(slipCp.b)!.shape) ?? 1 } : null;
   const cannonFactor = slip ? bfs(slip.bKey) : new Map<string, number>();
-  const keylessCp = c.couplings.find((cp) => cp.type === 'keyless');
-  const keyless =
-    keylessCp && keylessCp.type === 'keyless'
-      ? {
-          stemKey: arborKey(byId.get(keylessCp.stem)!),
-          slidingKey: arborKey(byId.get(keylessCp.slidingPinion)!),
-          windingKey: arborKey(byId.get(keylessCp.windingPinion)!),
-          settingKey: arborKey(byId.get(keylessCp.settingWheel)!),
-          slidingTeeth: toothCount(byId.get(keylessCp.slidingPinion)!.shape)!,
-          settingTeeth: toothCount(byId.get(keylessCp.settingWheel)!.shape)!,
-          pull: keylessCp.pull,
-        }
-      : null;
+  const keylessCp = couplingOf(c, 'keyless');
+  const keyless = keylessCp
+    ? {
+        stemKey: key(keylessCp.stem),
+        slidingKey: key(keylessCp.slidingPinion),
+        windingKey: key(keylessCp.windingPinion),
+        settingKey: key(keylessCp.settingWheel),
+        slidingTeeth: teeth(keylessCp.slidingPinion),
+        settingTeeth: teeth(keylessCp.settingWheel),
+        pull: keylessCp.pull,
+        slidingThrow: keylessCp.slidingThrow,
+      }
+    : null;
   const ratchetPart = c.parts.find((p) => p.shape.kind === 'ratchet');
   const ratchetFactor = ratchetPart ? (woundFactor.get(arborKey(ratchetPart)) ?? 0) : 0;
 
-  const balanceKey = arborKey(byId.get(esc.balance)!);
-  const forkKey = arborKey(byId.get(esc.fork)!);
+  const balanceKey = key(esc.balance);
+  const forkKey = key(esc.fork);
 
   const intermittents = c.couplings.flatMap((cp) =>
     cp.type === 'intermittent'
-      ? [{ driverKey: arborKey(byId.get(cp.driver)!), drivenKey: arborKey(byId.get(cp.driven)!), teeth: toothCount(byId.get(cp.driven)!.shape)!, day: cp.calendar === 'day' }]
+      ? [{ driverKey: key(cp.driver), drivenKey: key(cp.driven), teeth: teeth(cp.driven), day: cp.calendar === 'day' }]
       : [],
   );
 
-  const chronoCp = c.couplings.find((cp) => cp.type === 'chronograph');
-  const chrono = chronoCp && chronoCp.type === 'chronograph' ? chronograph(chronoCp) : null;
-  function chronograph(cp: Extract<Caliber['couplings'][number], { type: 'chronograph' }>) {
-    const teeth = (id: string) => toothCount(byId.get(id)!.shape)!;
+  const chronoCp = couplingOf(c, 'chronograph');
+  const chrono = chronoCp ? chronograph(chronoCp) : null;
+  function chronograph(cp: Extract<Coupling, { type: 'chronograph' }>) {
     const pinion = byId.get(cp.pinion)!;
     const runner = byId.get(cp.runner)!;
     const pinionKey = arborKey(pinion);
-    const hours = cp.hours ? { driverKey: arborKey(byId.get(cp.hours.driver)!), key: arborKey(byId.get(cp.hours.wheel)!), ratio: -teeth(cp.hours.driver) / teeth(cp.hours.wheel) } : null;
-    const minutes = cp.minutes ? { key: arborKey(byId.get(cp.minutes.wheel)!), teeth: teeth(cp.minutes.wheel) } : null;
+    const hours = cp.hours ? { driverKey: key(cp.hours.driver), key: key(cp.hours.wheel), ratio: -teeth(cp.hours.driver) / teeth(cp.hours.wheel) } : null;
+    const minutes = cp.minutes ? { key: key(cp.minutes.wheel), teeth: teeth(cp.minutes.wheel) } : null;
     // Out of mesh, the pinion stands `swing` further from the runner along the line between their centres.
     const d = Math.hypot(pinion.pos.x - runner.pos.x, pinion.pos.y - runner.pos.y);
     const away = { x: (pinion.pos.x - runner.pos.x) / d, y: (pinion.pos.y - runner.pos.y) / d };
@@ -190,7 +182,7 @@ export function buildSolver(c: Caliber): Solver {
       runner: { key: arborKey(runner), factor: bfs(arborKey(runner)) },
       minutes: minutes && { ...minutes, factor: bfs(minutes.key) },
       hours: hours && { key: hours.key, factor: bfs(hours.key) },
-      camKey: arborKey(byId.get(cp.cam)!),
+      camKey: key(cp.cam),
       camTeeth: teeth(cp.cam),
       hammers: cp.hammers.map((id) => ({ id, dir: { x: Math.cos(byId.get(id)!.rest ?? 0), y: Math.sin(byId.get(id)!.rest ?? 0) } })),
       stroke: cp.stroke,
@@ -254,7 +246,7 @@ export function buildSolver(c: Caliber): Solver {
       byKey.set(keyless.settingKey, -setRot * (keyless.slidingTeeth / keyless.settingTeeth));
       dx.set(keyless.stemKey, crownPos * keyless.pull);
       // At position 2 the sliding pinion moves inward onto the setting wheel.
-      dx.set(keyless.slidingKey, crownPos * keyless.pull + (crownPos === 2 ? -1.05 : 0));
+      dx.set(keyless.slidingKey, crownPos * keyless.pull + (crownPos === 2 ? -keyless.slidingThrow : 0));
     }
     const out = new Map<string, PartTransform>();
     for (const p of c.parts) {

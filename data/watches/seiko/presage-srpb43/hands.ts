@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { HandLayer } from '../../../../src/scene/exterior/contract';
-import { handHub, handShape, mirror, type P as P2 } from '../../../../src/scene/exterior/kit/hands';
+import { handHub, handPlate, handShape, mirror, type P as P2 } from '../../../../src/scene/exterior/kit/hands';
 import { P } from './params';
 
 // Turns every triangle to face the viewer (−Z): a roof of facets has no face that should point away.
@@ -21,7 +21,7 @@ function faceFront(g: THREE.BufferGeometry) {
 // A dauphine hand: a flat blade of `base` thickness under two facets that rise to a ridge along its axis. `half` is
 // its right edge (x ≥ 0) from tail to tip; the tip ends on the axis.
 function dauphine(half: P2[], base: number, ridge: number): THREE.BufferGeometry[] {
-  const blade = new THREE.ExtrudeGeometry(handShape(mirror(half)), { depth: base, bevelEnabled: false }).translate(0, 0, -base);
+  const blade = handPlate(mirror(half), base, 0);
   const tris: number[] = [];
   const top = -base;
   for (const side of [1, -1]) {
@@ -49,13 +49,13 @@ export function presageHands(dialRadius: number) {
   const L = P.lozenge;
   const c = L.at * dialRadius;
   const tail = P.secondsTail * dialRadius;
-  const needle = new THREE.ExtrudeGeometry(handShape([[-0.13, tail], [0.13, tail], [0.09, -sL + 0.2], [0, -sL], [-0.09, -sL + 0.2]]), { depth: 0.07, bevelEnabled: false }).translate(0, 0, -0.07);
+  const needle = handPlate([[-0.13, tail], [0.13, tail], [0.09, -sL + 0.2], [0, -sL], [-0.09, -sL + 0.2]], 0.07, 0);
   const lozenge = handShape([[0, c - L.along], [L.across, c], [0, c + L.along], [-L.across, c]]);
   const band = 0.16;
   lozenge.holes.push(handShape([[0, c - L.along + band * 1.8], [-(L.across - band), c], [0, c + L.along - band * 1.8], [L.across - band, c]]));
   const seconds: HandLayer[] = [
     { geometry: needle, material: 'blued' },
-    { geometry: new THREE.ExtrudeGeometry(lozenge, { depth: 0.07, bevelEnabled: false }).translate(0, 0, -0.07), material: 'blued' },
+    { geometry: handPlate(lozenge, 0.07, 0), material: 'blued' },
     { geometry: handHub(0.5, -0.1), material: 'blued' },
   ];
   return { hour, minute, seconds };
