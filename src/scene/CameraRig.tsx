@@ -50,6 +50,7 @@ export function CameraRig({ caliber, watchFront = false, subject }: { caliber: C
   const tween = useRef<Tween | null>(null);
   const rings = useMemo(() => ({ back: caseRing(subject, 'back'), dial: caseRing(subject, 'dial') }), [subject]);
   const frame = useRef<Frame | null>(null);
+  const reach = useRef({ x: 0, y: 0 });
   const applied = useRef({ w: 0, h: 0, dx: NaN, dy: NaN, scale: NaN });
 
   // Only a new shot (mode, step, side) starts a flight; resizes, scene or hook changes must never re-fly the camera.
@@ -114,12 +115,16 @@ export function CameraRig({ caliber, watchFront = false, subject }: { caliber: C
       const px = size.height / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
       tmp.copy(controls.target).applyMatrix4(camera.matrixWorldInverse);
       const tx = tmp.x / -tmp.z, ty = tmp.y / -tmp.z;
-      extent = { x: 0, y: 0 };
+      let x = 0, y = 0;
       for (const p of rings[sideOf()]) {
         tmp.copy(p).applyMatrix4(camera.matrixWorldInverse);
-        extent.x = Math.max(extent.x, Math.abs(tmp.x / -tmp.z - tx) * px);
-        extent.y = Math.max(extent.y, Math.abs(tmp.y / -tmp.z - ty) * px);
+        x = Math.max(x, Math.abs(tmp.x / -tmp.z - tx) * px);
+        y = Math.max(y, Math.abs(tmp.y / -tmp.z - ty) * px);
       }
+      // The sampled rim wobbles a little as the camera orbits; ignore that so the frame settles and stops updating.
+      const r = reach.current;
+      if (Math.abs(x - r.x) > r.x * 0.02 || Math.abs(y - r.y) > r.y * 0.02) Object.assign(r, { x, y });
+      extent = r;
     }
     const want = frameFor(size.width, size.height, occluders.insets(), extent);
     const f = frame.current ?? { ...want };
