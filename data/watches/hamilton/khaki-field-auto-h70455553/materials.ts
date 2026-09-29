@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { glass } from '../../../../src/scene/exterior/kit/glass';
+import { lumeMaterial } from '../../../../src/scene/lume';
 import { withPolish } from '../../../../src/scene/exterior/kit/polish';
 import { paintDial } from './dial';
 import { H } from './params';
@@ -18,7 +19,7 @@ export function hamiltonMaterials(): Record<string, () => THREE.Material> {
     // Opaque on purpose, so it never sorts against the crystal.
     dial: () => new THREE.MeshPhysicalMaterial({ map: paintDial(), metalness: 0.1, roughness: 0.5 }),
     // Separate from the movement lume so it fades with the dial; same colour so dial and hands match.
-    'dial-lume': () => new THREE.MeshPhysicalMaterial({ color: H.lume, roughness: 0.5, metalness: 0 }),
+    'dial-lume': () => lumeMaterial(H.lume),
     strap: () => new THREE.MeshPhysicalMaterial({ map: paintStrap(), roughness: 0.55, sheen: 0.4, sheenColor: new THREE.Color(0x8a5a40) }),
     'strap-edge': () => new THREE.MeshPhysicalMaterial({ color: 0x3f1f14, roughness: 0.5 }),
     'strap-lining': () => new THREE.MeshPhysicalMaterial({ color: H.liningColor, roughness: 0.8 }),
