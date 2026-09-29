@@ -18,13 +18,15 @@ export type Look = {
   shadowOpacity: number;
 };
 
+// Chosen from five candidates (lighting preset "C"): no fill in the reflections and a stronger key and rim, so steel
+// keeps deep blacks between its highlights instead of reading flat grey.
 export const LOOKS: Record<Theme, Look> = {
   dark: {
-    background: '#0b0b0d', exposure: 1, envIntensity: 1.1,
-    rimColor: '#bfd0ff', key: 1.1, keyColor: '#ffffff', rim: 0.4, shadowOpacity: 0.5,
+    background: '#0b0b0d', exposure: 1, envIntensity: 1.0,
+    rimColor: '#bfd0ff', key: 1.6, keyColor: '#ffffff', rim: 0.8, shadowOpacity: 0.5,
   },
   light: {
-    background: '#ecebe7', exposure: 1, envIntensity: 0.85,
-    rimColor: '#ffffff', key: 1.0, keyColor: '#ffffff', rim: 0.3, shadowOpacity: 0.22,
+    background: '#ecebe7', exposure: 1, envIntensity: 0.7,
+    rimColor: '#ffffff', key: 1.4, keyColor: '#ffffff', rim: 0.5, shadowOpacity: 0.22,
   },
 };

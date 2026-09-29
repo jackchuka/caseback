@@ -26,11 +26,13 @@ export async function startDev(base: string) {
 async function startThumb(base: string) {
   const [kind, ...rest] = location.pathname.slice(`${base}dev/thumb`.length).replace(/^\/+|\/+$/g, '').split('/');
   const id = rest.join('/');
-  const scale = Number(new URLSearchParams(location.search).get('scale') ?? 2);
+  const q = new URLSearchParams(location.search);
+  const scale = Number(q.get('scale') ?? 2);
+  const theme = q.get('theme') === 'light' ? 'light' : 'dark';
   const watch = kind === 'watches' ? watches[id] : undefined;
   const caliber = calibers[watch?.caliberId ?? id];
   // Free mode shows the automatic works with the rotor lifted off; paused holds the pose.
-  if (caliber) initAppStore(caliber, { mode: kind === 'calibers' ? 'free' : 'intro', stepIndex: 0, lang: 'en', theme: 'dark', quality: 'high', paused: true });
+  if (caliber) initAppStore(caliber, { mode: kind === 'calibers' ? 'free' : 'intro', stepIndex: 0, lang: 'en', theme, quality: 'high', paused: true });
   window.__thumbs = { watches: Object.keys(watches).sort(), calibers: Object.keys(calibers).sort() };
   document.body.style.background = 'transparent';
   const i18n = await createI18n('en');
