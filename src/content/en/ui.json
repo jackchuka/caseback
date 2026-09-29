@@ -104,5 +104,13 @@
   "notice": {
     "full": "An unofficial educational project. Not affiliated with, endorsed or sponsored by any watch brand or manufacturer shown; trademarks belong to their respective owners. The 3D models are approximate reconstructions from public information and photos, and do not accurately reproduce the real watches' shape, dimensions, specifications or design.",
     "short": "Unofficial and not affiliated with any brand. Models are approximate reconstructions."
+  },
+  "contribute": {
+    "title": "Contribute to Caseback",
+    "body": "Caseback is open source. Requesting a watch, or sending a source or correction for an estimated value, helps a lot — no code needed. Issues and PRs in English are welcome.",
+    "request": "Request a watch",
+    "correction": "Send a correction or source",
+    "guide": "Contributing guide",
+    "repo": "GitHub repository"
   }
 }

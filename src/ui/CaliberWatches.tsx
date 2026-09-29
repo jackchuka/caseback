@@ -5,6 +5,7 @@ import { useApp } from '../state/app';
 import { CatalogHeader } from './CatalogHeader';
 import { hrefCaliber } from './catalogLinks';
 import { useDisplayFont } from './displayFont';
+import { Contribute } from './Contribute';
 import { Notice } from './Notice';
 import { WatchCard } from './WatchCard';
 
@@ -31,6 +32,7 @@ export function CaliberWatches({ caliberId }: { caliberId: string }) {
         </ul>
       </section>
       <footer className="catalog-footer">
+        <Contribute />
         <Notice />
       </footer>
     </main>

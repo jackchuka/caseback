@@ -8,6 +8,7 @@ import { CatalogHeader } from './CatalogHeader';
 import { CatalogImage } from './CatalogImage';
 import { hrefCaliber, hrefCaliberWatches, hrefWatch } from './catalogLinks';
 import { useDisplayFont } from './displayFont';
+import { Contribute } from './Contribute';
 import { Notice } from './Notice';
 import { WatchCard } from './WatchCard';
 
@@ -71,6 +72,7 @@ export function Home() {
         </ul>
       </section>
       <footer className="catalog-footer">
+        <Contribute />
         <Notice />
       </footer>
     </main>

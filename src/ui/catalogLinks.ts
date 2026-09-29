@@ -6,3 +6,5 @@ export const hrefHome = (lang: Lang) => `${base}?lang=${lang}`;
 export const hrefCaliber = (id: string, lang: Lang) => `${base}calibers/${id}?lang=${lang}`;
 export const hrefCaliberWatches = (id: string, lang: Lang) => `${base}calibers/${id}/watches?lang=${lang}`;
 export const hrefWatch = (id: string, lang: Lang) => `${base}watches/${id}?lang=${lang}`;
+
+export const REPO_URL = 'https://github.com/jackchuka/caseback';
