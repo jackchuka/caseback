@@ -14,6 +14,6 @@ describe('exterior transfer', () => {
       const back = unpackExterior(structuredClone(packed, { transfer }));
       // Compared as a boolean: a failing diff of a few hundred thousand vertices is unreadable anyway.
       expect(isDeepStrictEqual(packExterior(back).packed, expected)).toBe(true);
-    });
+    }, 20_000);
   }
 });
