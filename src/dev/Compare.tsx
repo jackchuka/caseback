@@ -23,7 +23,7 @@ declare global {
   }
 }
 
-function Rig({ cam, width, height }: { cam: ShotCamera; width: number; height: number }) {
+export function Rig({ cam, width, height }: { cam: ShotCamera; width: number; height: number }) {
   const camera = useThree((s) => s.camera) as THREE.OrthographicCamera;
   useLayoutEffect(() => {
     const [x, y] = cameraOffset(cam, width, height);

@@ -365,6 +365,40 @@ test('home lists calibers and watches and searches', async ({ page }) => {
   await expect(page.locator('.intro .eyebrow')).toContainText('Sinn 556');
 });
 
+test('home shows a counted caliber card per movement and every card has a loaded image @quick', async ({ page }) => {
+  await page.goto('/?lang=en');
+  await expect(page.locator('.home .caliber')).toHaveCount(3);
+  await expect(page.locator('.home .caliber', { hasText: 'ETA 2824-2' }).locator('.count')).toHaveText('4 watches →');
+  await expect(page.locator('.home .caliber', { hasText: 'Valjoux 7750' }).locator('.count')).toHaveText('1 watch →');
+  await expect(page.locator('#watches .shelf-head .sub')).toHaveText('6 watches');
+  const images = page.locator('.home .caliber img, .home .watch img, .home .hero img');
+  await expect(images).toHaveCount(3 + 6 + 1);
+  for (const img of await images.all()) {
+    // The hero drifts forever, so Playwright's stable-element scrolling would never settle.
+    await img.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+  }
+  await expect(page.locator('.home .thumb-fallback')).toHaveCount(0);
+});
+
+test('the home page loads no WebGL and none of the viewer code @quick', async ({ page }) => {
+  const scripts: string[] = [];
+  page.on('request', (r) => r.resourceType() === 'script' && scripts.push(r.url()));
+  await page.goto('/?lang=ja');
+  await expect(page.locator('.home .watch')).toHaveCount(6);
+  expect(await page.locator('canvas').count()).toBe(0);
+  expect(scripts.filter((u) => /viewer|worker/.test(u))).toEqual([]);
+});
+
+test('a card whose thumbnail fails to load falls back to its name', async ({ page }) => {
+  await page.route('**/thumbs/watches/sinn/**', (r) => r.fulfill({ status: 404 }));
+  await page.goto('/?lang=en');
+  const card = page.locator('.home .watch', { hasText: '556' });
+  await card.scrollIntoViewIfNeeded();
+  await expect(card.locator('.thumb-fallback')).toHaveText('Sinn');
+  await expect(card.locator('img')).toHaveCount(0);
+});
+
 test('caliber watch list', async ({ page }) => {
   await page.goto('/calibers/eta-2824-2/watches?lang=ja');
   await expect(page.locator('.caliber-watches .watch')).toHaveCount(4);

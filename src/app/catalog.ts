@@ -1,7 +1,7 @@
 import type { Caliber } from '../model/schema';
-import type { Watch } from '../model/watch';
+import type { WatchMeta } from '../model/watch';
 
-export function searchCatalog(q: string, calibers: Caliber[], watches: Watch[]) {
+export function searchCatalog<W extends WatchMeta>(q: string, calibers: Caliber[], watches: W[]) {
   const needle = q.trim().toLowerCase();
   const hit = (...fields: string[]) => needle === '' || fields.some((f) => f.toLowerCase().includes(needle));
   const nameOf = (id: string) => calibers.find((c) => c.id === id)?.name ?? id;

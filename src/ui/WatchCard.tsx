@@ -1,25 +1,23 @@
-import { useTranslation } from 'react-i18next';
 import { calibers } from '../../data/calibers';
-import type { Watch } from '../model/watch';
+import type { WatchMeta } from '../model/watch';
 import { useApp } from '../state/app';
-import { hrefCaliber, hrefWatch } from './catalogLinks';
+import { CatalogImage } from './CatalogImage';
+import { hrefWatch } from './catalogLinks';
 
-export function WatchCard({ watch }: { watch: Watch }) {
-  const { t } = useTranslation();
+export function WatchCard({ watch }: { watch: WatchMeta }) {
   const lang = useApp((s) => s.lang);
   const caliber = calibers[watch.caliberId]!;
   return (
-    <li className="watch glass">
-      <div className="kicker">{watch.brand}</div>
-      <h3>
-        <a href={hrefWatch(watch.id, lang)}>{watch.model}</a>
-      </h3>
-      <div className="sub">
-        {watch.reference} · <a href={hrefCaliber(caliber.id, lang)}>{caliber.name}</a>
-      </div>
-      <p>{t(`watches:${watch.id}.summary`)}</p>
-      <a className="cta" href={hrefWatch(watch.id, lang)}>
-        {t('ui:home.openTour')} →
+    <li className="watch">
+      <a href={hrefWatch(watch.id, lang)}>
+        <CatalogImage thumb={`watches/${watch.id}`} sizes="(max-width: 760px) 92vw, (max-width: 1100px) 46vw, 370px" fallback={watch.brand} />
+        <div className="meta">
+          <span className="kicker">{watch.brand}</span>
+          <h3>{watch.model}</h3>
+          <span className="sub">
+            {watch.reference} · {caliber.name}
+          </span>
+        </div>
       </a>
     </li>
   );

@@ -75,15 +75,20 @@
     "pusherReset": "4 o'clock pusher"
   },
   "home": {
-    "title": "Look inside mechanical movements",
+    "headline": "Mechanical movements,\nseen through the caseback.",
+    "lede": "{{watches}} watches and {{calibers}} calibers, rebuilt in 3D at their real dimensions. Set the gears turning and see how they mesh.",
+    "choose": "Choose a watch",
     "search": "Search brand, model or caliber",
     "calibers": "Calibers",
     "watches": "Watches",
     "watchesWith": "Watches with the {{name}}",
     "openTour": "Look inside",
-    "watchCount": "{{count}} watches",
     "home": "Home",
-    "caliberSpecs": "{{d}} mm · {{j}} jewels · {{v}} vph"
+    "caliberSpecs": "{{d}} mm · {{j}} jewels · {{v}} vph",
+    "watchCount_one": "{{count}} watch",
+    "watchCount_other": "{{count}} watches",
+    "watchTotal_one": "{{count}} watch",
+    "watchTotal_other": "{{count}} watches"
   },
   "notice": {
     "full": "An unofficial educational project. Not affiliated with, endorsed or sponsored by any watch brand or manufacturer shown; trademarks belong to their respective owners. The 3D models are approximate reconstructions from public information and photos, and do not accurately reproduce the real watches' shape, dimensions, specifications or design.",

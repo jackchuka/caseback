@@ -87,11 +87,19 @@ reference/<brand>/<model>/         参考写真（gitignore。リポジトリに
    - ずれた量（px × `mmPerPx`）だけ `params.ts` を直し、`est` のタグを `photo:<ショットid>` に書き換える。
    - 形そのものが違う場合は、部品のコードを直して、その形をテストで固定する。
 7. **説明文**: `src/content/en/watches.json` と `src/content/ja/watches.json` に `<id>.summary` を追加する。
-8. **e2e**: `e2e/tour.spec.ts` を更新する。
+8. **サムネイル**: ホームのカード画像を書き出す。
+   ```
+   npm run thumbs -- <brand>/<model>
+   # → public/thumbs/watches/<brand>/<model>{,-480}.webp と src/ui/thumbs.json
+   ```
+   - 引数を省くと、すべての時計とキャリバーを撮り直す（開発サーバーを自分で立てる。ポートは `THUMBS_PORT`、既定 5175）。
+   - 照明、素材、形を変えたときも、引数なしで撮り直してコミットする。画像は 960 px で 60 kB 以内に収まるよう、画質を自動で下げる。
+   - 新しいキャリバーは `npm run thumbs -- <caliber-id>` で撮る。
+9. **e2e**: `e2e/tour.spec.ts` を更新する。
    - ホームの時計の数と、キャリバーごとの時計の数を合わせる。
    - 新しい時計を `@quick` の「文字盤が開く」ループに加える。
    - 裏蓋がガラスなら、その確認にも加える。
-9. **確認**:
+10. **確認**:
    ```
    npm run typecheck
    npm test
@@ -108,3 +116,4 @@ reference/<brand>/<model>/         参考写真（gitignore。リポジトリに
 - 本文は `src/content/{en,ja}/<caliber-id>.json` に書く。
 - `caliber.exterior`（`frontZ`、`secondsZ`）を設定する。
 - 運動学のテストを書く。比、巻き上げ、日付を確かめる。
+- `npm run thumbs -- <caliber-id>` でホームのカード画像を書き出す。
