@@ -9,8 +9,6 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
-    reviewers:
-      - "jackchuka"
     labels:
       - "dependencies"
       - "javascript"
@@ -38,8 +36,6 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
-    reviewers:
-      - "jackchuka"
     labels:
       - "dependencies"
       - "github-actions"
